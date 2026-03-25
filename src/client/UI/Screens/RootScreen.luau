@@ -127,9 +127,10 @@ function RootScreen.new(context)
 	local shopLabel = Panel.createLabel(shop.body, "Loading shop rotation...", palette, 1)
 	local buyStarter = Panel.createButton(shop.body, "Buy Starter Geode", palette, 2)
 
-	local geode = Panel.createCard(scroll, "Geode Queue", palette, 3)
+	local geode = Panel.createCard(scroll, "Geode Inventory", palette, 3)
 	local geodeLabel = Panel.createLabel(geode.body, "Waiting for geode data...", palette, 1)
-	local claimReadyGeodes = Panel.createButton(geode.body, "Claim Ready Geodes", palette, 2)
+	local placeGeode = Panel.createButton(geode.body, "Place Next Geode", palette, 2)
+	local openReadyGeodes = Panel.createButton(geode.body, "Open Ready Geode", palette, 3)
 
 	local daily = Panel.createCard(scroll, "Daily Rewards", palette, 4)
 	local dailyLabel = Panel.createLabel(daily.body, "Waiting for daily reward data...", palette, 1)
@@ -192,14 +193,16 @@ function RootScreen.new(context)
 		},
 		buttons = {
 			buyStarter = buyStarter,
-			claimReadyGeodes = claimReadyGeodes,
+			placeGeode = placeGeode,
+			openReadyGeodes = openReadyGeodes,
 			claimDaily = claimDaily,
 			claimOffline = claimOffline,
 			placeStarterStation = placeStarterStation,
 		},
 		buttonColors = {
 			buyStarter = buyStarter.BackgroundColor3,
-			claimReadyGeodes = claimReadyGeodes.BackgroundColor3,
+			placeGeode = placeGeode.BackgroundColor3,
+			openReadyGeodes = openReadyGeodes.BackgroundColor3,
 			claimDaily = claimDaily.BackgroundColor3,
 			claimOffline = claimOffline.BackgroundColor3,
 			placeStarterStation = placeStarterStation.BackgroundColor3,
@@ -221,7 +224,8 @@ function RootScreen.new(context)
 		setOpen(true)
 	end)
 
-	self:setClaimReadyGeodesButton(false, "Claim Ready Geodes")
+	self:setPlaceGeodeButton(false, "Place Next Geode")
+	self:setOpenReadyGeodeButton(false, "Open Ready Geode")
 	self:setOfflineButtonState(false, "Claim Offline Cache")
 	self:setPlaceStarterStationButton(true, "Place Starter Station")
 	return self
@@ -243,11 +247,18 @@ function RootScreen:setGeodeText(text)
 	self.labels.geode.Text = text
 end
 
-function RootScreen:setClaimReadyGeodesButton(enabled, text)
-	self.buttons.claimReadyGeodes.Active = enabled
-	self.buttons.claimReadyGeodes.AutoButtonColor = enabled
-	self.buttons.claimReadyGeodes.Text = text
-	self.buttons.claimReadyGeodes.BackgroundColor3 = if enabled then self.buttonColors.claimReadyGeodes else Color3.fromRGB(120, 120, 120)
+function RootScreen:setPlaceGeodeButton(enabled, text)
+	self.buttons.placeGeode.Active = enabled
+	self.buttons.placeGeode.AutoButtonColor = enabled
+	self.buttons.placeGeode.Text = text
+	self.buttons.placeGeode.BackgroundColor3 = if enabled then self.buttonColors.placeGeode else Color3.fromRGB(120, 120, 120)
+end
+
+function RootScreen:setOpenReadyGeodeButton(enabled, text)
+	self.buttons.openReadyGeodes.Active = enabled
+	self.buttons.openReadyGeodes.AutoButtonColor = enabled
+	self.buttons.openReadyGeodes.Text = text
+	self.buttons.openReadyGeodes.BackgroundColor3 = if enabled then self.buttonColors.openReadyGeodes else Color3.fromRGB(120, 120, 120)
 end
 
 function RootScreen:setDailyText(text)

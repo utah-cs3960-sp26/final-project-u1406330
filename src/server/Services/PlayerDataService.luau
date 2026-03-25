@@ -91,6 +91,12 @@ function PlayerDataService:onPlayerAdded(player)
 				end
 			end
 
+			for _, geodeInstance in pairs(profile.geodesById) do
+				if geodeInstance.placement ~= nil then
+					geodeInstance.placement.plotId = plotId
+				end
+			end
+
 			profile.plotState.plotId = plotId
 		end
 	end
@@ -160,6 +166,7 @@ function PlayerDataService:getPublicState(userId, nowUnix)
 
 		if services.geodeQueue ~= nil then
 			geodeQueueState = services.geodeQueue:getQueueState(profile, currentUnix)
+			publicProfile.geodeQueue = TableUtil.deepCopy(geodeQueueState.entries)
 		end
 	end
 

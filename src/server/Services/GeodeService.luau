@@ -6,6 +6,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Resources = require(Shared.Config.Resources)
 local Geodes = require(Shared.Config.Geodes)
 local Traits = require(Shared.Config.Traits)
+local GeodeState = require(Shared.Domain.GeodeState)
 local GeodeRoller = require(Shared.Domain.GeodeRoller)
 local TraitRoller = require(Shared.Domain.TraitRoller)
 local Id = require(Shared.Util.Id)
@@ -65,28 +66,39 @@ local function spendCurrency(profile, currency, amount)
 	return false, "unsupported_currency"
 end
 
+local function adjustInventoryCount(profile, geodeId, delta)
+	local inventory = profile.inventory
+	local currentCount = inventory.geodes[geodeId] or 0
+	local nextCount = math.max(0, currentCount + delta)
+	inventory.geodes[geodeId] = nextCount
+	return nextCount
+end
+
 function GeodeService.new(dependencies)
 	return setmetatable({
 		dependencies = dependencies or {},
 	}, GeodeService)
 end
 
-function GeodeService:createGeodeEntry(profile, geodeId, nowUnix)
+function GeodeService:getDefinition(geodeId)
+	return Geodes[geodeId]
+end
+
+function GeodeService:adjustInventoryCount(profile, geodeId, delta)
+	return adjustInventoryCount(profile, geodeId, delta)
+end
+
+function GeodeService:createGeodeInstance(profile, geodeId, nowUnix)
 	local geodeDefinition = Geodes[geodeId]
 	if geodeDefinition == nil then
 		return nil, "unknown_geode"
 	end
 
-	local entry = {
-		id = Id.new("geode"),
-		geodeId = geodeId,
-		startedAt = nowUnix,
-		endsAt = nowUnix + geodeDefinition.geodeSeconds,
-		status = "queued",
-	}
-
-	table.insert(profile.geodeQueue, entry)
-	return entry
+	local geodeInstance = GeodeState.createInstance(Id.new("geode"), geodeId, nowUnix, geodeDefinition.geodeSeconds)
+	profile.geodesById[geodeInstance.id] = geodeInstance
+	table.insert(profile.geodeOrder, geodeInstance.id)
+	adjustInventoryCount(profile, geodeId, 1)
+	return geodeInstance
 end
 
 function GeodeService:buyGeode(userId, geodeId, nowUnix, rng)
@@ -123,16 +135,82 @@ function GeodeService:buyGeode(userId, geodeId, nowUnix, rng)
 			return nil, spendError
 		end
 
-		local geodeEntry, geodeError = self:createGeodeEntry(currentProfile, geodeId, nowUnix)
-		if geodeEntry == nil then
+		local geodeInstance, geodeError = self:createGeodeInstance(currentProfile, geodeId, nowUnix)
+		if geodeInstance == nil then
 			return nil, geodeError
 		end
 
 		result = {
 			offer = offer,
-			geodeEntry = geodeEntry,
+			geodeEntry = GeodeState.toQueueEntry(geodeInstance, nowUnix),
+			geodeInstance = geodeInstance,
+			inventoryCount = currentProfile.inventory.geodes[geodeId] or 0,
 		}
 
+		return result
+	end)
+
+	if result ~= nil then
+		playerData:notifyProfileChanged(userId)
+	end
+
+	if result == nil and mutateError ~= nil then
+		return nil, mutateError
+	end
+
+	return result
+end
+
+function GeodeService:placeGeode(userId, geodeInstanceId, x, y)
+	local playerData = self.dependencies.playerData
+	local placementService = self.dependencies.placementService
+	if placementService == nil then
+		return nil, "placement_unavailable"
+	end
+
+	local result
+	local _, mutateError = playerData:mutateProfile(userId, function(currentProfile)
+		local geodeInstance = currentProfile.geodesById[geodeInstanceId]
+		if geodeInstance == nil then
+			return nil, "unknown_geode_instance"
+		end
+
+		local placedGeode, placementOrReason = placementService:placeGeode(currentProfile, geodeInstance, x, y)
+		if placedGeode == nil or placementOrReason == nil then
+			return nil, placementOrReason or "geode_placement_failed"
+		end
+
+		adjustInventoryCount(currentProfile, geodeInstance.geodeTypeId, -1)
+
+		result = {
+			geodeInstance = placedGeode,
+			placement = placementOrReason,
+		}
+
+		return result
+	end)
+
+	if result ~= nil then
+		playerData:notifyProfileChanged(userId)
+	end
+
+	if result == nil and mutateError ~= nil then
+		return nil, mutateError
+	end
+
+	return result
+end
+
+function GeodeService:openGeode(userId, geodeInstanceId, nowUnix, rng, playerName)
+	local playerData = self.dependencies.playerData
+	local geodeQueueService = self.dependencies.geodeQueueService
+	if geodeQueueService == nil then
+		return nil, "open_unavailable"
+	end
+
+	local result
+	local _, mutateError = playerData:mutateProfile(userId, function(currentProfile)
+		result = geodeQueueService:openGeode(currentProfile, nowUnix, rng, geodeInstanceId, playerName)
 		return result
 	end)
 

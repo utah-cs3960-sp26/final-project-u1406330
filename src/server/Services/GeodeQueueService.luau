@@ -3,6 +3,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
+local GeodeState = require(Shared.Domain.GeodeState)
 local Resources = require(Shared.Config.Resources)
 local Traits = require(Shared.Config.Traits)
 
@@ -19,20 +20,28 @@ function GeodeQueueService:timeRemaining(entry, nowUnix)
 	return math.max(0, entry.endsAt - nowUnix)
 end
 
-function GeodeQueueService:getClaimableEntries(profile, nowUnix, geodeId)
-	local claimable = {}
+function GeodeQueueService:syncQueueCache(profile, nowUnix)
+	GeodeState.refreshStatuses(profile.geodesById, profile.geodeOrder, nowUnix)
+	profile.geodeQueue = GeodeState.buildQueueEntries(profile.geodesById, profile.geodeOrder, nowUnix)
+	return profile.geodeQueue
+end
 
-	for _, entry in ipairs(profile.geodeQueue) do
-		local isFinished = entry.status == "finished" or (entry.status == "queued" and entry.endsAt <= nowUnix)
-		if isFinished then
-			entry.status = "finished"
-			if geodeId == nil or entry.id == geodeId then
-				table.insert(claimable, entry)
-			end
+function GeodeQueueService:getClaimableEntries(profile, nowUnix, geodeId)
+	self:syncQueueCache(profile, nowUnix)
+
+	local claimable = {}
+	for _, geodeInstanceId in ipairs(GeodeState.getClaimableIds(profile, nowUnix, geodeId)) do
+		local geodeInstance = profile.geodesById[geodeInstanceId]
+		if geodeInstance ~= nil then
+			table.insert(claimable, GeodeState.toQueueEntry(geodeInstance, nowUnix))
 		end
 	end
 
 	return claimable
+end
+
+function GeodeQueueService:openGeode(profile, nowUnix, rng, geodeId, playerName)
+	return self:claimEntries(profile, nowUnix, rng, geodeId, playerName)
 end
 
 local function shouldAnnounceResource(resource)
@@ -63,12 +72,13 @@ local function getTraitLabel(traitId)
 end
 
 function GeodeQueueService:getQueueState(profile, nowUnix)
+	local queueEntries = self:syncQueueCache(profile, nowUnix)
 	local queuedCount = 0
 	local finishedCount = 0
 	local nextReadyUnix = nil
 	local entries = {}
 
-	for _, entry in ipairs(profile.geodeQueue) do
+	for _, entry in ipairs(queueEntries) do
 		local remaining = self:timeRemaining(entry, nowUnix)
 		local entryState = {
 			id = entry.id,
@@ -76,6 +86,7 @@ function GeodeQueueService:getQueueState(profile, nowUnix)
 			status = entry.status,
 			remainingSeconds = remaining,
 			endsAt = entry.endsAt,
+			isPlaced = profile.geodesById[entry.id] ~= nil and profile.geodesById[entry.id].placement ~= nil,
 		}
 
 		table.insert(entries, entryState)
@@ -107,24 +118,26 @@ function GeodeQueueService:claimEntries(profile, nowUnix, rng, geodeId, playerNa
 	end
 
 	local geodeService = self.dependencies.geodeService
+	local placementService = self.dependencies.placementService
 	local rareAnnouncementService = self.dependencies.rareAnnouncementService
+	if geodeService == nil then
+		return nil, "open_unavailable"
+	end
 	local createdResources = {}
 	local createdResourceIds = {}
-	local claimableIds = {}
-
 	for _, entry in ipairs(claimableEntries) do
-		claimableIds[entry.id] = true
-	end
-
-	local remainingEntries = {}
-	for _, entry in ipairs(profile.geodeQueue) do
-		if claimableIds[entry.id] then
-			local resource, errorCode = geodeService:createResourceInstance(entry.geodeId, nowUnix, rng)
+		local geodeInstance = profile.geodesById[entry.id]
+		if geodeInstance ~= nil then
+			local resource, errorCode = geodeService:createResourceInstance(geodeInstance.geodeTypeId, nowUnix, rng)
 			if resource ~= nil then
 				profile.resourcesById[resource.id] = resource
 				table.insert(profile.resourceOrder, resource.id)
 				table.insert(createdResources, resource)
 				table.insert(createdResourceIds, resource.id)
+				if placementService ~= nil then
+					placementService:removeObjectByObjectId(profile, "geode", geodeInstance.id)
+				end
+				GeodeState.removeGeode(profile.geodesById, profile.geodeOrder, geodeInstance.id)
 				if rareAnnouncementService ~= nil and shouldAnnounceResource(resource) then
 					local resourceDefinition = Resources[resource.resourceTypeId]
 					rareAnnouncementService:announce(
@@ -134,11 +147,8 @@ function GeodeQueueService:claimEntries(profile, nowUnix, rng, geodeId, playerNa
 					)
 				end
 			else
-				warn("[GemFactory] Failed to resolve geode", entry.geodeId, errorCode)
-				table.insert(remainingEntries, entry)
+				warn("[GemFactory] Failed to resolve geode", geodeInstance.geodeTypeId, errorCode)
 			end
-		else
-			table.insert(remainingEntries, entry)
 		end
 	end
 
@@ -148,7 +158,7 @@ function GeodeQueueService:claimEntries(profile, nowUnix, rng, geodeId, playerNa
 		autoAssignment = stationService:autoAssignResources(profile, createdResourceIds)
 	end
 
-	profile.geodeQueue = remainingEntries
+	self:syncQueueCache(profile, nowUnix)
 
 	return {
 		claimedEntries = claimableEntries,

@@ -2,6 +2,9 @@
 
 local RemoteNames = {
 	RequestBuyGeode = "RequestBuyGeode",
+	RequestPlaceGeode = "RequestPlaceGeode",
+	RequestCrackGeode = "RequestCrackGeode",
+	RequestOpenGeode = "RequestCrackGeode",
 	RequestClaimFinishedGeode = "RequestClaimFinishedGeode",
 	RequestPlaceStation = "RequestPlaceStation",
 	RequestMovePlacedObject = "RequestMovePlacedObject",

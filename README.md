@@ -36,10 +36,11 @@ src/
 ## Current Slice
 
 - The client requests initial state on startup when the server exposes the remotes.
-- The HUD shows currency, passive income, geode queue status, daily reward status, hourly shop info, plot info, and announcements.
-- Buttons are wired for starter geode purchase, ready geode claiming, starter station placement, daily reward claiming, and offline reward claiming.
+- The HUD shows currency, passive income, geode inventory status, daily reward status, hourly shop info, plot info, and announcements.
+- Buttons are wired for starter geode purchase, manual geode placement, ready geode cracking, starter station placement, daily reward claiming, and offline reward claiming.
 - Placing the starter station uses deterministic first-fit placement when the client does not provide coordinates.
-- Claiming geodes now auto-slots newly revealed resources into available placed stations so passive income can start immediately.
+- Bought geodes now become owned inventory entries that stay stored until the player places them on their plot, then crack in-world and can be opened once ready.
+- Opening a finished geode removes it from the plot, grants the revealed resource, and auto-slots newly revealed resources into available placed stations so passive income can start immediately.
 - Passive income accrues online and offline, and the world replica shows simple displayed resources on placed stations.
 - The map now uses a shared central cavern floor with 8 larger player plots per server, low-profile plot markers, and deterministic rock-spike variations for display flavor.
 - If the server endpoints are not yet wired, the client falls back to a local preview state so the UI still loads.
@@ -51,7 +52,7 @@ src/
 - The shared domain modules now contain deterministic economy, rotation, placement, station-assignment, and geode-resolution math.
 - Player profile creation, reconciliation, mock loading/saving, plot assignment, and offline summary generation are wired into server startup.
 - The current world direction is a single shared cavern map sized for 8 players, with larger plots and lighter environmental boundaries so builds can breathe.
-- The client slice is intentionally minimal, but it is now functional enough to complete the first loop in Studio: buy a geode, wait, claim it, place the starter station, and watch passive income begin.
+- The client slice is intentionally minimal, but it is now functional enough to complete the first loop in Studio: buy a geode, place it on the plot, wait for it to finish, open it, place the starter station, and watch passive income begin.
 
 ## Verification
 
@@ -62,11 +63,12 @@ src/
 ## Current MVP Loop
 
 1. Buy a starter geode from the HUD.
-2. Wait for the geode timer to finish.
-3. Claim ready geodes from the HUD.
-4. Place the starter station on the player plot.
-5. Let revealed resources auto-slot into the placed station.
-6. Watch passive income begin ticking online.
+2. Place that geode onto your plot from inventory.
+3. Wait for the geode timer to finish.
+4. Click the finished geode in the world to crack it open.
+5. Place the starter station on the player plot.
+6. Let revealed resources auto-slot into the placed station.
+7. Watch passive income begin ticking online.
 
 ## Theme Direction
 

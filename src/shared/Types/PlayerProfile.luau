@@ -2,11 +2,14 @@
 
 local ResourceTypes = require(script.Parent.ResourceTypes)
 local StationTypes = require(script.Parent.StationTypes)
+local GeodeTypes = require(script.Parent.GeodeTypes)
+local GeodeState = require(script.Parent.Parent.Domain.GeodeState)
 local TableUtil = require(script.Parent.Parent.Util.TableUtil)
 
 export type ResourceInstance = ResourceTypes.ResourceInstance
 export type StationInstance = StationTypes.StationInstance
 export type PlacementRecord = StationTypes.PlacementRecord
+export type GeodeInstance = GeodeTypes.GeodeInstance
 
 export type OfflineRewardSummary = {
 	coins: number,
@@ -31,6 +34,8 @@ export type PlayerProfile = {
 	},
 	resourcesById: { [string]: ResourceInstance },
 	resourceOrder: { string },
+	geodesById: { [string]: GeodeInstance },
+	geodeOrder: { string },
 	stationsById: { [string]: StationInstance },
 	placedObjects: { [string]: PlacementRecord },
 	inventory: {
@@ -66,7 +71,7 @@ export type PlayerProfile = {
 }
 
 local PlayerProfile = {}
-PlayerProfile.SCHEMA_VERSION = 1
+PlayerProfile.SCHEMA_VERSION = 2
 
 local function createTemplate(nowUnix: number): PlayerProfile
 	return {
@@ -77,6 +82,8 @@ local function createTemplate(nowUnix: number): PlayerProfile
 		},
 		resourcesById = {},
 		resourceOrder = {},
+		geodesById = {},
+		geodeOrder = {},
 		stationsById = {},
 		placedObjects = {},
 		inventory = {
@@ -120,6 +127,8 @@ end
 function PlayerProfile.reconcile(profile: any, nowUnix: number?): PlayerProfile
 	local timestamp = nowUnix or 0
 	local resolved = TableUtil.reconcile(createTemplate(timestamp), profile)
+	GeodeState.migrateLegacyQueue(resolved)
+	resolved.geodeQueue = GeodeState.buildQueueEntries(resolved.geodesById, resolved.geodeOrder, timestamp)
 	resolved.meta.schemaVersion = PlayerProfile.SCHEMA_VERSION
 	resolved.meta.lastLoadedAt = timestamp
 	return resolved

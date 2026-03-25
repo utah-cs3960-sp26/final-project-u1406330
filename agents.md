@@ -21,3 +21,5 @@ Build a small playground or debugging harness around the simulation so that the 
 Set up reproducible experiments for tricky cases. If you find or suspect a bug, create a deterministic way to replay that exact scenario again instead of relying on manual timing or luck. Seed randomness where needed, and make initial conditions configurable.
 
 the design requirements/philosophy can be found in gem_factory_design.md
+
+Please update current_state.md with the current state of the project after every implementation

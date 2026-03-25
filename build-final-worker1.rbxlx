@@ -72,6 +72,11 @@ local Geodes = {
 		id = "starter_geode",
 		displayName = "Starter Geode",
 		geodeSeconds = 10,
+		gridSize = {
+			width = 2,
+			height = 2,
+		},
+		displayColor = Color3.fromRGB(124, 129, 150),
 		rolls = {
 			{ resourceId = "quartz", weight = 70 },
 			{ resourceId = "amethyst", weight = 25 },
@@ -82,6 +87,11 @@ local Geodes = {
 		id = "crystal_cavern_geode",
 		displayName = "Crystal Cavern Geode",
 		geodeSeconds = 20,
+		gridSize = {
+			width = 2,
+			height = 2,
+		},
+		displayColor = Color3.fromRGB(92, 112, 150),
 		rolls = {
 			{ resourceId = "quartz", weight = 45 },
 			{ resourceId = "amethyst", weight = 32 },
@@ -93,6 +103,11 @@ local Geodes = {
 		id = "moonlit_geode",
 		displayName = "Moonlit Geode",
 		geodeSeconds = 30,
+		gridSize = {
+			width = 2,
+			height = 2,
+		},
+		displayColor = Color3.fromRGB(128, 116, 162),
 		rolls = {
 			{ resourceId = "amethyst", weight = 35 },
 			{ resourceId = "emerald_cluster", weight = 40 },
@@ -410,6 +425,153 @@ return GeodeRoller
         </Item>
         <Item class="ModuleScript" referent="15">
           <Properties>
+            <string name="Name">GeodeState</string>
+            <string name="Source"><![CDATA[--!strict
+
+local GeodeState = {}
+
+export type GeodeInstance = {
+	id: string,
+	geodeTypeId: string,
+	status: string,
+	startedAt: number,
+	endsAt: number,
+	obtainedAt: number,
+	placement: {
+		plotId: string?,
+		x: number,
+		y: number,
+		width: number,
+		height: number,
+	}?,
+}
+
+export type GeodeQueueEntry = {
+	id: string,
+	geodeId: string,
+	startedAt: number,
+	endsAt: number,
+	status: string,
+}
+
+local function resolveStatus(instance: GeodeInstance, nowUnix: number?)
+	local status = instance.status or "queued"
+	if status == "claimed" then
+		return status
+	end
+
+	if nowUnix ~= nil and (instance.endsAt or nowUnix) <= nowUnix then
+		return "finished"
+	end
+
+	if status == "finished" and nowUnix ~= nil and instance.endsAt > nowUnix then
+		return "queued"
+	end
+
+	return status
+end
+
+function GeodeState.createInstance(id: string, geodeTypeId: string, nowUnix: number, geodeSeconds: number): GeodeInstance
+	return {
+		id = id,
+		geodeTypeId = geodeTypeId,
+		status = "queued",
+		startedAt = nowUnix,
+		endsAt = nowUnix + geodeSeconds,
+		obtainedAt = nowUnix,
+		placement = nil,
+	}
+end
+
+function GeodeState.refreshStatuses(geodesById: { [string]: GeodeInstance }, geodeOrder: { string }, nowUnix: number)
+	for _, geodeInstanceId in ipairs(geodeOrder) do
+		local instance = geodesById[geodeInstanceId]
+		if instance ~= nil then
+			instance.status = resolveStatus(instance, nowUnix)
+		end
+	end
+end
+
+function GeodeState.toQueueEntry(instance: GeodeInstance, nowUnix: number?): GeodeQueueEntry
+	return {
+		id = instance.id,
+		geodeId = instance.geodeTypeId,
+		startedAt = instance.startedAt,
+		endsAt = instance.endsAt,
+		status = resolveStatus(instance, nowUnix),
+	}
+end
+
+function GeodeState.buildQueueEntries(geodesById: { [string]: GeodeInstance }, geodeOrder: { string }, nowUnix: number?): { GeodeQueueEntry }
+	local entries = {}
+
+	for _, geodeInstanceId in ipairs(geodeOrder) do
+		local instance = geodesById[geodeInstanceId]
+		if instance ~= nil then
+			table.insert(entries, GeodeState.toQueueEntry(instance, nowUnix))
+		end
+	end
+
+	return entries
+end
+
+function GeodeState.migrateLegacyQueue(profile)
+	if next(profile.geodesById) ~= nil then
+		return false
+	end
+
+	for _, legacyEntry in ipairs(profile.geodeQueue or {}) do
+		local geodeInstanceId = legacyEntry.id
+		if geodeInstanceId ~= nil and profile.geodesById[geodeInstanceId] == nil then
+			profile.geodesById[geodeInstanceId] = {
+				id = geodeInstanceId,
+				geodeTypeId = legacyEntry.geodeId,
+				status = legacyEntry.status or "queued",
+				startedAt = legacyEntry.startedAt or 0,
+				endsAt = legacyEntry.endsAt or 0,
+				obtainedAt = legacyEntry.startedAt or 0,
+				placement = nil,
+			}
+			table.insert(profile.geodeOrder, geodeInstanceId)
+		end
+	end
+
+	return #profile.geodeOrder > 0
+end
+
+function GeodeState.getClaimableIds(profile, nowUnix: number, requestedGeodeId: string?)
+	GeodeState.refreshStatuses(profile.geodesById, profile.geodeOrder, nowUnix)
+
+	local claimableIds = {}
+	for _, geodeInstanceId in ipairs(profile.geodeOrder) do
+		local instance = profile.geodesById[geodeInstanceId]
+		if instance ~= nil and instance.placement ~= nil and instance.status == "finished" then
+			if requestedGeodeId == nil or requestedGeodeId == geodeInstanceId then
+				table.insert(claimableIds, geodeInstanceId)
+			end
+		end
+	end
+
+	return claimableIds
+end
+
+function GeodeState.removeGeode(geodesById: { [string]: GeodeInstance }, geodeOrder: { string }, geodeInstanceId: string)
+	geodesById[geodeInstanceId] = nil
+
+	for index, existingId in ipairs(geodeOrder) do
+		if existingId == geodeInstanceId then
+			table.remove(geodeOrder, index)
+			break
+		end
+	end
+end
+
+return GeodeState
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="16">
+          <Properties>
             <string name="Name">OfflineMath</string>
             <string name="Source"><![CDATA[--!strict
 
@@ -453,7 +615,7 @@ return OfflineMath
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="16">
+        <Item class="ModuleScript" referent="17">
           <Properties>
             <string name="Name">PlacementRules</string>
             <string name="Source"><![CDATA[--!strict
@@ -537,7 +699,7 @@ return PlacementRules
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="17">
+        <Item class="ModuleScript" referent="18">
           <Properties>
             <string name="Name">ShopRotation</string>
             <string name="Source"><![CDATA[--!strict
@@ -569,7 +731,7 @@ return ShopRotation
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="18">
+        <Item class="ModuleScript" referent="19">
           <Properties>
             <string name="Name">StationAssignment</string>
             <string name="Source"><![CDATA[--!strict
@@ -701,7 +863,7 @@ return StationAssignment
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="19">
+        <Item class="ModuleScript" referent="20">
           <Properties>
             <string name="Name">TraitRoller</string>
             <string name="Source"><![CDATA[--!strict
@@ -759,11 +921,11 @@ return TraitRoller
           </Properties>
         </Item>
       </Item>
-      <Item class="Folder" referent="20">
+      <Item class="Folder" referent="21">
         <Properties>
           <string name="Name">Net</string>
         </Properties>
-        <Item class="ModuleScript" referent="21">
+        <Item class="ModuleScript" referent="22">
           <Properties>
             <string name="Name">RemoteNames</string>
             <string name="Source"><![CDATA[--!strict
@@ -788,7 +950,7 @@ return RemoteNames
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="22">
+        <Item class="ModuleScript" referent="23">
           <Properties>
             <string name="Name">Remotes</string>
             <string name="Source"><![CDATA[--!strict
@@ -817,22 +979,52 @@ return Remotes
           </Properties>
         </Item>
       </Item>
-      <Item class="Folder" referent="23">
+      <Item class="Folder" referent="24">
         <Properties>
           <string name="Name">Types</string>
         </Properties>
-        <Item class="ModuleScript" referent="24">
+        <Item class="ModuleScript" referent="25">
+          <Properties>
+            <string name="Name">GeodeTypes</string>
+            <string name="Source"><![CDATA[--!strict
+
+export type GridPlacement = {
+	plotId: string?,
+	x: number,
+	y: number,
+	width: number,
+	height: number,
+}
+
+export type GeodeInstance = {
+	id: string,
+	geodeTypeId: string,
+	status: string,
+	startedAt: number,
+	endsAt: number,
+	obtainedAt: number,
+	placement: GridPlacement?,
+}
+
+return {}
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="26">
           <Properties>
             <string name="Name">PlayerProfile</string>
             <string name="Source"><![CDATA[--!strict
 
 local ResourceTypes = require(script.Parent.ResourceTypes)
 local StationTypes = require(script.Parent.StationTypes)
+local GeodeTypes = require(script.Parent.GeodeTypes)
+local GeodeState = require(script.Parent.Parent.Domain.GeodeState)
 local TableUtil = require(script.Parent.Parent.Util.TableUtil)
 
 export type ResourceInstance = ResourceTypes.ResourceInstance
 export type StationInstance = StationTypes.StationInstance
 export type PlacementRecord = StationTypes.PlacementRecord
+export type GeodeInstance = GeodeTypes.GeodeInstance
 
 export type OfflineRewardSummary = {
 	coins: number,
@@ -857,6 +1049,8 @@ export type PlayerProfile = {
 	},
 	resourcesById: { [string]: ResourceInstance },
 	resourceOrder: { string },
+	geodesById: { [string]: GeodeInstance },
+	geodeOrder: { string },
 	stationsById: { [string]: StationInstance },
 	placedObjects: { [string]: PlacementRecord },
 	inventory: {
@@ -892,7 +1086,7 @@ export type PlayerProfile = {
 }
 
 local PlayerProfile = {}
-PlayerProfile.SCHEMA_VERSION = 1
+PlayerProfile.SCHEMA_VERSION = 2
 
 local function createTemplate(nowUnix: number): PlayerProfile
 	return {
@@ -903,6 +1097,8 @@ local function createTemplate(nowUnix: number): PlayerProfile
 		},
 		resourcesById = {},
 		resourceOrder = {},
+		geodesById = {},
+		geodeOrder = {},
 		stationsById = {},
 		placedObjects = {},
 		inventory = {
@@ -946,6 +1142,8 @@ end
 function PlayerProfile.reconcile(profile: any, nowUnix: number?): PlayerProfile
 	local timestamp = nowUnix or 0
 	local resolved = TableUtil.reconcile(createTemplate(timestamp), profile)
+	GeodeState.migrateLegacyQueue(resolved)
+	resolved.geodeQueue = GeodeState.buildQueueEntries(resolved.geodesById, resolved.geodeOrder, timestamp)
 	resolved.meta.schemaVersion = PlayerProfile.SCHEMA_VERSION
 	resolved.meta.lastLoadedAt = timestamp
 	return resolved
@@ -955,7 +1153,7 @@ return PlayerProfile
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="25">
+        <Item class="ModuleScript" referent="27">
           <Properties>
             <string name="Name">ResourceTypes</string>
             <string name="Source"><![CDATA[--!strict
@@ -973,7 +1171,7 @@ return {}
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="26">
+        <Item class="ModuleScript" referent="28">
           <Properties>
             <string name="Name">StationTypes</string>
             <string name="Source"><![CDATA[--!strict
@@ -1011,11 +1209,11 @@ return {}
           </Properties>
         </Item>
       </Item>
-      <Item class="Folder" referent="27">
+      <Item class="Folder" referent="29">
         <Properties>
           <string name="Name">Util</string>
         </Properties>
-        <Item class="ModuleScript" referent="28">
+        <Item class="ModuleScript" referent="30">
           <Properties>
             <string name="Name">Id</string>
             <string name="Source"><![CDATA[--!strict
@@ -1037,7 +1235,7 @@ return Id
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="29">
+        <Item class="ModuleScript" referent="31">
           <Properties>
             <string name="Name">Result</string>
             <string name="Source"><![CDATA[--!strict
@@ -1074,7 +1272,7 @@ return Result
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="30">
+        <Item class="ModuleScript" referent="32">
           <Properties>
             <string name="Name">Signal</string>
             <string name="Source"><![CDATA[--!strict
@@ -1121,7 +1319,7 @@ return Signal
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="31">
+        <Item class="ModuleScript" referent="33">
           <Properties>
             <string name="Name">TableUtil</string>
             <string name="Source"><![CDATA[--!strict
@@ -1185,7 +1383,7 @@ return TableUtil
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="32">
+        <Item class="ModuleScript" referent="34">
           <Properties>
             <string name="Name">Time</string>
             <string name="Source"><![CDATA[--!strict
@@ -1212,11 +1410,11 @@ return Time
       </Item>
     </Item>
   </Item>
-  <Item class="ServerScriptService" referent="33">
+  <Item class="ServerScriptService" referent="35">
     <Properties>
       <string name="Name">ServerScriptService</string>
     </Properties>
-    <Item class="Script" referent="34">
+    <Item class="Script" referent="36">
       <Properties>
         <string name="Name">Server</string>
         <token name="RunContext">0</token>
@@ -1225,11 +1423,11 @@ return Time
 ServerBootstrap.start()
 ]]></string>
       </Properties>
-      <Item class="Folder" referent="35">
+      <Item class="Folder" referent="37">
         <Properties>
           <string name="Name">Bootstrap</string>
         </Properties>
-        <Item class="ModuleScript" referent="36">
+        <Item class="ModuleScript" referent="38">
           <Properties>
             <string name="Name">ServerBootstrap</string>
             <string name="Source"><![CDATA[--!strict
@@ -1299,11 +1497,13 @@ local function resolveServices(remotes)
 	local geode = GeodeService.new({
 		playerData = playerData,
 		shopService = shop,
+		placementService = placement,
 	})
 	local geodeQueue = GeodeQueueService.new({
 		playerData = playerData,
 		geodeService = geode,
 		stationService = stations,
+		placementService = placement,
 		rareAnnouncementService = rareAnnouncements,
 	})
 	local dailyRewards = DailyRewardsService.new({
@@ -1551,11 +1751,11 @@ return ServerBootstrap
           </Properties>
         </Item>
       </Item>
-      <Item class="Folder" referent="37">
+      <Item class="Folder" referent="39">
         <Properties>
           <string name="Name">Services</string>
         </Properties>
-        <Item class="ModuleScript" referent="38">
+        <Item class="ModuleScript" referent="40">
           <Properties>
             <string name="Name">DailyRewardsService</string>
             <string name="Source"><![CDATA[--!strict
@@ -1694,7 +1894,7 @@ return DailyRewardsService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="39">
+        <Item class="ModuleScript" referent="41">
           <Properties>
             <string name="Name">EconomyService</string>
             <string name="Source"><![CDATA[--!strict
@@ -1834,7 +2034,7 @@ return EconomyService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="40">
+        <Item class="ModuleScript" referent="42">
           <Properties>
             <string name="Name">GeodeQueueService</string>
             <string name="Source"><![CDATA[--!strict
@@ -1842,6 +2042,7 @@ return EconomyService
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
+local GeodeState = require(Shared.Domain.GeodeState)
 local Resources = require(Shared.Config.Resources)
 local Traits = require(Shared.Config.Traits)
 
@@ -1858,16 +2059,20 @@ function GeodeQueueService:timeRemaining(entry, nowUnix)
 	return math.max(0, entry.endsAt - nowUnix)
 end
 
-function GeodeQueueService:getClaimableEntries(profile, nowUnix, geodeId)
-	local claimable = {}
+function GeodeQueueService:syncQueueCache(profile, nowUnix)
+	GeodeState.refreshStatuses(profile.geodesById, profile.geodeOrder, nowUnix)
+	profile.geodeQueue = GeodeState.buildQueueEntries(profile.geodesById, profile.geodeOrder, nowUnix)
+	return profile.geodeQueue
+end
 
-	for _, entry in ipairs(profile.geodeQueue) do
-		local isFinished = entry.status == "finished" or (entry.status == "queued" and entry.endsAt <= nowUnix)
-		if isFinished then
-			entry.status = "finished"
-			if geodeId == nil or entry.id == geodeId then
-				table.insert(claimable, entry)
-			end
+function GeodeQueueService:getClaimableEntries(profile, nowUnix, geodeId)
+	self:syncQueueCache(profile, nowUnix)
+
+	local claimable = {}
+	for _, geodeInstanceId in ipairs(GeodeState.getClaimableIds(profile, nowUnix, geodeId)) do
+		local geodeInstance = profile.geodesById[geodeInstanceId]
+		if geodeInstance ~= nil then
+			table.insert(claimable, GeodeState.toQueueEntry(geodeInstance, nowUnix))
 		end
 	end
 
@@ -1902,12 +2107,13 @@ local function getTraitLabel(traitId)
 end
 
 function GeodeQueueService:getQueueState(profile, nowUnix)
+	local queueEntries = self:syncQueueCache(profile, nowUnix)
 	local queuedCount = 0
 	local finishedCount = 0
 	local nextReadyUnix = nil
 	local entries = {}
 
-	for _, entry in ipairs(profile.geodeQueue) do
+	for _, entry in ipairs(queueEntries) do
 		local remaining = self:timeRemaining(entry, nowUnix)
 		local entryState = {
 			id = entry.id,
@@ -1915,6 +2121,7 @@ function GeodeQueueService:getQueueState(profile, nowUnix)
 			status = entry.status,
 			remainingSeconds = remaining,
 			endsAt = entry.endsAt,
+			isPlaced = profile.geodesById[entry.id] ~= nil and profile.geodesById[entry.id].placement ~= nil,
 		}
 
 		table.insert(entries, entryState)
@@ -1946,24 +2153,23 @@ function GeodeQueueService:claimEntries(profile, nowUnix, rng, geodeId, playerNa
 	end
 
 	local geodeService = self.dependencies.geodeService
+	local placementService = self.dependencies.placementService
 	local rareAnnouncementService = self.dependencies.rareAnnouncementService
 	local createdResources = {}
 	local createdResourceIds = {}
-	local claimableIds = {}
-
 	for _, entry in ipairs(claimableEntries) do
-		claimableIds[entry.id] = true
-	end
-
-	local remainingEntries = {}
-	for _, entry in ipairs(profile.geodeQueue) do
-		if claimableIds[entry.id] then
-			local resource, errorCode = geodeService:createResourceInstance(entry.geodeId, nowUnix, rng)
+		local geodeInstance = profile.geodesById[entry.id]
+		if geodeInstance ~= nil then
+			local resource, errorCode = geodeService:createResourceInstance(geodeInstance.geodeTypeId, nowUnix, rng)
 			if resource ~= nil then
 				profile.resourcesById[resource.id] = resource
 				table.insert(profile.resourceOrder, resource.id)
 				table.insert(createdResources, resource)
 				table.insert(createdResourceIds, resource.id)
+				if placementService ~= nil then
+					placementService:removeObjectByObjectId(profile, "geode", geodeInstance.id)
+				end
+				GeodeState.removeGeode(profile.geodesById, profile.geodeOrder, geodeInstance.id)
 				if rareAnnouncementService ~= nil and shouldAnnounceResource(resource) then
 					local resourceDefinition = Resources[resource.resourceTypeId]
 					rareAnnouncementService:announce(
@@ -1973,11 +2179,8 @@ function GeodeQueueService:claimEntries(profile, nowUnix, rng, geodeId, playerNa
 					)
 				end
 			else
-				warn("[GemFactory] Failed to resolve geode", entry.geodeId, errorCode)
-				table.insert(remainingEntries, entry)
+				warn("[GemFactory] Failed to resolve geode", geodeInstance.geodeTypeId, errorCode)
 			end
-		else
-			table.insert(remainingEntries, entry)
 		end
 	end
 
@@ -1987,7 +2190,7 @@ function GeodeQueueService:claimEntries(profile, nowUnix, rng, geodeId, playerNa
 		autoAssignment = stationService:autoAssignResources(profile, createdResourceIds)
 	end
 
-	profile.geodeQueue = remainingEntries
+	self:syncQueueCache(profile, nowUnix)
 
 	return {
 		claimedEntries = claimableEntries,
@@ -2007,7 +2210,7 @@ return GeodeQueueService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="41">
+        <Item class="ModuleScript" referent="43">
           <Properties>
             <string name="Name">GeodeService</string>
             <string name="Source"><![CDATA[--!strict
@@ -2018,6 +2221,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Resources = require(Shared.Config.Resources)
 local Geodes = require(Shared.Config.Geodes)
 local Traits = require(Shared.Config.Traits)
+local GeodeState = require(Shared.Domain.GeodeState)
 local GeodeRoller = require(Shared.Domain.GeodeRoller)
 local TraitRoller = require(Shared.Domain.TraitRoller)
 local Id = require(Shared.Util.Id)
@@ -2083,22 +2287,51 @@ function GeodeService.new(dependencies)
 	}, GeodeService)
 end
 
-function GeodeService:createGeodeEntry(profile, geodeId, nowUnix)
+function GeodeService:getDefinition(geodeId)
+	return Geodes[geodeId]
+end
+
+function GeodeService:createGeodeInstance(profile, geodeId, nowUnix)
 	local geodeDefinition = Geodes[geodeId]
 	if geodeDefinition == nil then
 		return nil, "unknown_geode"
 	end
 
-	local entry = {
-		id = Id.new("geode"),
-		geodeId = geodeId,
-		startedAt = nowUnix,
-		endsAt = nowUnix + geodeDefinition.geodeSeconds,
-		status = "queued",
-	}
+	local geodeInstance = GeodeState.createInstance(Id.new("geode"), geodeId, nowUnix, geodeDefinition.geodeSeconds)
+	profile.geodesById[geodeInstance.id] = geodeInstance
+	table.insert(profile.geodeOrder, geodeInstance.id)
+	return geodeInstance
+end
 
-	table.insert(profile.geodeQueue, entry)
-	return entry
+function GeodeService:autoPlaceOwnedGeodes(profile, geodeInstanceIds)
+	local placementService = self.dependencies.placementService
+	if placementService == nil then
+		return {
+			placedGeodeIds = {},
+			unplacedGeodeIds = geodeInstanceIds or {},
+		}
+	end
+
+	local placedGeodeIds = {}
+	local unplacedGeodeIds = {}
+	local idsToPlace = geodeInstanceIds or profile.geodeOrder
+
+	for _, geodeInstanceId in ipairs(idsToPlace) do
+		local geodeInstance = profile.geodesById[geodeInstanceId]
+		if geodeInstance ~= nil and geodeInstance.placement == nil then
+			local placedGeode = placementService:placeGeode(profile, geodeInstance, nil, nil)
+			if placedGeode ~= nil then
+				table.insert(placedGeodeIds, geodeInstanceId)
+			else
+				table.insert(unplacedGeodeIds, geodeInstanceId)
+			end
+		end
+	end
+
+	return {
+		placedGeodeIds = placedGeodeIds,
+		unplacedGeodeIds = unplacedGeodeIds,
+	}
 end
 
 function GeodeService:buyGeode(userId, geodeId, nowUnix, rng)
@@ -2135,14 +2368,18 @@ function GeodeService:buyGeode(userId, geodeId, nowUnix, rng)
 			return nil, spendError
 		end
 
-		local geodeEntry, geodeError = self:createGeodeEntry(currentProfile, geodeId, nowUnix)
-		if geodeEntry == nil then
+		local geodeInstance, geodeError = self:createGeodeInstance(currentProfile, geodeId, nowUnix)
+		if geodeInstance == nil then
 			return nil, geodeError
 		end
 
+		local autoPlacement = self:autoPlaceOwnedGeodes(currentProfile, { geodeInstance.id })
+
 		result = {
 			offer = offer,
-			geodeEntry = geodeEntry,
+			geodeEntry = GeodeState.toQueueEntry(geodeInstance, nowUnix),
+			geodeInstance = geodeInstance,
+			autoPlacement = autoPlacement,
 		}
 
 		return result
@@ -2217,7 +2454,7 @@ return GeodeService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="42">
+        <Item class="ModuleScript" referent="44">
           <Properties>
             <string name="Name">MockPersistenceService</string>
             <string name="Source"><![CDATA[--!strict
@@ -2274,7 +2511,7 @@ return MockPersistenceService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="43">
+        <Item class="ModuleScript" referent="45">
           <Properties>
             <string name="Name">OfflineProgressService</string>
             <string name="Source"><![CDATA[--!strict
@@ -2297,6 +2534,7 @@ end
 
 function OfflineProgressService:buildSummary(profile, nowUnix)
 	local passiveRate = self.dependencies.economyService:getPassiveRate(profile)
+	local geodeQueueService = self.dependencies.geodeQueueService
 	local summary = OfflineMath.buildSummary(
 		profile.session.lastLogoutUnix,
 		nowUnix,
@@ -2308,7 +2546,8 @@ function OfflineProgressService:buildSummary(profile, nowUnix)
 		return nil
 	end
 
-	summary.finishedGeodes = OfflineMath.collectFinishedGeodeIds(profile.geodeQueue, nowUnix)
+	local queueEntries = if geodeQueueService ~= nil then geodeQueueService:syncQueueCache(profile, nowUnix) else profile.geodeQueue
+	summary.finishedGeodes = OfflineMath.collectFinishedGeodeIds(queueEntries, nowUnix)
 	return summary
 end
 
@@ -2364,7 +2603,7 @@ return OfflineProgressService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="44">
+        <Item class="ModuleScript" referent="46">
           <Properties>
             <string name="Name">PlacementService</string>
             <string name="Source"><![CDATA[--!strict
@@ -2372,6 +2611,7 @@ return OfflineProgressService
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
+local Geodes = require(Shared.Config.Geodes)
 local World = require(Shared.Config.World)
 local PlacementRules = require(Shared.Domain.PlacementRules)
 local Id = require(Shared.Util.Id)
@@ -2514,6 +2754,55 @@ function PlacementService:placeStation(profile, stationTypeId, x, y)
 	return station, placement
 end
 
+function PlacementService:placeGeode(profile, geodeInstance, x, y)
+	local geodeDefinition = Geodes[geodeInstance.geodeTypeId]
+	if geodeDefinition == nil then
+		return nil, "unknown_geode"
+	end
+
+	if geodeInstance.placement ~= nil then
+		return nil, "geode_already_placed"
+	end
+
+	local gridSize = geodeDefinition.gridSize or { width = 1, height = 1 }
+	local targetX = x
+	local targetY = y
+	if targetX == nil or targetY == nil then
+		local placementTarget, placementReason = self:findFirstOpenCell(profile, gridSize.width, gridSize.height)
+		if placementTarget == nil then
+			return nil, placementReason
+		end
+
+		targetX = placementTarget.x
+		targetY = placementTarget.y
+	end
+
+	local placement, reason = self:place(profile, "geode", geodeInstance.id, targetX, targetY, gridSize.width, gridSize.height)
+	if placement == nil then
+		return nil, reason
+	end
+
+	geodeInstance.placement = {
+		plotId = placement.plotId,
+		x = placement.x,
+		y = placement.y,
+		width = placement.width,
+		height = placement.height,
+	}
+
+	return geodeInstance, placement
+end
+
+function PlacementService:removeObjectByObjectId(profile, objectType, objectId)
+	for placementId, record in pairs(profile.placedObjects) do
+		if record.objectType == objectType and record.objectId == objectId then
+			return self:remove(profile, placementId)
+		end
+	end
+
+	return false, "placement_not_found"
+end
+
 function PlacementService:remove(profile, placementId)
 	local record = profile.placedObjects[placementId]
 	if record == nil then
@@ -2525,6 +2814,11 @@ function PlacementService:remove(profile, placementId)
 	local station = profile.stationsById[record.objectId]
 	if station ~= nil and station.placement ~= nil then
 		station.placement = nil
+	end
+
+	local geodeInstance = profile.geodesById[record.objectId]
+	if geodeInstance ~= nil and geodeInstance.placement ~= nil then
+		geodeInstance.placement = nil
 	end
 
 	profile.placedObjects[placementId] = nil
@@ -2559,6 +2853,12 @@ function PlacementService:move(profile, placementId, x, y)
 		station.placement.y = y
 	end
 
+	local geodeInstance = profile.geodesById[record.objectId]
+	if geodeInstance ~= nil and geodeInstance.placement ~= nil then
+		geodeInstance.placement.x = x
+		geodeInstance.placement.y = y
+	end
+
 	for dx = 0, record.width - 1 do
 		for dy = 0, record.height - 1 do
 			local cellKey = PlacementRules.buildOccupancyKey(x + dx, y + dy)
@@ -2578,7 +2878,7 @@ return PlacementService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="45">
+        <Item class="ModuleScript" referent="47">
           <Properties>
             <string name="Name">PlayerDataService</string>
             <string name="Source"><![CDATA[--!strict
@@ -2674,8 +2974,18 @@ function PlayerDataService:onPlayerAdded(player)
 				end
 			end
 
+			for _, geodeInstance in pairs(profile.geodesById) do
+				if geodeInstance.placement ~= nil then
+					geodeInstance.placement.plotId = plotId
+				end
+			end
+
 			profile.plotState.plotId = plotId
 		end
+	end
+
+	if services ~= nil and services.geode ~= nil then
+		services.geode:autoPlaceOwnedGeodes(profile)
 	end
 
 	if services ~= nil and services.offlineProgress ~= nil then
@@ -2743,6 +3053,7 @@ function PlayerDataService:getPublicState(userId, nowUnix)
 
 		if services.geodeQueue ~= nil then
 			geodeQueueState = services.geodeQueue:getQueueState(profile, currentUnix)
+			publicProfile.geodeQueue = TableUtil.deepCopy(geodeQueueState.entries)
 		end
 	end
 
@@ -2786,7 +3097,7 @@ return PlayerDataService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="46">
+        <Item class="ModuleScript" referent="48">
           <Properties>
             <string name="Name">PlotService</string>
             <string name="Source"><![CDATA[--!strict
@@ -2925,7 +3236,7 @@ return PlotService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="47">
+        <Item class="ModuleScript" referent="49">
           <Properties>
             <string name="Name">ShopService</string>
             <string name="Source"><![CDATA[--!strict
@@ -3000,7 +3311,7 @@ return ShopService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="48">
+        <Item class="ModuleScript" referent="50">
           <Properties>
             <string name="Name">StationService</string>
             <string name="Source"><![CDATA[--!strict
@@ -3096,7 +3407,7 @@ return StationService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="49">
+        <Item class="ModuleScript" referent="51">
           <Properties>
             <string name="Name">WorldReplicaService</string>
             <string name="Source"><![CDATA[--!strict
@@ -3112,6 +3423,40 @@ local World = require(Shared.Config.World)
 
 local WorldReplicaService = {}
 WorldReplicaService.__index = WorldReplicaService
+
+local SHARED_FLOOR_NAME = "SharedFloor"
+local PLOT_MARKER_FOLDER_NAME = "PlotMarkers"
+
+local ROCK_VARIANTS = {
+	{
+		{ x = -28, z = -26, height = 10, radius = 3.5, yaw = 8 },
+		{ x = 30, z = -18, height = 6, radius = 2.25, yaw = 28 },
+		{ x = -18, z = 30, height = 8, radius = 2.75, yaw = -18 },
+		{ x = 26, z = 28, height = 4, radius = 4.5, yaw = 14, kind = "boulder" },
+		{ x = -32, z = 8, height = 3, radius = 5, yaw = -10, kind = "boulder" },
+	},
+	{
+		{ x = 27, z = -28, height = 11, radius = 3.25, yaw = -12 },
+		{ x = -31, z = 14, height = 7, radius = 2.5, yaw = 34 },
+		{ x = 18, z = 29, height = 5, radius = 2.25, yaw = -24 },
+		{ x = -24, z = -31, height = 4, radius = 4.75, yaw = 19, kind = "boulder" },
+		{ x = 32, z = 10, height = 3, radius = 4.5, yaw = -24, kind = "boulder" },
+	},
+	{
+		{ x = -30, z = -6, height = 9, radius = 3, yaw = 22 },
+		{ x = 26, z = 24, height = 7, radius = 2.5, yaw = -30 },
+		{ x = -8, z = 31, height = 5, radius = 2.25, yaw = 14 },
+		{ x = -29, z = -29, height = 4, radius = 4.25, yaw = -18, kind = "boulder" },
+		{ x = 30, z = -12, height = 3, radius = 4.75, yaw = 26, kind = "boulder" },
+	},
+	{
+		{ x = 31, z = 8, height = 10, radius = 3.25, yaw = 16 },
+		{ x = -25, z = -29, height = 6, radius = 2.5, yaw = -26 },
+		{ x = 12, z = -31, height = 8, radius = 2.75, yaw = 10 },
+		{ x = 28, z = 29, height = 4, radius = 4.5, yaw = -12, kind = "boulder" },
+		{ x = -30, z = -4, height = 3, radius = 4.75, yaw = 20, kind = "boulder" },
+	},
+}
 
 function WorldReplicaService.new(dependencies)
 	return setmetatable({
@@ -3138,13 +3483,30 @@ local function ensureWorldFolder()
 		plotFolder.Parent = worldFolder
 	end
 
-	return plotFolder
+	return worldFolder, plotFolder
 end
 
 local function clearChildren(container)
 	for _, child in ipairs(container:GetChildren()) do
 		child:Destroy()
 	end
+end
+
+local function getPlotHalfSize()
+	return World.plotBaseSize.width / 2, World.plotBaseSize.depth / 2
+end
+
+local function getSharedFloorSize()
+	local sharedBaseplateSize = World.sharedBaseplateSize
+	if sharedBaseplateSize ~= nil then
+		return sharedBaseplateSize.width, sharedBaseplateSize.height, sharedBaseplateSize.depth
+	end
+
+	local padding = World.sharedFloorPadding or 32
+	return
+		(World.plotColumns * World.plotSpacing) + World.plotBaseSize.width + padding,
+		2,
+		(math.max(World.plotRows or 1, 1) * World.plotSpacing) + World.plotBaseSize.depth + padding
 end
 
 local function getResourceColor(resourceId, resourcesById)
@@ -3172,6 +3534,7 @@ end
 local function buildPlotSignature(plot, profile)
 	local signatureParts = {
 		tostring(plot.userId or "none"),
+		tostring(plot.index or 0),
 		tostring(profile and #profile.resourceOrder or 0),
 	}
 
@@ -3211,8 +3574,147 @@ local function buildPlotSignature(plot, profile)
 	return table.concat(signatureParts, "||")
 end
 
+local function createPart(parent, name, size, position, color, material)
+	local part = Instance.new("Part")
+	part.Name = name
+	part.Anchored = true
+	part.CanCollide = true
+	part.Size = size
+	part.Position = position
+	part.Color = color
+	part.Material = material
+	part.Parent = parent
+	return part
+end
+
+local function createDecorPart(parent, name, size, position, color, material)
+	local part = createPart(parent, name, size, position, color, material)
+	part.CanCollide = false
+	return part
+end
+
+local function buildSharedFloor(worldFolder)
+	local width, height, depth = getSharedFloorSize()
+	local floor = worldFolder:FindFirstChild(SHARED_FLOOR_NAME)
+	if floor == nil then
+		floor = createPart(
+			worldFolder,
+			SHARED_FLOOR_NAME,
+			Vector3.new(width, height, depth),
+			Vector3.new(World.plotOrigin.x, World.plotOrigin.y - 1.5, World.plotOrigin.z),
+			Color3.fromRGB(26, 24, 34),
+			Enum.Material.Slate
+		)
+	else
+		floor.Size = Vector3.new(width, height, depth)
+		floor.Position = Vector3.new(World.plotOrigin.x, World.plotOrigin.y - 1.5, World.plotOrigin.z)
+		floor.Color = Color3.fromRGB(26, 24, 34)
+		floor.Material = Enum.Material.Slate
+	end
+
+	local markers = worldFolder:FindFirstChild(PLOT_MARKER_FOLDER_NAME)
+	if markers ~= nil then
+		markers:Destroy()
+	end
+
+	markers = Instance.new("Folder")
+	markers.Name = PLOT_MARKER_FOLDER_NAME
+	markers.Parent = worldFolder
+
+	return floor, markers
+end
+
+local function addPlotMarker(markerFolder, plot)
+	local halfWidth, halfDepth = getPlotHalfSize()
+	local markerHeight = World.plotMarkerHeight or 1
+	local markerInset = 5
+	local markerColor = Color3.fromRGB(56, 51, 73)
+	local markerSizeX = Vector3.new(World.plotBaseSize.width - (markerInset * 2), markerHeight, 2)
+	local markerSizeZ = Vector3.new(2, markerHeight, World.plotBaseSize.depth - (markerInset * 2))
+
+	createDecorPart(
+		markerFolder,
+		plot.id .. "_NorthMarker",
+		markerSizeX,
+		Vector3.new(plot.position.x, plot.position.y + 0.65, plot.position.z - halfDepth + markerInset),
+		markerColor,
+		Enum.Material.Slate
+	)
+	createDecorPart(
+		markerFolder,
+		plot.id .. "_SouthMarker",
+		markerSizeX,
+		Vector3.new(plot.position.x, plot.position.y + 0.65, plot.position.z + halfDepth - markerInset),
+		markerColor,
+		Enum.Material.Slate
+	)
+	createDecorPart(
+		markerFolder,
+		plot.id .. "_WestMarker",
+		markerSizeZ,
+		Vector3.new(plot.position.x - halfWidth + markerInset, plot.position.y + 0.65, plot.position.z),
+		markerColor,
+		Enum.Material.Slate
+	)
+	createDecorPart(
+		markerFolder,
+		plot.id .. "_EastMarker",
+		markerSizeZ,
+		Vector3.new(plot.position.x + halfWidth - markerInset, plot.position.y + 0.65, plot.position.z),
+		markerColor,
+		Enum.Material.Slate
+	)
+end
+
+local function ensureStaticWorld(worldFolder, plots)
+	local floor = worldFolder:FindFirstChild(SHARED_FLOOR_NAME)
+	local markers = worldFolder:FindFirstChild(PLOT_MARKER_FOLDER_NAME)
+	if floor ~= nil and markers ~= nil then
+		return
+	end
+
+	local _, markerFolder = buildSharedFloor(worldFolder)
+	for _, plot in ipairs(plots) do
+		addPlotMarker(markerFolder, plot)
+	end
+end
+
+local function addRockSpikes(parent, plot)
+	local rockFolder = Instance.new("Folder")
+	rockFolder.Name = "RockSpikes"
+	rockFolder.Parent = parent
+
+	local variant = ROCK_VARIANTS[((plot.index or 1) - 1) % #ROCK_VARIANTS + 1]
+	local rockColor = Color3.fromRGB(37, 34, 46)
+
+	for spikeIndex, spike in ipairs(variant) do
+		local rockPosition = Vector3.new(
+			plot.position.x + spike.x,
+			plot.position.y + (spike.height / 2),
+			plot.position.z + spike.z
+		)
+		local rockSize = Vector3.new(spike.radius * 2, spike.height, spike.radius * 2)
+		local rockMaterial = Enum.Material.Slate
+		if spike.kind == "boulder" then
+			rockSize = Vector3.new(spike.radius * 2.5, spike.height, spike.radius * 2.1)
+			rockMaterial = Enum.Material.Rock
+		end
+
+		local rock = createDecorPart(
+			rockFolder,
+			string.format("RockSpike_%d", spikeIndex),
+			rockSize,
+			rockPosition,
+			rockColor,
+			rockMaterial
+		)
+		rock.CFrame = CFrame.new(rockPosition)
+			* CFrame.Angles(math.rad(4), math.rad(spike.yaw), math.rad(8))
+	end
+end
+
 function WorldReplicaService:_getPlotModel(plotId)
-	local plotFolder = ensureWorldFolder()
+	local _, plotFolder = ensureWorldFolder()
 	local plotModel = plotFolder:FindFirstChild(plotId)
 	if plotModel == nil then
 		plotModel = Instance.new("Model")
@@ -3239,114 +3741,75 @@ function WorldReplicaService:_buildPlot(plot, profile, signature)
 		return count
 	end)() or 0)
 
-	local base = Instance.new("Part")
-	base.Name = "PlotBase"
-	base.Anchored = true
-	base.CanCollide = true
-	base.Size = Vector3.new(World.plotBaseSize.width, World.plotBaseSize.height, World.plotBaseSize.depth)
-	base.Position = Vector3.new(plot.position.x, plot.position.y, plot.position.z)
-	base.Color = Color3.fromRGB(42, 39, 61)
-	base.Material = Enum.Material.Slate
-	base.Parent = plotModel
+	local base = createPart(
+		plotModel,
+		"PlotBase",
+		Vector3.new(World.plotBaseSize.width, World.plotBaseSize.height, World.plotBaseSize.depth),
+		Vector3.new(plot.position.x, plot.position.y, plot.position.z),
+		Color3.fromRGB(45, 42, 59),
+		Enum.Material.Slate
+	)
+	base.TopSurface = Enum.SurfaceType.Smooth
 
-	local shellFolder = Instance.new("Folder")
-	shellFolder.Name = "CavernShell"
-	shellFolder.Parent = plotModel
+	local trim = createDecorPart(
+		plotModel,
+		"PlotTrim",
+		Vector3.new(World.plotBaseSize.width - 6, 0.4, World.plotBaseSize.depth - 6),
+		Vector3.new(plot.position.x, plot.position.y + 1.2, plot.position.z),
+		Color3.fromRGB(58, 54, 78),
+		Enum.Material.Rock
+	)
+	trim.Transparency = 0.1
 
-	local wallHeight = 16
-	local halfWidth = World.plotBaseSize.width / 2
-	local halfDepth = World.plotBaseSize.depth / 2
-	local wallColor = Color3.fromRGB(27, 24, 39)
-
-	local wallSpecs = {
-		{ name = "NorthWall", size = Vector3.new(World.plotBaseSize.width + 8, wallHeight, 3), offset = Vector3.new(0, wallHeight / 2, -halfDepth - 1) },
-		{ name = "SouthWall", size = Vector3.new(World.plotBaseSize.width + 8, wallHeight, 3), offset = Vector3.new(0, wallHeight / 2, halfDepth + 1) },
-		{ name = "WestWall", size = Vector3.new(3, wallHeight, World.plotBaseSize.depth + 8), offset = Vector3.new(-halfWidth - 1, wallHeight / 2, 0) },
-		{ name = "EastWall", size = Vector3.new(3, wallHeight, World.plotBaseSize.depth + 8), offset = Vector3.new(halfWidth + 1, wallHeight / 2, 0) },
-	}
-
-	for _, spec in ipairs(wallSpecs) do
-		local wall = Instance.new("Part")
-		wall.Name = spec.name
-		wall.Anchored = true
-		wall.CanCollide = false
-		wall.Size = spec.size
-		wall.Position = base.Position + spec.offset
-		wall.Color = wallColor
-		wall.Material = Enum.Material.Slate
-		wall.Parent = shellFolder
-	end
-
-	local crystalCluster = Instance.new("Part")
-	crystalCluster.Name = "CrystalCluster"
-	crystalCluster.Anchored = true
-	crystalCluster.CanCollide = false
-	crystalCluster.Shape = Enum.PartType.Ball
-	crystalCluster.Size = Vector3.new(5, 5, 5)
-	crystalCluster.Position = base.Position + Vector3.new(-16, 4, -16)
-	crystalCluster.Color = Color3.fromRGB(110, 236, 255)
-	crystalCluster.Material = Enum.Material.Neon
-	crystalCluster.Transparency = 0.2
-	crystalCluster.Parent = plotModel
-
-	local crystalNeedle = Instance.new("Part")
-	crystalNeedle.Name = "CrystalNeedle"
-	crystalNeedle.Anchored = true
-	crystalNeedle.CanCollide = false
-	crystalNeedle.Size = Vector3.new(3, 12, 3)
-	crystalNeedle.Position = base.Position + Vector3.new(18, 6, 14)
-	crystalNeedle.Color = Color3.fromRGB(186, 156, 255)
-	crystalNeedle.Material = Enum.Material.Neon
-	crystalNeedle.Parent = plotModel
+	addRockSpikes(plotModel, plot)
 
 	local stationFolder = Instance.new("Folder")
 	stationFolder.Name = World.stationFolderName
 	stationFolder.Parent = plotModel
 
 	local cellSize = World.cellSize
-	local gridOriginX = plot.position.x - ((World.plotGridWidth * cellSize) / 2)
-	local gridOriginZ = plot.position.z - ((World.plotGridHeight * cellSize) / 2)
+	local gridOriginX = plot.position.x - ((World.plotGridWidth * cellSize) / 2) + (cellSize / 2)
+	local gridOriginZ = plot.position.z - ((World.plotGridHeight * cellSize) / 2) + (cellSize / 2)
 	for _, station in pairs(profile and profile.stationsById or {}) do
 		if station.placement ~= nil and station.placement.plotId == plot.id then
 			local stationDefinition = Stations[station.stationTypeId]
 			if stationDefinition ~= nil then
-				local stationPart = Instance.new("Part")
-				stationPart.Name = stationDefinition.displayName
-				stationPart.Anchored = true
-				stationPart.Size = Vector3.new(
-					stationDefinition.gridSize.width * cellSize,
-					4,
-					stationDefinition.gridSize.height * cellSize
+				local stationPart = createPart(
+					stationFolder,
+					stationDefinition.displayName,
+					Vector3.new(
+						stationDefinition.gridSize.width * cellSize,
+						4,
+						stationDefinition.gridSize.height * cellSize
+					),
+					Vector3.new(
+						gridOriginX + ((station.placement.x - 1) * cellSize) + (((stationDefinition.gridSize.width - 1) * cellSize) / 2),
+						plot.position.y + 3,
+						gridOriginZ + ((station.placement.y - 1) * cellSize) + (((stationDefinition.gridSize.height - 1) * cellSize) / 2)
+					),
+					stationDefinition.color or Color3.fromRGB(120, 180, 120),
+					Enum.Material.Crystal
 				)
-				stationPart.Position = Vector3.new(
-					gridOriginX + ((station.placement.x - 0.5) * cellSize),
-					plot.position.y + 3,
-					gridOriginZ + ((station.placement.y - 0.5) * cellSize)
-				)
-				stationPart.Color = stationDefinition.color or Color3.fromRGB(120, 180, 120)
-				stationPart.Material = Enum.Material.Crystal
-				stationPart.Parent = stationFolder
 
 				local occupantsFolder = Instance.new("Folder")
 				occupantsFolder.Name = "DisplayedResources"
 				occupantsFolder.Parent = stationPart
 
 				for occupantIndex, resourceId in ipairs(station.occupantIds) do
-					local displayPart = Instance.new("Part")
-					displayPart.Name = resourceId
-					displayPart.Anchored = true
-					displayPart.CanCollide = false
-					displayPart.Material = Enum.Material.Neon
+					local displayPart = createDecorPart(
+						occupantsFolder,
+						resourceId,
+						Vector3.new(1.5, 1.5, 1.5),
+						stationPart.Position
+							+ Vector3.new(
+								(-stationPart.Size.X / 2) + 1.25 + (((occupantIndex - 1) % 3) * 1.75),
+								3,
+								(-stationPart.Size.Z / 2) + 1.25 + (math.floor((occupantIndex - 1) / 3) * 1.75)
+							),
+						getResourceColor(resourceId, profile and profile.resourcesById or {}),
+						Enum.Material.Neon
+					)
 					displayPart.Shape = Enum.PartType.Ball
-					displayPart.Size = Vector3.new(1.5, 1.5, 1.5)
-					displayPart.Color = getResourceColor(resourceId, profile and profile.resourcesById or {})
-					displayPart.Position = stationPart.Position
-						+ Vector3.new(
-							(-stationPart.Size.X / 2) + 1.25 + (((occupantIndex - 1) % 3) * 1.75),
-							3,
-							(-stationPart.Size.Z / 2) + 1.25 + (math.floor((occupantIndex - 1) / 3) * 1.75)
-						)
-					displayPart.Parent = occupantsFolder
 				end
 			end
 		end
@@ -3377,7 +3840,11 @@ function WorldReplicaService:syncAll()
 		return
 	end
 
-	for _, plot in ipairs(plotService:getAllPlots()) do
+	local worldFolder = ensureWorldFolder()
+	local plots = plotService:getAllPlots()
+	ensureStaticWorld(worldFolder, plots)
+
+	for _, plot in ipairs(plots) do
 		if plot.userId ~= nil then
 			local profile = playerDataService:getProfile(plot.userId)
 			local signature = buildPlotSignature(plot, profile)
@@ -3432,16 +3899,15 @@ function WorldReplicaService:start()
 end
 
 return WorldReplicaService
-
 ]]></string>
           </Properties>
         </Item>
       </Item>
-      <Item class="Folder" referent="50">
+      <Item class="Folder" referent="52">
         <Properties>
           <string name="Name">Systems</string>
         </Properties>
-        <Item class="ModuleScript" referent="51">
+        <Item class="ModuleScript" referent="53">
           <Properties>
             <string name="Name">RareAnnouncementSystem</string>
             <string name="Source"><![CDATA[--!strict
@@ -3481,21 +3947,21 @@ return RareAnnouncementSystem
       </Item>
     </Item>
   </Item>
-  <Item class="SoundService" referent="52">
+  <Item class="SoundService" referent="54">
     <Properties>
       <string name="Name">SoundService</string>
       <bool name="RespectFilteringEnabled">true</bool>
     </Properties>
   </Item>
-  <Item class="StarterPlayer" referent="53">
+  <Item class="StarterPlayer" referent="55">
     <Properties>
       <string name="Name">StarterPlayer</string>
     </Properties>
-    <Item class="StarterPlayerScripts" referent="54">
+    <Item class="StarterPlayerScripts" referent="56">
       <Properties>
         <string name="Name">StarterPlayerScripts</string>
       </Properties>
-      <Item class="LocalScript" referent="55">
+      <Item class="LocalScript" referent="57">
         <Properties>
           <string name="Name">Client</string>
           <string name="Source"><![CDATA[local ClientBootstrap = require(script.Bootstrap.ClientBootstrap)
@@ -3503,11 +3969,11 @@ return RareAnnouncementSystem
 ClientBootstrap.start()
 ]]></string>
         </Properties>
-        <Item class="Folder" referent="56">
+        <Item class="Folder" referent="58">
           <Properties>
             <string name="Name">Bootstrap</string>
           </Properties>
-          <Item class="ModuleScript" referent="57">
+          <Item class="ModuleScript" referent="59">
             <Properties>
               <string name="Name">ClientBootstrap</string>
               <string name="Source"><![CDATA[--!strict
@@ -3529,11 +3995,11 @@ return ClientBootstrap
             </Properties>
           </Item>
         </Item>
-        <Item class="Folder" referent="58">
+        <Item class="Folder" referent="60">
           <Properties>
             <string name="Name">Controllers</string>
           </Properties>
-          <Item class="ModuleScript" referent="59">
+          <Item class="ModuleScript" referent="61">
             <Properties>
               <string name="Name">AppController</string>
               <string name="Source"><![CDATA[--!strict
@@ -3654,6 +4120,7 @@ end
 
 local function normalizeProfileState(currentProfile, payload, nowUnix)
 	local profile = TableUtil.deepCopy(currentProfile)
+	local profileAny = profile :: any
 
 	if type(payload) ~= "table" then
 		return profile
@@ -3690,6 +4157,14 @@ local function normalizeProfileState(currentProfile, payload, nowUnix)
 
 	if payload.geodeQueue ~= nil then
 		profile.geodeQueue = TableUtil.deepCopy(payload.geodeQueue)
+	end
+
+	if payload.geodesById ~= nil then
+		profileAny.geodesById = TableUtil.reconcile(profileAny.geodesById or {}, payload.geodesById)
+	end
+
+	if payload.geodeOrder ~= nil then
+		profileAny.geodeOrder = TableUtil.deepCopy(payload.geodeOrder)
 	end
 
 	if payload.unclaimedOfflineRewards ~= nil then
@@ -3835,7 +4310,13 @@ end
 function AppController:requestBuyStarterGeode()
 	local ok, result = self:invokeRemote(RemoteNames.RequestBuyGeode, "starter_geode")
 	if ok and type(result) == "table" and result.ok == true then
-		self:setStatus("Starter geode purchase requested.")
+		local purchase = result.purchase
+		local autoPlaced = type(purchase) == "table" and purchase.placement ~= nil
+		if autoPlaced then
+			self:setStatus("Starter geode purchased and placed on your plot.")
+		else
+			self:setStatus("Starter geode purchased. Check your plot and geode yard.")
+		end
 	else
 		local errorText = type(result) == "table" and result.errorCode or result
 		self:setStatus("Starter geode purchase failed: " .. tostring(errorText))
@@ -3846,7 +4327,13 @@ end
 function AppController:requestClaimFinishedGeodes()
 	local ok, result = self:invokeRemote(RemoteNames.RequestClaimFinishedGeode)
 	if ok and type(result) == "table" and result.ok == true then
-		self:setStatus("Ready geodes claimed.")
+		local claim = result.claim
+		local claimCount = if type(claim) == "table" and type(claim.claimedEntries) == "table" then #claim.claimedEntries else nil
+		if claimCount ~= nil and claimCount > 0 then
+			self:setStatus(string.format("Opened %d ready geode%s.", claimCount, if claimCount == 1 then "" else "s"))
+		else
+			self:setStatus("Ready geodes opened.")
+		end
 	else
 		local errorText = type(result) == "table" and result.errorCode or result
 		self:setStatus("Ready geode claim failed: " .. tostring(errorText))
@@ -3993,7 +4480,7 @@ return AppController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="60">
+          <Item class="ModuleScript" referent="62">
             <Properties>
               <string name="Name">DailyRewardsController</string>
               <string name="Source"><![CDATA[--!strict
@@ -4087,7 +4574,7 @@ return DailyRewardsController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="61">
+          <Item class="ModuleScript" referent="63">
             <Properties>
               <string name="Name">GeodeController</string>
               <string name="Source"><![CDATA[--!strict
@@ -4109,6 +4596,58 @@ local function formatDuration(seconds: number): string
 	return string.format("%02d:%02d:%02d", hours, minutes, remaining)
 end
 
+local function getGeodeCollection(profile: any)
+	local geodesById = profile.geodesById
+	local geodeOrder = profile.geodeOrder
+	if type(geodesById) ~= "table" or type(geodeOrder) ~= "table" then
+		return {}
+	end
+
+	local geodes = {}
+	for _, geodeId in ipairs(geodeOrder) do
+		local geode = geodesById[geodeId]
+		if type(geode) == "table" then
+			table.insert(geodes, geode)
+		end
+	end
+
+	return geodes
+end
+
+local function getWorldGeodeSummary(profile: any, nowUnix: number)
+	local geodes = getGeodeCollection(profile)
+	local placedCount = 0
+	local storedCount = 0
+	local readyCount = 0
+	local crackingCount = 0
+
+	for _, geode in ipairs(geodes) do
+		local endsAt = geode.endsAt or nowUnix
+		local isReady = geode.status == "ready" or geode.status == "finished" or endsAt <= nowUnix
+		local isPlaced = geode.placement ~= nil or geode.plotPlacement ~= nil
+
+		if isPlaced then
+			placedCount += 1
+		else
+			storedCount += 1
+		end
+
+		if isReady then
+			readyCount += 1
+		else
+			crackingCount += 1
+		end
+	end
+
+	return {
+		totalCount = #geodes,
+		placedCount = placedCount,
+		storedCount = storedCount,
+		readyCount = readyCount,
+		crackingCount = crackingCount,
+	}
+end
+
 function GeodeController.new(context)
 	return setmetatable({
 		context = context or {},
@@ -4120,15 +4659,28 @@ function GeodeController:start()
 	local app = self.context.app
 
 	local function refresh(state, nowUnix)
+		local profileAny = state.profile :: any
 		local queue = state.profile.geodeQueue
+		local worldSummary = getWorldGeodeSummary(profileAny, nowUnix)
 		local readyCount = 0
-		if #queue == 0 then
-			screen:setGeodeText("No geodes are cracking yet.\nBuy a geode from the shop to start the reveal loop.")
+		if #queue == 0 and worldSummary.totalCount == 0 then
+			screen:setGeodeText("No geodes are active yet.\nBuy a geode from the shop and it will appear on your plot.")
 			screen:setClaimReadyGeodesButton(false, "Claim Ready Geodes")
 			return
 		end
 
 		local lines = {}
+		if worldSummary.totalCount > 0 then
+			table.insert(lines, string.format(
+				"On plot: %d | Stored: %d | Cracking: %d | Ready: %d",
+				worldSummary.placedCount,
+				worldSummary.storedCount,
+				worldSummary.crackingCount,
+				worldSummary.readyCount
+			))
+			table.insert(lines, "Bought geodes should appear in the world and crack there before you open them.")
+		end
+
 		for index, entry in ipairs(queue) do
 			if index > 4 then
 				table.insert(lines, string.format("...and %d more", #queue - 4))
@@ -4149,15 +4701,15 @@ function GeodeController:start()
 		end
 
 		if readyCount > 0 then
-			table.insert(lines, 1, string.format("%d geode%s ready to claim.", readyCount, if readyCount == 1 then "" else "s"))
+			table.insert(lines, 1, string.format("%d geode%s ready to open.", readyCount, if readyCount == 1 then "" else "s"))
 		else
-			table.insert(lines, 1, "Geodes are cracking. Claim them here when the timers finish.")
+			table.insert(lines, 1, "Geodes are cracking on your plot. Open them here when they finish.")
 		end
 
 		screen:setGeodeText(table.concat(lines, "\n"))
 		screen:setClaimReadyGeodesButton(
 			readyCount > 0,
-			if readyCount > 0 then string.format("Claim Ready Geode%s", if readyCount == 1 then "" else "s") else "Claim Ready Geodes"
+			if readyCount > 0 then string.format("Open Ready Geode%s", if readyCount == 1 then "" else "s") else "Open Ready Geodes"
 		)
 	end
 
@@ -4175,7 +4727,7 @@ return GeodeController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="62">
+          <Item class="ModuleScript" referent="64">
             <Properties>
               <string name="Name">HUDController</string>
               <string name="Source"><![CDATA[--!strict
@@ -4285,7 +4837,7 @@ return HUDController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="63">
+          <Item class="ModuleScript" referent="65">
             <Properties>
               <string name="Name">NotificationsController</string>
               <string name="Source"><![CDATA[--!strict
@@ -4377,7 +4929,7 @@ return NotificationsController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="64">
+          <Item class="ModuleScript" referent="66">
             <Properties>
               <string name="Name">PlacementController</string>
               <string name="Source"><![CDATA[--!strict
@@ -4444,7 +4996,7 @@ return PlacementController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="65">
+          <Item class="ModuleScript" referent="67">
             <Properties>
               <string name="Name">PlotController</string>
               <string name="Source"><![CDATA[--!strict
@@ -4493,7 +5045,7 @@ return PlotController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="66">
+          <Item class="ModuleScript" referent="68">
             <Properties>
               <string name="Name">ShopController</string>
               <string name="Source"><![CDATA[--!strict
@@ -4574,15 +5126,15 @@ return ShopController
             </Properties>
           </Item>
         </Item>
-        <Item class="Folder" referent="67">
+        <Item class="Folder" referent="69">
           <Properties>
             <string name="Name">UI</string>
           </Properties>
-          <Item class="Folder" referent="68">
+          <Item class="Folder" referent="70">
             <Properties>
               <string name="Name">Components</string>
             </Properties>
-            <Item class="ModuleScript" referent="69">
+            <Item class="ModuleScript" referent="71">
               <Properties>
                 <string name="Name">Panel</string>
                 <string name="Source"><![CDATA[--!strict
@@ -4695,11 +5247,11 @@ return Panel
               </Properties>
             </Item>
           </Item>
-          <Item class="Folder" referent="70">
+          <Item class="Folder" referent="72">
             <Properties>
               <string name="Name">Screens</string>
             </Properties>
-            <Item class="ModuleScript" referent="71">
+            <Item class="ModuleScript" referent="73">
               <Properties>
                 <string name="Name">RootScreen</string>
                 <string name="Source"><![CDATA[--!strict
@@ -4831,9 +5383,9 @@ function RootScreen.new(context)
 	local shopLabel = Panel.createLabel(shop.body, "Loading shop rotation...", palette, 1)
 	local buyStarter = Panel.createButton(shop.body, "Buy Starter Geode", palette, 2)
 
-	local geode = Panel.createCard(scroll, "Geode Queue", palette, 3)
+	local geode = Panel.createCard(scroll, "Geode Yard", palette, 3)
 	local geodeLabel = Panel.createLabel(geode.body, "Waiting for geode data...", palette, 1)
-	local claimReadyGeodes = Panel.createButton(geode.body, "Claim Ready Geodes", palette, 2)
+	local claimReadyGeodes = Panel.createButton(geode.body, "Open Ready Geodes", palette, 2)
 
 	local daily = Panel.createCard(scroll, "Daily Rewards", palette, 4)
 	local dailyLabel = Panel.createLabel(daily.body, "Waiting for daily reward data...", palette, 1)
@@ -4925,7 +5477,7 @@ function RootScreen.new(context)
 		setOpen(true)
 	end)
 
-	self:setClaimReadyGeodesButton(false, "Claim Ready Geodes")
+	self:setClaimReadyGeodesButton(false, "Open Ready Geodes")
 	self:setOfflineButtonState(false, "Claim Offline Cache")
 	self:setPlaceStarterStationButton(true, "Place Starter Station")
 	return self
@@ -5014,11 +5566,11 @@ return RootScreen
               </Properties>
             </Item>
           </Item>
-          <Item class="Folder" referent="72">
+          <Item class="Folder" referent="74">
             <Properties>
               <string name="Name">Theme</string>
             </Properties>
-            <Item class="ModuleScript" referent="73">
+            <Item class="ModuleScript" referent="75">
               <Properties>
                 <string name="Name">Palette</string>
                 <string name="Source"><![CDATA[--!strict
@@ -5048,13 +5600,13 @@ return Palette
       </Item>
     </Item>
   </Item>
-  <Item class="Workspace" referent="74">
+  <Item class="Workspace" referent="76">
     <Properties>
       <string name="Name">Workspace</string>
       <bool name="FilteringEnabled">true</bool>
       <bool name="NeedsPivotMigration">false</bool>
     </Properties>
-    <Item class="Part" referent="75">
+    <Item class="Part" referent="77">
       <Properties>
         <string name="Name">Baseplate</string>
         <bool name="Anchored">true</bool>

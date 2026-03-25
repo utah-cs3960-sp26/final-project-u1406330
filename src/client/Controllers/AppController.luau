@@ -18,6 +18,7 @@ local HUDController = require(script.Parent.HUDController)
 local ShopController = require(script.Parent.ShopController)
 local GeodeController = require(script.Parent.GeodeController)
 local PlotController = require(script.Parent.PlotController)
+local GeodeInteractionController = require(script.Parent.GeodeInteractionController)
 local PlacementController = require(script.Parent.PlacementController)
 local DailyRewardsController = require(script.Parent.DailyRewardsController)
 local NotificationsController = require(script.Parent.NotificationsController)
@@ -116,6 +117,7 @@ end
 
 local function normalizeProfileState(currentProfile, payload, nowUnix)
 	local profile = TableUtil.deepCopy(currentProfile)
+	local profileAny = profile :: any
 
 	if type(payload) ~= "table" then
 		return profile
@@ -142,6 +144,10 @@ local function normalizeProfileState(currentProfile, payload, nowUnix)
 		profile.resourceOrder = TableUtil.deepCopy(payload.resourceOrder)
 	end
 
+	if payload.inventory ~= nil then
+		profile.inventory = TableUtil.reconcile(profile.inventory, payload.inventory)
+	end
+
 	if payload.stationsById ~= nil then
 		profile.stationsById = TableUtil.reconcile(profile.stationsById, payload.stationsById)
 	end
@@ -152,6 +158,14 @@ local function normalizeProfileState(currentProfile, payload, nowUnix)
 
 	if payload.geodeQueue ~= nil then
 		profile.geodeQueue = TableUtil.deepCopy(payload.geodeQueue)
+	end
+
+	if payload.geodesById ~= nil then
+		profileAny.geodesById = TableUtil.reconcile(profileAny.geodesById or {}, payload.geodesById)
+	end
+
+	if payload.geodeOrder ~= nil then
+		profileAny.geodeOrder = TableUtil.deepCopy(payload.geodeOrder)
 	end
 
 	if payload.unclaimedOfflineRewards ~= nil then
@@ -221,6 +235,7 @@ function AppController.new()
 		state = buildDefaultState(nowUnix),
 		remotes = {},
 		controllers = {},
+		pendingGeodePlacementId = nil,
 		_running = false,
 	}, AppController)
 
@@ -230,6 +245,7 @@ function AppController.new()
 		ShopController.new(context),
 		GeodeController.new(context),
 		PlotController.new(context),
+		GeodeInteractionController.new(context),
 		PlacementController.new(context),
 		DailyRewardsController.new(context),
 		NotificationsController.new(context),
@@ -297,7 +313,7 @@ end
 function AppController:requestBuyStarterGeode()
 	local ok, result = self:invokeRemote(RemoteNames.RequestBuyGeode, "starter_geode")
 	if ok and type(result) == "table" and result.ok == true then
-		self:setStatus("Starter geode purchase requested.")
+		self:setStatus("Starter geode purchased and added to your inventory.")
 	else
 		local errorText = type(result) == "table" and result.errorCode or result
 		self:setStatus("Starter geode purchase failed: " .. tostring(errorText))
@@ -305,13 +321,78 @@ function AppController:requestBuyStarterGeode()
 	return ok, result
 end
 
+function AppController:getPendingGeodePlacementId()
+	return self.pendingGeodePlacementId
+end
+
+function AppController:beginGeodePlacement(geodeInstanceId)
+	if geodeInstanceId == nil then
+		return false
+	end
+
+	self.pendingGeodePlacementId = geodeInstanceId
+	self:setStatus("Click a cell on your plot to place this geode.")
+	return true
+end
+
+function AppController:cancelGeodePlacement()
+	if self.pendingGeodePlacementId == nil then
+		return
+	end
+
+	self.pendingGeodePlacementId = nil
+	self:setStatus("Geode placement canceled.")
+end
+
+function AppController:requestPlaceGeode(geodeInstanceId, x, y)
+	if geodeInstanceId == nil then
+		return false, "missing_geode_id"
+	end
+
+	local ok, result = self:invokeRemote(RemoteNames.RequestPlaceGeode, geodeInstanceId, x, y)
+	if ok and type(result) == "table" and result.ok == true then
+		self.pendingGeodePlacementId = nil
+		self:setStatus("Geode placed on your plot.")
+	else
+		local errorText = type(result) == "table" and result.errorCode or result
+		self:setStatus("Geode placement failed: " .. tostring(errorText))
+	end
+	return ok, result
+end
+
+function AppController:requestOpenReadyGeode(geodeInstanceId)
+	local remoteName = if self:getRemote(RemoteNames.RequestCrackGeode) ~= nil
+		then RemoteNames.RequestCrackGeode
+		else RemoteNames.RequestClaimFinishedGeode
+	local ok, result = self:invokeRemote(remoteName, geodeInstanceId)
+	if ok and type(result) == "table" and result.ok == true then
+		local openResult = result.open or result.claim
+		local claimCount = if type(openResult) == "table" and type(openResult.claimedEntries) == "table" then #openResult.claimedEntries else nil
+		if claimCount ~= nil and claimCount > 0 then
+			self:setStatus(string.format("Opened %d ready geode%s.", claimCount, if claimCount == 1 then "" else "s"))
+		else
+			self:setStatus("Ready geode opened.")
+		end
+	else
+		local errorText = type(result) == "table" and result.errorCode or result
+		self:setStatus("Ready geode crack failed: " .. tostring(errorText))
+	end
+	return ok, result
+end
+
 function AppController:requestClaimFinishedGeodes()
 	local ok, result = self:invokeRemote(RemoteNames.RequestClaimFinishedGeode)
 	if ok and type(result) == "table" and result.ok == true then
-		self:setStatus("Ready geodes claimed.")
+		local openResult = result.open or result.claim
+		local claimCount = if type(openResult) == "table" and type(openResult.claimedEntries) == "table" then #openResult.claimedEntries else nil
+		if claimCount ~= nil and claimCount > 0 then
+			self:setStatus(string.format("Opened %d ready geode%s.", claimCount, if claimCount == 1 then "" else "s"))
+		else
+			self:setStatus("Ready geode opened.")
+		end
 	else
 		local errorText = type(result) == "table" and result.errorCode or result
-		self:setStatus("Ready geode claim failed: " .. tostring(errorText))
+		self:setStatus("Ready geode crack failed: " .. tostring(errorText))
 	end
 	return ok, result
 end

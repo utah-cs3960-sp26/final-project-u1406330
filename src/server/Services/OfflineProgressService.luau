@@ -18,6 +18,7 @@ end
 
 function OfflineProgressService:buildSummary(profile, nowUnix)
 	local passiveRate = self.dependencies.economyService:getPassiveRate(profile)
+	local geodeQueueService = self.dependencies.geodeQueueService
 	local summary = OfflineMath.buildSummary(
 		profile.session.lastLogoutUnix,
 		nowUnix,
@@ -29,7 +30,11 @@ function OfflineProgressService:buildSummary(profile, nowUnix)
 		return nil
 	end
 
-	summary.finishedGeodes = OfflineMath.collectFinishedGeodeIds(profile.geodeQueue, nowUnix)
+	local claimableEntries = if geodeQueueService ~= nil then geodeQueueService:getClaimableEntries(profile, nowUnix) else {}
+	summary.finishedGeodes = {}
+	for _, entry in ipairs(claimableEntries) do
+		table.insert(summary.finishedGeodes, entry.id)
+	end
 	return summary
 end
 

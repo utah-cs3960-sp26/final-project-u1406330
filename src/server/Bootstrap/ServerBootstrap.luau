@@ -65,13 +65,16 @@ local function resolveServices(remotes)
 	local geode = GeodeService.new({
 		playerData = playerData,
 		shopService = shop,
+		placementService = placement,
 	})
 	local geodeQueue = GeodeQueueService.new({
 		playerData = playerData,
 		geodeService = geode,
 		stationService = stations,
+		placementService = placement,
 		rareAnnouncementService = rareAnnouncements,
 	})
+	geode.dependencies.geodeQueueService = geodeQueue
 	local dailyRewards = DailyRewardsService.new({
 		playerData = playerData,
 	})
@@ -163,28 +166,40 @@ function ServerBootstrap.start()
 		end)
 	end
 
-	remotes.RequestClaimFinishedGeode.OnServerInvoke = function(player, geodeId)
-		return callAction("RequestClaimFinishedGeode", function()
-			local profile = services.playerData:getOrLoadProfile(player.UserId)
-			if profile == nil then
+	local function handleOpenGeode(player, geodeId)
+		return callAction("RequestCrackGeode", function()
+			local openResult, errorCode = services.geode:openGeode(player.UserId, geodeId, Time.nowUnix(), nil, player.Name)
+			if openResult == nil then
 				return {
 					ok = false,
-					errorCode = "profile_not_loaded",
+					errorCode = errorCode or "open_failed",
 				}
 			end
 
-			local claimResult = services.geodeQueue:claimEntries(profile, Time.nowUnix(), nil, geodeId, player.Name)
-			if claimResult == nil then
-				return {
-					ok = false,
-					errorCode = "no_ready_geodes",
-				}
-			end
-
-			services.playerData:notifyProfileChanged(player.UserId)
 			return {
 				ok = true,
-				claim = claimResult,
+				open = openResult,
+			}
+		end)
+	end
+
+	remotes.RequestCrackGeode.OnServerInvoke = handleOpenGeode
+	remotes.RequestClaimFinishedGeode.OnServerInvoke = handleOpenGeode
+
+	remotes.RequestPlaceGeode.OnServerInvoke = function(player, geodeInstanceId, x, y)
+		return callAction("RequestPlaceGeode", function()
+			local placeResult, errorCode = services.geode:placeGeode(player.UserId, geodeInstanceId, x, y)
+			if placeResult == nil then
+				return {
+					ok = false,
+					errorCode = errorCode or "placement_failed",
+				}
+			end
+
+			return {
+				ok = true,
+				placement = placeResult.placement,
+				geode = placeResult.geodeInstance,
 			}
 		end)
 	end

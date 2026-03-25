@@ -8,18 +8,6 @@ function OfflineMath.clampElapsedSeconds(elapsedSeconds: number, capSeconds: num
 	return math.clamp(elapsedSeconds, 0, capSeconds)
 end
 
-function OfflineMath.collectFinishedGeodeIds(geodeQueue: { any }, nowUnix: number): { string }
-	local finished = {}
-
-	for _, entry in ipairs(geodeQueue) do
-		if entry.status == "queued" and entry.endsAt <= nowUnix then
-			table.insert(finished, entry.id)
-		end
-	end
-
-	return finished
-end
-
 function OfflineMath.buildSummary(lastLogoutUnix: number?, nowUnix: number, passiveRate: number, capSeconds: number)
 	if lastLogoutUnix == nil then
 		return nil
