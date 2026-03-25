@@ -1,0 +1,5262 @@
+<roblox version="4">
+  <Item class="Lighting" referent="0">
+    <Properties>
+      <string name="Name">Lighting</string>
+      <Color3 name="Ambient">
+        <R>0</R>
+        <G>0</G>
+        <B>0</B>
+      </Color3>
+      <float name="Brightness">2</float>
+      <bool name="GlobalShadows">true</bool>
+      <bool name="Outlines">false</bool>
+      <token name="Technology">1</token>
+    </Properties>
+  </Item>
+  <Item class="ReplicatedStorage" referent="1">
+    <Properties>
+      <string name="Name">ReplicatedStorage</string>
+    </Properties>
+    <Item class="Folder" referent="2">
+      <Properties>
+        <string name="Name">Shared</string>
+      </Properties>
+      <Item class="Folder" referent="3">
+        <Properties>
+          <string name="Name">Config</string>
+        </Properties>
+        <Item class="ModuleScript" referent="4">
+          <Properties>
+            <string name="Name">DailyRewards</string>
+            <string name="Source"><![CDATA[--!strict
+
+local DailyRewards = {
+	streakResetHours = 48,
+	days = {
+		{ day = 1, rewardType = "coins", amount = 100 },
+		{ day = 2, rewardType = "geode", amount = 1, rewardId = "starter_geode" },
+		{ day = 3, rewardType = "boost", amount = 1, rewardId = "geode_speed_boost" },
+		{ day = 4, rewardType = "geode", amount = 1, rewardId = "crystal_cavern_geode" },
+		{ day = 5, rewardType = "token", amount = 1, rewardId = "trait_token" },
+		{ day = 6, rewardType = "gems", amount = 25 },
+		{ day = 7, rewardType = "resource", amount = 1, rewardId = "diamond_core" },
+	},
+}
+
+return DailyRewards
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="5">
+          <Properties>
+            <string name="Name">Economy</string>
+            <string name="Source"><![CDATA[--!strict
+
+local Economy = {
+	offlineCapSeconds = 60 * 60 * 12,
+	basePrestigeMultiplier = 1,
+	prestigeStep = 0.1,
+}
+
+return Economy
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="6">
+          <Properties>
+            <string name="Name">Geodes</string>
+            <string name="Source"><![CDATA[--!strict
+
+local Geodes = {
+	starter_geode = {
+		id = "starter_geode",
+		displayName = "Starter Geode",
+		geodeSeconds = 10,
+		rolls = {
+			{ resourceId = "quartz", weight = 70 },
+			{ resourceId = "amethyst", weight = 25 },
+			{ resourceId = "emerald_cluster", weight = 5 },
+		},
+	},
+	crystal_cavern_geode = {
+		id = "crystal_cavern_geode",
+		displayName = "Crystal Cavern Geode",
+		geodeSeconds = 20,
+		rolls = {
+			{ resourceId = "quartz", weight = 45 },
+			{ resourceId = "amethyst", weight = 32 },
+			{ resourceId = "emerald_cluster", weight = 17 },
+			{ resourceId = "diamond_core", weight = 6 },
+		},
+	},
+	moonlit_geode = {
+		id = "moonlit_geode",
+		displayName = "Moonlit Geode",
+		geodeSeconds = 30,
+		rolls = {
+			{ resourceId = "amethyst", weight = 35 },
+			{ resourceId = "emerald_cluster", weight = 40 },
+			{ resourceId = "diamond_core", weight = 22 },
+			{ resourceId = "star_shard", weight = 3 },
+		},
+	},
+}
+
+return Geodes
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="7">
+          <Properties>
+            <string name="Name">Resources</string>
+            <string name="Source"><![CDATA[--!strict
+
+local Resources = {
+	quartz = {
+		id = "quartz",
+		displayName = "Quartz",
+		rarity = "Common",
+		baseCoinRate = 1,
+		color = Color3.fromRGB(224, 233, 240),
+	},
+	amethyst = {
+		id = "amethyst",
+		displayName = "Amethyst",
+		rarity = "Uncommon",
+		baseCoinRate = 4,
+		color = Color3.fromRGB(179, 127, 255),
+	},
+	emerald_cluster = {
+		id = "emerald_cluster",
+		displayName = "Emerald Cluster",
+		rarity = "Rare",
+		baseCoinRate = 12,
+		color = Color3.fromRGB(72, 214, 158),
+	},
+	diamond_core = {
+		id = "diamond_core",
+		displayName = "Diamond Core",
+		rarity = "Epic",
+		baseCoinRate = 40,
+		color = Color3.fromRGB(150, 244, 255),
+	},
+	star_shard = {
+		id = "star_shard",
+		displayName = "Star Shard",
+		rarity = "Legendary",
+		baseCoinRate = 120,
+		color = Color3.fromRGB(255, 221, 120),
+	},
+}
+
+return Resources
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="8">
+          <Properties>
+            <string name="Name">Shops</string>
+            <string name="Source"><![CDATA[--!strict
+
+local Shops = {
+	starterOffers = {
+		{ offerId = "starter_geode", price = 50, currency = "coins" },
+	},
+	hourlyRotation = {
+		{ offerId = "starter_geode", price = 45, currency = "coins" },
+		{ offerId = "crystal_cavern_geode", price = 120, currency = "coins" },
+		{ offerId = "moonlit_geode", price = 1, currency = "gems" },
+	},
+}
+
+return Shops
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="9">
+          <Properties>
+            <string name="Name">Stations</string>
+            <string name="Source"><![CDATA[--!strict
+
+local Stations = {
+	crystal_display_t1 = {
+		id = "crystal_display_t1",
+		displayName = "Crystal Display",
+		capacity = 4,
+		incomeMultiplier = 1,
+		gridSize = { width = 2, height = 2 },
+		color = Color3.fromRGB(102, 230, 255),
+	},
+	resonance_pedestal_t1 = {
+		id = "resonance_pedestal_t1",
+		displayName = "Resonance Pedestal",
+		capacity = 6,
+		incomeMultiplier = 1.15,
+		gridSize = { width = 3, height = 3 },
+		color = Color3.fromRGB(164, 120, 255),
+	},
+}
+
+return Stations
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="10">
+          <Properties>
+            <string name="Name">Traits</string>
+            <string name="Source"><![CDATA[--!strict
+
+local Traits = {
+	none = {
+		id = "none",
+		displayName = "None",
+		weight = 88,
+		multiplier = 1,
+	},
+	flawless = {
+		id = "flawless",
+		displayName = "Flawless",
+		weight = 6,
+		multiplier = 1.5,
+	},
+	prismatic = {
+		id = "prismatic",
+		displayName = "Prismatic",
+		weight = 3,
+		multiplier = 1.8,
+	},
+	celestial = {
+		id = "celestial",
+		displayName = "Celestial",
+		weight = 1.5,
+		multiplier = 2,
+	},
+	radiant = {
+		id = "radiant",
+		displayName = "Radiant",
+		weight = 0.8,
+		multiplier = 2.35,
+	},
+	void_touched = {
+		id = "void_touched",
+		displayName = "Void-Touched",
+		weight = 0.2,
+		multiplier = 3,
+	},
+}
+
+return Traits
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="11">
+          <Properties>
+            <string name="Name">World</string>
+            <string name="Source"><![CDATA[--!strict
+
+local World = {
+	plotGridWidth = 16,
+	plotGridHeight = 16,
+	cellSize = 5,
+	plotCount = 8,
+	maxPlots = 8,
+	plotRows = 2,
+	plotColumns = 4,
+	plotSpacing = 100,
+	plotOrigin = {
+		x = 0,
+		y = 6,
+		z = 0,
+	},
+	sharedBaseplateSize = {
+		width = 460,
+		height = 2,
+		depth = 320,
+	},
+	plotBaseSize = {
+		width = 92,
+		height = 2,
+		depth = 92,
+	},
+	plotOffsets = {
+		{ x = -150, z = -105 },
+		{ x = -50, z = -105 },
+		{ x = 50, z = -105 },
+		{ x = 150, z = -105 },
+		{ x = -150, z = 105 },
+		{ x = -50, z = 105 },
+		{ x = 50, z = 105 },
+		{ x = 150, z = 105 },
+	},
+	worldFolderName = "GemFactoryWorld",
+	plotFolderName = "Plots",
+	stationFolderName = "Stations",
+	defaultPlotSpacing = 100,
+	starterStationTypeId = "crystal_display_t1",
+}
+
+return World
+]]></string>
+          </Properties>
+        </Item>
+      </Item>
+      <Item class="Folder" referent="12">
+        <Properties>
+          <string name="Name">Domain</string>
+        </Properties>
+        <Item class="ModuleScript" referent="13">
+          <Properties>
+            <string name="Name">EconomyMath</string>
+            <string name="Source"><![CDATA[--!strict
+
+local EconomyMath = {}
+
+function EconomyMath.getPrestigeMultiplier(prestigeCount: number, step: number, baseMultiplier: number?): number
+	return (baseMultiplier or 1) + (prestigeCount * step)
+end
+
+function EconomyMath.getResourceIncome(baseRate: number, traitMultiplier: number, stationMultiplier: number, prestigeMultiplier: number?, eventMultiplier: number?): number
+	return baseRate * traitMultiplier * stationMultiplier * (prestigeMultiplier or 1) * (eventMultiplier or 1)
+end
+
+function EconomyMath.getPassiveIncomeForElapsedSeconds(passiveRate: number, elapsedSeconds: number): number
+	return math.max(0, passiveRate) * math.max(0, elapsedSeconds)
+end
+
+function EconomyMath.resolvePassiveAccrual(passiveRate: number, elapsedSeconds: number, existingRemainder: number?): (number, number)
+	local totalIncome = EconomyMath.getPassiveIncomeForElapsedSeconds(passiveRate, elapsedSeconds) + math.max(0, existingRemainder or 0)
+	local awardedCoins = math.floor(totalIncome)
+	return awardedCoins, totalIncome - awardedCoins
+end
+
+function EconomyMath.sumResourceIncome(entries: { { baseRate: number, traitMultiplier: number, stationMultiplier: number } }, prestigeMultiplier: number?): number
+	local total = 0
+
+	for _, entry in ipairs(entries) do
+		total += EconomyMath.getResourceIncome(
+			entry.baseRate,
+			entry.traitMultiplier,
+			entry.stationMultiplier,
+			prestigeMultiplier,
+			1
+		)
+	end
+
+	return total
+end
+
+return EconomyMath
+
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="14">
+          <Properties>
+            <string name="Name">GeodeRoller</string>
+            <string name="Source"><![CDATA[--!strict
+
+local GeodeRoller = {}
+
+function GeodeRoller.getTotalWeight(entries: { any }): number
+	local totalWeight = 0
+
+	for _, entry in ipairs(entries) do
+		if type(entry.weight) == "number" and entry.weight > 0 then
+			totalWeight += entry.weight
+		end
+	end
+
+	return totalWeight
+end
+
+local function pickWeighted(entries: { any }, roll: number)
+	local cursor = 0
+
+	for _, entry in ipairs(entries) do
+		local weight = if type(entry.weight) == "number" then entry.weight else 0
+		if weight <= 0 then
+			continue
+		end
+
+		cursor += weight
+		if roll <= cursor then
+			return entry
+		end
+	end
+
+	return entries[#entries]
+end
+
+function GeodeRoller.rollGeode(geodeDefinition: any, rng: Random?)
+	local rolls = geodeDefinition.rolls
+	if type(rolls) ~= "table" or #rolls == 0 then
+		return nil
+	end
+
+	local totalWeight = GeodeRoller.getTotalWeight(rolls)
+	if totalWeight <= 0 then
+		return nil
+	end
+
+	local roll = if rng then rng:NextNumber() else math.random()
+	local scaledRoll = math.max(0.000001, roll * totalWeight)
+	return pickWeighted(rolls, scaledRoll)
+end
+
+return GeodeRoller
+
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="15">
+          <Properties>
+            <string name="Name">OfflineMath</string>
+            <string name="Source"><![CDATA[--!strict
+
+local EconomyMath = require(script.Parent.EconomyMath)
+
+local OfflineMath = {}
+
+function OfflineMath.clampElapsedSeconds(elapsedSeconds: number, capSeconds: number)
+	return math.clamp(elapsedSeconds, 0, capSeconds)
+end
+
+function OfflineMath.collectFinishedGeodeIds(geodeQueue: { any }, nowUnix: number): { string }
+	local finished = {}
+
+	for _, entry in ipairs(geodeQueue) do
+		if entry.status == "queued" and entry.endsAt <= nowUnix then
+			table.insert(finished, entry.id)
+		end
+	end
+
+	return finished
+end
+
+function OfflineMath.buildSummary(lastLogoutUnix: number?, nowUnix: number, passiveRate: number, capSeconds: number)
+	if lastLogoutUnix == nil then
+		return nil
+	end
+
+	local elapsedSeconds = math.max(0, nowUnix - lastLogoutUnix)
+	local clampedSeconds = OfflineMath.clampElapsedSeconds(elapsedSeconds, capSeconds)
+
+	return {
+		elapsedSeconds = clampedSeconds,
+		coins = EconomyMath.getPassiveIncomeForElapsedSeconds(passiveRate, clampedSeconds),
+		calculatedAt = nowUnix,
+	}
+end
+
+return OfflineMath
+
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="16">
+          <Properties>
+            <string name="Name">PlacementRules</string>
+            <string name="Source"><![CDATA[--!strict
+
+local PlacementRules = {}
+
+local function cellKey(x: number, y: number)
+	return tostring(x) .. ":" .. tostring(y)
+end
+
+function PlacementRules.canPlace(plotSize: { width: number, height: number }, occupancy: { [string]: string }, x: number, y: number, width: number, height: number)
+	if width <= 0 or height <= 0 then
+		return false, "invalid_size"
+	end
+
+	if x < 1 or y < 1 then
+		return false, "out_of_bounds"
+	end
+
+	if x + width - 1 > plotSize.width or y + height - 1 > plotSize.height then
+		return false, "out_of_bounds"
+	end
+
+	for dx = 0, width - 1 do
+		for dy = 0, height - 1 do
+			if occupancy[cellKey(x + dx, y + dy)] ~= nil then
+				return false, "occupied"
+			end
+		end
+	end
+
+	return true, nil
+end
+
+function PlacementRules.clearFootprint(occupancy: { [string]: string }, placement: { x: number, y: number, width: number, height: number })
+	for dx = 0, placement.width - 1 do
+		for dy = 0, placement.height - 1 do
+			local key = cellKey(placement.x + dx, placement.y + dy)
+			occupancy[key] = nil
+		end
+	end
+end
+
+function PlacementRules.getFootprintKeys(x: number, y: number, width: number, height: number): { string }
+	local keys = {}
+
+	for dx = 0, width - 1 do
+		for dy = 0, height - 1 do
+			table.insert(keys, cellKey(x + dx, y + dy))
+		end
+	end
+
+	return keys
+end
+
+function PlacementRules.findFirstPlacement(plotSize: { width: number, height: number }, occupancy: { [string]: string }, width: number, height: number)
+	for y = 1, plotSize.height do
+		for x = 1, plotSize.width do
+			local canPlace = PlacementRules.canPlace(plotSize, occupancy, x, y, width, height)
+			if canPlace then
+				return {
+					x = x,
+					y = y,
+				}
+			end
+		end
+	end
+
+	return nil, "no_open_space"
+end
+
+function PlacementRules.buildOccupancyKey(x: number, y: number)
+	return cellKey(x, y)
+end
+
+function PlacementRules.getCenterCell(x: number, y: number, width: number, height: number)
+	return x + ((width - 1) / 2), y + ((height - 1) / 2)
+end
+
+return PlacementRules
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="17">
+          <Properties>
+            <string name="Name">ShopRotation</string>
+            <string name="Source"><![CDATA[--!strict
+
+local ShopRotation = {}
+
+function ShopRotation.getHourlyIndex(nowUnix: number, offerCount: number)
+	if offerCount <= 0 then
+		return 0
+	end
+
+	return (math.floor(nowUnix / 3600) % offerCount) + 1
+end
+
+function ShopRotation.getSecondsUntilNextRotation(nowUnix: number): number
+	local currentHourStart = math.floor(nowUnix / 3600) * 3600
+	local nextHourStart = currentHourStart + 3600
+	return math.max(0, nextHourStart - nowUnix)
+end
+
+function ShopRotation.getHourlyState(nowUnix: number, offerCount: number)
+	return {
+		index = ShopRotation.getHourlyIndex(nowUnix, offerCount),
+		secondsRemaining = ShopRotation.getSecondsUntilNextRotation(nowUnix),
+	}
+end
+
+return ShopRotation
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="18">
+          <Properties>
+            <string name="Name">StationAssignment</string>
+            <string name="Source"><![CDATA[--!strict
+
+local StationAssignment = {}
+
+local function getPlacementRecord(profile, stationId)
+	for _, placement in pairs(profile.placedObjects) do
+		if placement.objectType == "station" and placement.objectId == stationId then
+			return placement
+		end
+	end
+
+	return nil
+end
+
+local function compareStationOrder(left, right)
+	if left.y ~= right.y then
+		return left.y < right.y
+	end
+
+	if left.x ~= right.x then
+		return left.x < right.x
+	end
+
+	return left.stationId < right.stationId
+end
+
+function StationAssignment.getPlacedStationOrder(profile)
+	local ordered = {}
+
+	for stationId, station in pairs(profile.stationsById) do
+		if station.placement ~= nil then
+			local placement = getPlacementRecord(profile, stationId) or station.placement
+			table.insert(ordered, {
+				stationId = stationId,
+				x = placement.x,
+				y = placement.y,
+			})
+		end
+	end
+
+	table.sort(ordered, compareStationOrder)
+	return ordered
+end
+
+function StationAssignment.getAvailableStationId(profile, stationDefinitions)
+	for _, entry in ipairs(StationAssignment.getPlacedStationOrder(profile)) do
+		local station = profile.stationsById[entry.stationId]
+		local stationDefinition = station and stationDefinitions[station.stationTypeId] or nil
+		if station ~= nil and stationDefinition ~= nil and #station.occupantIds < stationDefinition.capacity then
+			return station.id
+		end
+	end
+
+	return nil, "no_station_capacity"
+end
+
+function StationAssignment.assignResourceToStation(profile, stationDefinitions, resourceId, stationId)
+	local resource = profile.resourcesById[resourceId]
+	if resource == nil then
+		return false, "resource_not_found"
+	end
+
+	local station = profile.stationsById[stationId]
+	if station == nil then
+		return false, "station_not_found"
+	end
+
+	if station.placement == nil then
+		return false, "station_not_placed"
+	end
+
+	local stationDefinition = stationDefinitions[station.stationTypeId]
+	if stationDefinition == nil then
+		return false, "station_definition_missing"
+	end
+
+	if resource.stationId == stationId then
+		return true
+	end
+
+	if #station.occupantIds >= stationDefinition.capacity then
+		return false, "station_full"
+	end
+
+	if resource.stationId ~= nil then
+		local previousStation = profile.stationsById[resource.stationId]
+		if previousStation ~= nil then
+			for index, occupantId in ipairs(previousStation.occupantIds) do
+				if occupantId == resourceId then
+					table.remove(previousStation.occupantIds, index)
+					break
+				end
+			end
+		end
+	end
+
+	resource.stationId = stationId
+	table.insert(station.occupantIds, resourceId)
+	return true
+end
+
+function StationAssignment.autoAssignResources(profile, stationDefinitions, resourceIds)
+	local assignedResourceIds = {}
+	local unassignedResourceIds = {}
+
+	for _, resourceId in ipairs(resourceIds) do
+		local stationId = StationAssignment.getAvailableStationId(profile, stationDefinitions)
+		if stationId == nil then
+			table.insert(unassignedResourceIds, resourceId)
+		else
+			local assigned = StationAssignment.assignResourceToStation(profile, stationDefinitions, resourceId, stationId)
+			if assigned then
+				table.insert(assignedResourceIds, resourceId)
+			else
+				table.insert(unassignedResourceIds, resourceId)
+			end
+		end
+	end
+
+	return {
+		assignedResourceIds = assignedResourceIds,
+		unassignedResourceIds = unassignedResourceIds,
+	}
+end
+
+return StationAssignment
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="19">
+          <Properties>
+            <string name="Name">TraitRoller</string>
+            <string name="Source"><![CDATA[--!strict
+
+local TraitRoller = {}
+
+function TraitRoller.getTotalWeight(entries: { any }): number
+	local totalWeight = 0
+
+	for _, entry in ipairs(entries) do
+		if type(entry.weight) == "number" and entry.weight > 0 then
+			totalWeight += entry.weight
+		end
+	end
+
+	return totalWeight
+end
+
+local function pickWeighted(entries: { any }, roll: number)
+	local cursor = 0
+
+	for _, entry in ipairs(entries) do
+		local weight = if type(entry.weight) == "number" then entry.weight else 0
+		if weight <= 0 then
+			continue
+		end
+
+		cursor += weight
+		if roll <= cursor then
+			return entry
+		end
+	end
+
+	return entries[#entries]
+end
+
+function TraitRoller.rollTrait(traitDefinitions: { any }, rng: Random?)
+	if #traitDefinitions == 0 then
+		return nil
+	end
+
+	local totalWeight = TraitRoller.getTotalWeight(traitDefinitions)
+	if totalWeight <= 0 then
+		return nil
+	end
+
+	local roll = if rng then rng:NextNumber() else math.random()
+	local scaledRoll = math.max(0.000001, roll * totalWeight)
+	return pickWeighted(traitDefinitions, scaledRoll)
+end
+
+return TraitRoller
+
+]]></string>
+          </Properties>
+        </Item>
+      </Item>
+      <Item class="Folder" referent="20">
+        <Properties>
+          <string name="Name">Net</string>
+        </Properties>
+        <Item class="ModuleScript" referent="21">
+          <Properties>
+            <string name="Name">RemoteNames</string>
+            <string name="Source"><![CDATA[--!strict
+
+local RemoteNames = {
+	RequestBuyGeode = "RequestBuyGeode",
+	RequestClaimFinishedGeode = "RequestClaimFinishedGeode",
+	RequestPlaceStation = "RequestPlaceStation",
+	RequestMovePlacedObject = "RequestMovePlacedObject",
+	RequestUpgradeStation = "RequestUpgradeStation",
+	RequestClaimDailyReward = "RequestClaimDailyReward",
+	RequestCollectOfflineRewards = "RequestCollectOfflineRewards",
+	GetInitialState = "GetInitialState",
+	StateUpdated = "StateUpdated",
+	ShopRotationUpdated = "ShopRotationUpdated",
+	RareRevealAnnounced = "RareRevealAnnounced",
+	RareGeodeAnnounced = "RareRevealAnnounced",
+}
+
+return RemoteNames
+
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="22">
+          <Properties>
+            <string name="Name">Remotes</string>
+            <string name="Source"><![CDATA[--!strict
+
+local RemoteNames = require(script.Parent.RemoteNames)
+
+local Remotes = {
+	definitions = {
+		[RemoteNames.RequestBuyGeode] = "RemoteFunction",
+		[RemoteNames.RequestClaimFinishedGeode] = "RemoteFunction",
+		[RemoteNames.RequestPlaceStation] = "RemoteFunction",
+		[RemoteNames.RequestMovePlacedObject] = "RemoteFunction",
+		[RemoteNames.RequestUpgradeStation] = "RemoteFunction",
+		[RemoteNames.RequestClaimDailyReward] = "RemoteFunction",
+		[RemoteNames.RequestCollectOfflineRewards] = "RemoteFunction",
+		[RemoteNames.GetInitialState] = "RemoteFunction",
+		[RemoteNames.StateUpdated] = "RemoteEvent",
+		[RemoteNames.ShopRotationUpdated] = "RemoteEvent",
+		[RemoteNames.RareRevealAnnounced] = "RemoteEvent",
+	},
+}
+
+return Remotes
+
+]]></string>
+          </Properties>
+        </Item>
+      </Item>
+      <Item class="Folder" referent="23">
+        <Properties>
+          <string name="Name">Types</string>
+        </Properties>
+        <Item class="ModuleScript" referent="24">
+          <Properties>
+            <string name="Name">PlayerProfile</string>
+            <string name="Source"><![CDATA[--!strict
+
+local ResourceTypes = require(script.Parent.ResourceTypes)
+local StationTypes = require(script.Parent.StationTypes)
+local TableUtil = require(script.Parent.Parent.Util.TableUtil)
+
+export type ResourceInstance = ResourceTypes.ResourceInstance
+export type StationInstance = StationTypes.StationInstance
+export type PlacementRecord = StationTypes.PlacementRecord
+
+export type OfflineRewardSummary = {
+	coins: number,
+	finishedGeodes: { string },
+	elapsedSeconds: number,
+	calculatedAt: number,
+}
+
+export type GeodeQueueEntry = {
+	id: string,
+	geodeId: string,
+	startedAt: number,
+	endsAt: number,
+	status: string,
+}
+
+export type PlayerProfile = {
+	currencies: {
+		coins: number,
+		gems: number,
+		eventTokens: number,
+	},
+	resourcesById: { [string]: ResourceInstance },
+	resourceOrder: { string },
+	stationsById: { [string]: StationInstance },
+	placedObjects: { [string]: PlacementRecord },
+	inventory: {
+		geodes: { [string]: number },
+		items: { [string]: number },
+	},
+	geodeQueue: { GeodeQueueEntry },
+	unclaimedOfflineRewards: OfflineRewardSummary?,
+	dailyRewards: {
+		currentDay: number,
+		lastClaimUnix: number?,
+		streakCount: number,
+	},
+	progression: {
+		unlockedZones: { string },
+		prestigeCount: number,
+	},
+	plotState: {
+		plotId: string?,
+		gridOccupancy: { [string]: string },
+	},
+	session: {
+		lastLogoutUnix: number?,
+		lastPassiveTickUnix: number?,
+		passiveCoinRemainder: number,
+	},
+	meta: {
+		schemaVersion: number,
+		createdAt: number,
+		lastLoadedAt: number,
+		lastSavedAt: number?,
+	},
+}
+
+local PlayerProfile = {}
+PlayerProfile.SCHEMA_VERSION = 1
+
+local function createTemplate(nowUnix: number): PlayerProfile
+	return {
+		currencies = {
+			coins = 250,
+			gems = 10,
+			eventTokens = 0,
+		},
+		resourcesById = {},
+		resourceOrder = {},
+		stationsById = {},
+		placedObjects = {},
+		inventory = {
+			geodes = {},
+			items = {},
+		},
+		geodeQueue = {},
+		unclaimedOfflineRewards = nil,
+		dailyRewards = {
+			currentDay = 1,
+			lastClaimUnix = nil,
+			streakCount = 0,
+		},
+		progression = {
+			unlockedZones = { "crystal_cavern" },
+			prestigeCount = 0,
+		},
+		plotState = {
+			plotId = nil,
+			gridOccupancy = {},
+		},
+		session = {
+			lastLogoutUnix = nil,
+			lastPassiveTickUnix = nowUnix,
+			passiveCoinRemainder = 0,
+		},
+		meta = {
+			schemaVersion = PlayerProfile.SCHEMA_VERSION,
+			createdAt = nowUnix,
+			lastLoadedAt = nowUnix,
+			lastSavedAt = nil,
+		},
+	}
+end
+
+function PlayerProfile.new(nowUnix: number?): PlayerProfile
+	local timestamp = nowUnix or 0
+	return createTemplate(timestamp)
+end
+
+function PlayerProfile.reconcile(profile: any, nowUnix: number?): PlayerProfile
+	local timestamp = nowUnix or 0
+	local resolved = TableUtil.reconcile(createTemplate(timestamp), profile)
+	resolved.meta.schemaVersion = PlayerProfile.SCHEMA_VERSION
+	resolved.meta.lastLoadedAt = timestamp
+	return resolved
+end
+
+return PlayerProfile
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="25">
+          <Properties>
+            <string name="Name">ResourceTypes</string>
+            <string name="Source"><![CDATA[--!strict
+
+export type ResourceInstance = {
+	id: string,
+	resourceTypeId: string,
+	traitId: string?,
+	level: number,
+	stationId: string?,
+	obtainedAt: number,
+}
+
+return {}
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="26">
+          <Properties>
+            <string name="Name">StationTypes</string>
+            <string name="Source"><![CDATA[--!strict
+
+export type GridPlacement = {
+	plotId: string?,
+	x: number,
+	y: number,
+	width: number,
+	height: number,
+}
+
+export type StationInstance = {
+	id: string,
+	stationTypeId: string,
+	level: number,
+	occupantIds: { string },
+	placement: GridPlacement?,
+}
+
+export type PlacementRecord = {
+	id: string,
+	plotId: string?,
+	objectType: string,
+	objectId: string,
+	x: number,
+	y: number,
+	width: number,
+	height: number,
+}
+
+return {}
+
+]]></string>
+          </Properties>
+        </Item>
+      </Item>
+      <Item class="Folder" referent="27">
+        <Properties>
+          <string name="Name">Util</string>
+        </Properties>
+        <Item class="ModuleScript" referent="28">
+          <Properties>
+            <string name="Name">Id</string>
+            <string name="Source"><![CDATA[--!strict
+
+local HttpService = game:GetService("HttpService")
+
+local Id = {}
+
+function Id.new(prefix: string?)
+	local guid = HttpService:GenerateGUID(false)
+	if prefix == nil or prefix == "" then
+		return guid
+	end
+
+	return prefix .. "_" .. guid
+end
+
+return Id
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="29">
+          <Properties>
+            <string name="Name">Result</string>
+            <string name="Source"><![CDATA[--!strict
+
+export type Result<T, E> = {
+	ok: true,
+	value: T,
+} | {
+	ok: false,
+	error: E,
+}
+
+local Result = {}
+
+function Result.ok<T, E>(value: T): Result<T, E>
+	return {
+		ok = true,
+		value = value,
+	}
+end
+
+function Result.err<T, E>(errorValue: E): Result<T, E>
+	return {
+		ok = false,
+		error = errorValue,
+	}
+end
+
+function Result.isOk<T, E>(result: Result<T, E>): boolean
+	return result.ok
+end
+
+return Result
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="30">
+          <Properties>
+            <string name="Name">Signal</string>
+            <string name="Source"><![CDATA[--!strict
+
+local Signal = {}
+Signal.__index = Signal
+
+export type Connection = {
+	Disconnect: () -> (),
+}
+
+function Signal.new()
+	return setmetatable({
+		_listeners = {},
+	}, Signal)
+end
+
+function Signal:Connect(callback: (...any) -> ())
+	local listeners = self._listeners
+	local connection = {
+		Disconnect = function()
+			local index = table.find(listeners, callback)
+			if index ~= nil then
+				table.remove(listeners, index)
+			end
+		end,
+	}
+
+	table.insert(listeners, callback)
+	return connection :: Connection
+end
+
+function Signal:Fire(...)
+	for _, callback in ipairs(self._listeners) do
+		callback(...)
+	end
+end
+
+function Signal:Destroy()
+	table.clear(self._listeners)
+end
+
+return Signal
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="31">
+          <Properties>
+            <string name="Name">TableUtil</string>
+            <string name="Source"><![CDATA[--!strict
+
+local TableUtil = {}
+
+function TableUtil.shallowCopy<T>(input: T): T
+	local copy = {} :: any
+	for key, value in pairs(input :: any) do
+		copy[key] = value
+	end
+	return copy
+end
+
+function TableUtil.deepCopy<T>(input: T): T
+	if type(input) ~= "table" then
+		return input
+	end
+
+	local copy = {}
+	for key, value in pairs(input :: any) do
+		copy[TableUtil.deepCopy(key)] = TableUtil.deepCopy(value)
+	end
+	return copy :: any
+end
+
+function TableUtil.reconcile<T>(template: T, value: any): T
+	if type(template) ~= "table" then
+		if value == nil then
+			return template
+		end
+
+		return value
+	end
+
+	local resolved = {}
+	local source = if type(value) == "table" then value else {}
+
+	for key, templateValue in pairs(template :: any) do
+		resolved[key] = TableUtil.reconcile(templateValue, source[key])
+	end
+
+	for key, sourceValue in pairs(source :: any) do
+		if resolved[key] == nil then
+			resolved[key] = TableUtil.deepCopy(sourceValue)
+		end
+	end
+
+	return resolved :: any
+end
+
+function TableUtil.merge<T>(base: T, override: T): T
+	local result = TableUtil.deepCopy(base)
+	for key, value in pairs(override :: any) do
+		result[key] = value
+	end
+	return result
+end
+
+return TableUtil
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="32">
+          <Properties>
+            <string name="Name">Time</string>
+            <string name="Source"><![CDATA[--!strict
+
+local Time = {}
+
+function Time.nowUnix()
+	return DateTime.now().UnixTimestamp
+end
+
+function Time.elapsedSeconds(startUnix: number, endUnix: number?)
+	local currentUnix = endUnix or Time.nowUnix()
+	return math.max(0, currentUnix - startUnix)
+end
+
+function Time.clampSeconds(seconds: number, capSeconds: number)
+	return math.clamp(seconds, 0, capSeconds)
+end
+
+return Time
+]]></string>
+          </Properties>
+        </Item>
+      </Item>
+    </Item>
+  </Item>
+  <Item class="ServerScriptService" referent="33">
+    <Properties>
+      <string name="Name">ServerScriptService</string>
+    </Properties>
+    <Item class="Script" referent="34">
+      <Properties>
+        <string name="Name">Server</string>
+        <token name="RunContext">0</token>
+        <string name="Source"><![CDATA[local ServerBootstrap = require(script.Bootstrap.ServerBootstrap)
+
+ServerBootstrap.start()
+]]></string>
+      </Properties>
+      <Item class="Folder" referent="35">
+        <Properties>
+          <string name="Name">Bootstrap</string>
+        </Properties>
+        <Item class="ModuleScript" referent="36">
+          <Properties>
+            <string name="Name">ServerBootstrap</string>
+            <string name="Source"><![CDATA[--!strict
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+local RemoteNames = require(Shared.Net.RemoteNames)
+local Time = require(Shared.Util.Time)
+
+local function ensureRemotes()
+	local Remotes = require(Shared.Net.Remotes)
+	local remotes = {}
+
+	local remotesFolder = ReplicatedStorage:FindFirstChild("Remotes")
+	if remotesFolder == nil then
+		remotesFolder = Instance.new("Folder")
+		remotesFolder.Name = "Remotes"
+		remotesFolder.Parent = ReplicatedStorage
+	end
+
+	for remoteName, className in pairs(Remotes.definitions) do
+		local remote = remotesFolder:FindFirstChild(remoteName)
+		if remote == nil then
+			remote = Instance.new(className)
+			remote.Name = remoteName
+			remote.Parent = remotesFolder
+		end
+		remotes[remoteName] = remote
+	end
+
+	return remotes
+end
+
+local ServerBootstrap = {}
+
+local function resolveServices(remotes)
+	local servicesFolder = script.Parent.Parent.Services
+
+	local MockPersistenceService = require(servicesFolder.MockPersistenceService)
+	local PlayerDataService = require(servicesFolder.PlayerDataService)
+	local PlotService = require(servicesFolder.PlotService)
+	local ShopService = require(servicesFolder.ShopService)
+	local StationService = require(servicesFolder.StationService)
+	local PlacementService = require(servicesFolder.PlacementService)
+	local EconomyService = require(servicesFolder.EconomyService)
+	local GeodeService = require(servicesFolder.GeodeService)
+	local GeodeQueueService = require(servicesFolder.GeodeQueueService)
+	local DailyRewardsService = require(servicesFolder.DailyRewardsService)
+	local OfflineProgressService = require(servicesFolder.OfflineProgressService)
+	local WorldReplicaService = require(servicesFolder.WorldReplicaService)
+	local RareAnnouncementSystem = require(script.Parent.Parent.Systems.RareAnnouncementSystem)
+
+	local persistence = MockPersistenceService.new()
+	local playerData = PlayerDataService.new(persistence)
+	local shop = ShopService.new()
+	local stations = StationService.new()
+	local plot = PlotService.new()
+	local placement = PlacementService.new({
+		stationService = stations,
+	})
+	local economy = EconomyService.new({
+		playerData = playerData,
+		stationService = stations,
+	})
+	local rareAnnouncements = RareAnnouncementSystem.new(remotes[RemoteNames.RareRevealAnnounced])
+	local geode = GeodeService.new({
+		playerData = playerData,
+		shopService = shop,
+	})
+	local geodeQueue = GeodeQueueService.new({
+		playerData = playerData,
+		geodeService = geode,
+		stationService = stations,
+		rareAnnouncementService = rareAnnouncements,
+	})
+	local dailyRewards = DailyRewardsService.new({
+		playerData = playerData,
+	})
+	local offlineProgress = OfflineProgressService.new({
+		playerData = playerData,
+		economyService = economy,
+		geodeQueueService = geodeQueue,
+	})
+	local worldReplica = WorldReplicaService.new({
+		plotService = plot,
+		placementService = placement,
+		stationService = stations,
+		playerDataService = playerData,
+	})
+
+	return {
+		persistence = persistence,
+		playerData = playerData,
+		shop = shop,
+		stations = stations,
+		plot = plot,
+		placement = placement,
+		economy = economy,
+		geode = geode,
+		geodeQueue = geodeQueue,
+		dailyRewards = dailyRewards,
+		offlineProgress = offlineProgress,
+		worldReplica = worldReplica,
+		rareAnnouncements = rareAnnouncements,
+	}
+end
+
+function ServerBootstrap.start()
+	local remotes = ensureRemotes()
+	local services = resolveServices(remotes)
+	local running = true
+
+	local function publishState(userId)
+		local player = Players:GetPlayerByUserId(userId)
+		if player == nil then
+			return
+		end
+
+		local state = services.playerData:getPublicState(userId, Time.nowUnix())
+		remotes.StateUpdated:FireClient(player, state)
+	end
+
+	local function publishShopState()
+		local shopState = services.shop:getShopState(Time.nowUnix())
+		remotes.ShopRotationUpdated:FireAllClients(shopState)
+	end
+
+	services.playerData.onProfileChanged = publishState
+
+	local function callAction(actionName, action)
+		local ok, result = pcall(action)
+		if not ok then
+			warn("[GemFactory] " .. actionName .. " failed:", result)
+			return {
+				ok = false,
+				errorCode = "internal_error",
+			}
+		end
+
+		return result
+	end
+
+	remotes.GetInitialState.OnServerInvoke = function(player)
+		return {
+			ok = true,
+			state = services.playerData:getPublicState(player.UserId, Time.nowUnix()),
+		}
+	end
+
+	remotes.RequestBuyGeode.OnServerInvoke = function(player, geodeId)
+		return callAction("RequestBuyGeode", function()
+			local result, errorCode = services.geode:buyGeode(player.UserId, geodeId, Time.nowUnix())
+			if result == nil then
+				return {
+					ok = false,
+					errorCode = errorCode or "purchase_failed",
+				}
+			end
+
+			return {
+				ok = true,
+				purchase = result,
+			}
+		end)
+	end
+
+	remotes.RequestClaimFinishedGeode.OnServerInvoke = function(player, geodeId)
+		return callAction("RequestClaimFinishedGeode", function()
+			local profile = services.playerData:getOrLoadProfile(player.UserId)
+			if profile == nil then
+				return {
+					ok = false,
+					errorCode = "profile_not_loaded",
+				}
+			end
+
+			local claimResult = services.geodeQueue:claimEntries(profile, Time.nowUnix(), nil, geodeId, player.Name)
+			if claimResult == nil then
+				return {
+					ok = false,
+					errorCode = "no_ready_geodes",
+				}
+			end
+
+			services.playerData:notifyProfileChanged(player.UserId)
+			return {
+				ok = true,
+				claim = claimResult,
+			}
+		end)
+	end
+
+	remotes.RequestClaimDailyReward.OnServerInvoke = function(player)
+		return callAction("RequestClaimDailyReward", function()
+			local result, errorCode = services.dailyRewards:claimReward(player.UserId, Time.nowUnix())
+			if result == nil then
+				return {
+					ok = false,
+					errorCode = errorCode or "reward_failed",
+				}
+			end
+
+			return {
+				ok = true,
+				claim = result,
+			}
+		end)
+	end
+
+	remotes.RequestCollectOfflineRewards.OnServerInvoke = function(player)
+		return callAction("RequestCollectOfflineRewards", function()
+			local result, errorCode = services.offlineProgress:claimOfflineRewards(player.UserId, Time.nowUnix(), nil, player.Name)
+			if result == nil then
+				return {
+					ok = false,
+					errorCode = errorCode or "offline_reward_failed",
+				}
+			end
+
+			return {
+				ok = true,
+				claim = result,
+			}
+		end)
+	end
+
+	remotes.RequestPlaceStation.OnServerInvoke = function(player, stationTypeId, x, y)
+		return callAction("RequestPlaceStation", function()
+			local profile = services.playerData:getOrLoadProfile(player.UserId)
+			if profile == nil then
+				return {
+					ok = false,
+					errorCode = "profile_not_loaded",
+				}
+			end
+
+			local requestedStationTypeId = stationTypeId or services.stations:getStarterStationTypeId()
+			local station, placementOrReason = services.placement:placeStation(profile, requestedStationTypeId, x, y)
+			if station == nil or placementOrReason == nil then
+				return {
+					ok = false,
+					errorCode = placementOrReason or "station_placement_failed",
+				}
+			end
+			local placement = placementOrReason
+
+			local resourceIds = {}
+			for _, resourceId in ipairs(profile.resourceOrder) do
+				local resource = profile.resourcesById[resourceId]
+				if resource ~= nil and resource.stationId == nil then
+					table.insert(resourceIds, resourceId)
+				end
+			end
+
+			local autoAssignment = services.stations:autoAssignResources(profile, resourceIds)
+			services.playerData:notifyProfileChanged(player.UserId)
+
+			return {
+				ok = true,
+				station = station,
+				placement = placement,
+				autoAssignment = autoAssignment,
+			}
+		end)
+	end
+
+	remotes.RequestMovePlacedObject.OnServerInvoke = function()
+		return {
+			ok = false,
+			errorCode = "not_implemented",
+		}
+	end
+
+	remotes.RequestUpgradeStation.OnServerInvoke = function()
+		return {
+			ok = false,
+			errorCode = "not_implemented",
+		}
+	end
+
+	task.spawn(function()
+		while running do
+			publishShopState()
+			task.wait(15)
+		end
+	end)
+
+	local startOrder = {
+		services.persistence,
+		services.playerData,
+		services.shop,
+		services.stations,
+		services.plot,
+		services.placement,
+		services.economy,
+		services.geode,
+		services.geodeQueue,
+		services.dailyRewards,
+		services.offlineProgress,
+		services.worldReplica,
+		services.rareAnnouncements,
+	}
+
+	for _, service in ipairs(startOrder) do
+		if type(service) == "table" and service.start ~= nil then
+			service:start(services)
+		end
+	end
+
+	print("[GemFactory] Server bootstrap started")
+	return services
+end
+
+return ServerBootstrap
+
+
+]]></string>
+          </Properties>
+        </Item>
+      </Item>
+      <Item class="Folder" referent="37">
+        <Properties>
+          <string name="Name">Services</string>
+        </Properties>
+        <Item class="ModuleScript" referent="38">
+          <Properties>
+            <string name="Name">DailyRewardsService</string>
+            <string name="Source"><![CDATA[--!strict
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+
+local Resources = require(Shared.Config.Resources)
+local DailyRewardsConfig = require(Shared.Config.DailyRewards)
+local Id = require(Shared.Util.Id)
+local Time = require(Shared.Util.Time)
+
+local DailyRewardsService = {}
+DailyRewardsService.__index = DailyRewardsService
+
+function DailyRewardsService.new(dependencies)
+	return setmetatable({
+		dependencies = dependencies or {},
+	}, DailyRewardsService)
+end
+
+local function addInventoryCount(container, key, amount)
+	container[key] = (container[key] or 0) + amount
+end
+
+local function applyReward(profile, reward, nowUnix)
+	if reward.rewardType == "coins" then
+		profile.currencies.coins += reward.amount
+	elseif reward.rewardType == "gems" then
+		profile.currencies.gems += reward.amount
+	elseif reward.rewardType == "token" then
+		profile.currencies.eventTokens += reward.amount
+	elseif reward.rewardType == "geode" then
+		addInventoryCount(profile.inventory.geodes, reward.rewardId or "unknown_geode", reward.amount)
+	elseif reward.rewardType == "boost" then
+		addInventoryCount(profile.inventory.items, reward.rewardId or "unknown_boost", reward.amount)
+	elseif reward.rewardType == "resource" then
+		local resourceDefinition = Resources[reward.rewardId]
+		if resourceDefinition ~= nil then
+			for _ = 1, reward.amount do
+				local resourceId = Id.new("daily_resource")
+				profile.resourcesById[resourceId] = {
+					id = resourceId,
+					resourceTypeId = resourceDefinition.id,
+					traitId = "none",
+					level = 1,
+					stationId = nil,
+					obtainedAt = nowUnix,
+				}
+				table.insert(profile.resourceOrder, resourceId)
+			end
+		end
+	end
+end
+
+function DailyRewardsService:getClaimState(profile, nowUnix)
+	local rewards = DailyRewardsConfig.days
+	local currentDay = math.clamp(profile.dailyRewards.currentDay, 1, #rewards)
+	local lastClaimUnix = profile.dailyRewards.lastClaimUnix
+	local currentUnix = nowUnix or Time.nowUnix()
+	local cooldownSeconds = 24 * 60 * 60
+	local resetSeconds = DailyRewardsConfig.streakResetHours * 60 * 60
+	local streakExpired = lastClaimUnix ~= nil and (currentUnix - lastClaimUnix) >= resetSeconds
+	if streakExpired then
+		currentDay = 1
+	end
+
+	local canClaim = lastClaimUnix == nil or (currentUnix - lastClaimUnix) >= cooldownSeconds
+	local nextClaimUnix = currentUnix
+	if not canClaim and lastClaimUnix ~= nil then
+		nextClaimUnix = lastClaimUnix + cooldownSeconds
+	end
+
+	return {
+		canClaim = canClaim,
+		currentDay = currentDay,
+		nextClaimUnix = nextClaimUnix,
+		reward = rewards[currentDay],
+		streakExpired = streakExpired,
+	}
+end
+
+function DailyRewardsService:claimReward(userId, nowUnix)
+	local playerData = self.dependencies.playerData
+	local profile = playerData:getOrLoadProfile(userId)
+	if profile == nil then
+		return nil, "profile_not_loaded"
+	end
+
+	local state = self:getClaimState(profile, nowUnix)
+	if not state.canClaim then
+		return nil, "reward_on_cooldown"
+	end
+
+	local reward = state.reward
+	local currentUnix = nowUnix or Time.nowUnix()
+	local result
+
+	local _, mutateError = playerData:mutateProfile(userId, function(currentProfile)
+		applyReward(currentProfile, reward, currentUnix)
+
+		currentProfile.dailyRewards.lastClaimUnix = currentUnix
+		currentProfile.dailyRewards.currentDay = (state.currentDay % #DailyRewardsConfig.days) + 1
+		if state.streakExpired or currentProfile.dailyRewards.streakCount == 0 then
+			currentProfile.dailyRewards.streakCount = 1
+		else
+			currentProfile.dailyRewards.streakCount += 1
+		end
+
+		result = {
+			reward = reward,
+			state = self:getClaimState(currentProfile, currentUnix),
+		}
+
+		return result
+	end)
+
+	if result ~= nil then
+		playerData:notifyProfileChanged(userId)
+	end
+
+	if result == nil and mutateError ~= nil then
+		return nil, mutateError
+	end
+
+	return result
+end
+
+function DailyRewardsService:start()
+	print("[GemFactory] DailyRewardsService ready")
+end
+
+return DailyRewardsService
+
+
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="39">
+          <Properties>
+            <string name="Name">EconomyService</string>
+            <string name="Source"><![CDATA[--!strict
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+
+local Resources = require(Shared.Config.Resources)
+local EconomyConfig = require(Shared.Config.Economy)
+local Stations = require(Shared.Config.Stations)
+local Traits = require(Shared.Config.Traits)
+local EconomyMath = require(Shared.Domain.EconomyMath)
+local Time = require(Shared.Util.Time)
+
+local EconomyService = {}
+EconomyService.__index = EconomyService
+
+function EconomyService.new(dependencies)
+	return setmetatable({
+		dependencies = dependencies or {},
+	}, EconomyService)
+end
+
+function EconomyService:getPassiveRate(profile)
+	local total = 0
+
+	for _, resource in pairs(profile.resourcesById) do
+		local resourceDefinition = Resources[resource.resourceTypeId]
+		if resourceDefinition ~= nil and resource.stationId ~= nil then
+			local traitDefinition = resource.traitId and Traits[resource.traitId] or Traits.none
+			local stationInstance = resource.stationId and profile.stationsById[resource.stationId] or nil
+			local stationDefinition = stationInstance and Stations[stationInstance.stationTypeId] or nil
+			local stationMultiplier = stationDefinition and stationDefinition.incomeMultiplier or 1
+			local traitMultiplier = traitDefinition and traitDefinition.multiplier or 1
+			local prestigeMultiplier = EconomyMath.getPrestigeMultiplier(
+				profile.progression.prestigeCount,
+				EconomyConfig.prestigeStep,
+				EconomyConfig.basePrestigeMultiplier
+			)
+
+			total += EconomyMath.getResourceIncome(resourceDefinition.baseCoinRate, traitMultiplier, stationMultiplier, prestigeMultiplier, 1)
+		end
+	end
+
+	return total
+end
+
+function EconomyService:getCavernValue(profile)
+	local resourceValue = 0
+	local stationValue = 0
+
+	for _, resource in pairs(profile.resourcesById) do
+		local resourceDefinition = Resources[resource.resourceTypeId]
+		if resourceDefinition ~= nil then
+			resourceValue += resourceDefinition.baseCoinRate * 100
+		end
+	end
+
+	for _, station in pairs(profile.stationsById) do
+		local stationDefinition = Stations[station.stationTypeId]
+		if stationDefinition ~= nil then
+			stationValue += stationDefinition.capacity * 50
+		end
+	end
+
+	return math.floor(profile.currencies.coins + (profile.currencies.gems * 100) + resourceValue + stationValue + (self:getPassiveRate(profile) * 120))
+end
+
+function EconomyService:getEconomyState(profile)
+	return {
+		passiveRate = self:getPassiveRate(profile),
+		cavernValue = self:getCavernValue(profile),
+		prestigeMultiplier = EconomyMath.getPrestigeMultiplier(
+			profile.progression.prestigeCount,
+			EconomyConfig.prestigeStep,
+			EconomyConfig.basePrestigeMultiplier
+		),
+	}
+end
+
+function EconomyService:tickPlayer(userId, profile, nowUnix)
+	local currentUnix = nowUnix or Time.nowUnix()
+	local lastTickUnix = profile.session.lastPassiveTickUnix or currentUnix
+	local elapsedSeconds = math.max(0, currentUnix - lastTickUnix)
+	local passiveRate = self:getPassiveRate(profile)
+	local awardedCoins, remainder = EconomyMath.resolvePassiveAccrual(
+		passiveRate,
+		elapsedSeconds,
+		profile.session.passiveCoinRemainder
+	)
+
+	profile.session.lastPassiveTickUnix = currentUnix
+	profile.session.passiveCoinRemainder = remainder
+
+	if awardedCoins <= 0 then
+		return 0
+	end
+
+	profile.currencies.coins += awardedCoins
+	local playerData = self.dependencies.playerData
+	if playerData ~= nil then
+		playerData:notifyProfileChanged(userId)
+	end
+
+	return awardedCoins
+end
+
+function EconomyService:flushPlayer(userId, profile, nowUnix)
+	return self:tickPlayer(userId, profile, nowUnix)
+end
+
+function EconomyService:start(services)
+	self.dependencies.playerData = self.dependencies.playerData or services.playerData
+	print("[GemFactory] EconomyService ready")
+
+	task.spawn(function()
+		while true do
+			task.wait(1)
+
+			local playerData = self.dependencies.playerData
+			if playerData ~= nil then
+				local nowUnix = Time.nowUnix()
+				for userKey, profile in pairs(playerData:getActiveProfiles()) do
+					local userId = tonumber(userKey)
+					if userId ~= nil then
+						self:tickPlayer(userId, profile, nowUnix)
+					end
+				end
+			end
+		end
+	end)
+end
+
+return EconomyService
+
+
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="40">
+          <Properties>
+            <string name="Name">GeodeQueueService</string>
+            <string name="Source"><![CDATA[--!strict
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+
+local Resources = require(Shared.Config.Resources)
+local Traits = require(Shared.Config.Traits)
+
+local GeodeQueueService = {}
+GeodeQueueService.__index = GeodeQueueService
+
+function GeodeQueueService.new(dependencies)
+	return setmetatable({
+		dependencies = dependencies or {},
+	}, GeodeQueueService)
+end
+
+function GeodeQueueService:timeRemaining(entry, nowUnix)
+	return math.max(0, entry.endsAt - nowUnix)
+end
+
+function GeodeQueueService:getClaimableEntries(profile, nowUnix, geodeId)
+	local claimable = {}
+
+	for _, entry in ipairs(profile.geodeQueue) do
+		local isFinished = entry.status == "finished" or (entry.status == "queued" and entry.endsAt <= nowUnix)
+		if isFinished then
+			entry.status = "finished"
+			if geodeId == nil or entry.id == geodeId then
+				table.insert(claimable, entry)
+			end
+		end
+	end
+
+	return claimable
+end
+
+local function shouldAnnounceResource(resource)
+	local resourceDefinition = Resources[resource.resourceTypeId]
+	if resourceDefinition == nil then
+		return false
+	end
+
+	if resource.traitId ~= nil and resource.traitId ~= "none" then
+		return true
+	end
+
+	local rarity = resourceDefinition.rarity
+	return rarity == "Rare" or rarity == "Epic" or rarity == "Legendary"
+end
+
+local function getTraitLabel(traitId)
+	if traitId == nil then
+		return "none"
+	end
+
+	local traitDefinition = Traits[traitId]
+	if traitDefinition ~= nil then
+		return traitDefinition.displayName
+	end
+
+	return traitId
+end
+
+function GeodeQueueService:getQueueState(profile, nowUnix)
+	local queuedCount = 0
+	local finishedCount = 0
+	local nextReadyUnix = nil
+	local entries = {}
+
+	for _, entry in ipairs(profile.geodeQueue) do
+		local remaining = self:timeRemaining(entry, nowUnix)
+		local entryState = {
+			id = entry.id,
+			geodeId = entry.geodeId,
+			status = entry.status,
+			remainingSeconds = remaining,
+			endsAt = entry.endsAt,
+		}
+
+		table.insert(entries, entryState)
+
+		if entry.status == "finished" then
+			finishedCount += 1
+		elseif remaining > 0 then
+			queuedCount += 1
+			if nextReadyUnix == nil or entry.endsAt < nextReadyUnix then
+				nextReadyUnix = entry.endsAt
+			end
+		else
+			finishedCount += 1
+		end
+	end
+
+	return {
+		queuedCount = queuedCount,
+		finishedCount = finishedCount,
+		nextReadyUnix = nextReadyUnix,
+		entries = entries,
+	}
+end
+
+function GeodeQueueService:claimEntries(profile, nowUnix, rng, geodeId, playerName)
+	local claimableEntries = self:getClaimableEntries(profile, nowUnix, geodeId)
+	if #claimableEntries == 0 then
+		return nil, "no_ready_geodes"
+	end
+
+	local geodeService = self.dependencies.geodeService
+	local rareAnnouncementService = self.dependencies.rareAnnouncementService
+	local createdResources = {}
+	local createdResourceIds = {}
+	local claimableIds = {}
+
+	for _, entry in ipairs(claimableEntries) do
+		claimableIds[entry.id] = true
+	end
+
+	local remainingEntries = {}
+	for _, entry in ipairs(profile.geodeQueue) do
+		if claimableIds[entry.id] then
+			local resource, errorCode = geodeService:createResourceInstance(entry.geodeId, nowUnix, rng)
+			if resource ~= nil then
+				profile.resourcesById[resource.id] = resource
+				table.insert(profile.resourceOrder, resource.id)
+				table.insert(createdResources, resource)
+				table.insert(createdResourceIds, resource.id)
+				if rareAnnouncementService ~= nil and shouldAnnounceResource(resource) then
+					local resourceDefinition = Resources[resource.resourceTypeId]
+					rareAnnouncementService:announce(
+						playerName or "Miner",
+						resourceDefinition and resourceDefinition.displayName or resource.resourceTypeId,
+						getTraitLabel(resource.traitId)
+					)
+				end
+			else
+				warn("[GemFactory] Failed to resolve geode", entry.geodeId, errorCode)
+				table.insert(remainingEntries, entry)
+			end
+		else
+			table.insert(remainingEntries, entry)
+		end
+	end
+
+	local stationService = self.dependencies.stationService
+	local autoAssignment = nil
+	if stationService ~= nil and #createdResourceIds > 0 then
+		autoAssignment = stationService:autoAssignResources(profile, createdResourceIds)
+	end
+
+	profile.geodeQueue = remainingEntries
+
+	return {
+		claimedEntries = claimableEntries,
+		createdResources = createdResources,
+		createdResourceIds = createdResourceIds,
+		autoAssignment = autoAssignment,
+	}
+end
+
+function GeodeQueueService:start()
+	print("[GemFactory] GeodeQueueService ready")
+end
+
+return GeodeQueueService
+
+
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="41">
+          <Properties>
+            <string name="Name">GeodeService</string>
+            <string name="Source"><![CDATA[--!strict
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+
+local Resources = require(Shared.Config.Resources)
+local Geodes = require(Shared.Config.Geodes)
+local Traits = require(Shared.Config.Traits)
+local GeodeRoller = require(Shared.Domain.GeodeRoller)
+local TraitRoller = require(Shared.Domain.TraitRoller)
+local Id = require(Shared.Util.Id)
+local Time = require(Shared.Util.Time)
+
+local GeodeService = {}
+GeodeService.__index = GeodeService
+
+local function getTraitPool()
+	return {
+		Traits.none,
+		Traits.flawless,
+		Traits.prismatic,
+		Traits.celestial,
+		Traits.radiant,
+		Traits.void_touched,
+	}
+end
+
+local function getCurrencyAmount(profile, currency)
+	if currency == "coins" then
+		return profile.currencies.coins
+	elseif currency == "gems" then
+		return profile.currencies.gems
+	elseif currency == "eventTokens" then
+		return profile.currencies.eventTokens
+	end
+
+	return nil
+end
+
+local function spendCurrency(profile, currency, amount)
+	if amount <= 0 then
+		return true
+	end
+
+	if currency == "coins" then
+		if profile.currencies.coins < amount then
+			return false, "insufficient_coins"
+		end
+		profile.currencies.coins -= amount
+		return true
+	elseif currency == "gems" then
+		if profile.currencies.gems < amount then
+			return false, "insufficient_gems"
+		end
+		profile.currencies.gems -= amount
+		return true
+	elseif currency == "eventTokens" then
+		if profile.currencies.eventTokens < amount then
+			return false, "insufficient_tokens"
+		end
+		profile.currencies.eventTokens -= amount
+		return true
+	end
+
+	return false, "unsupported_currency"
+end
+
+function GeodeService.new(dependencies)
+	return setmetatable({
+		dependencies = dependencies or {},
+	}, GeodeService)
+end
+
+function GeodeService:createGeodeEntry(profile, geodeId, nowUnix)
+	local geodeDefinition = Geodes[geodeId]
+	if geodeDefinition == nil then
+		return nil, "unknown_geode"
+	end
+
+	local entry = {
+		id = Id.new("geode"),
+		geodeId = geodeId,
+		startedAt = nowUnix,
+		endsAt = nowUnix + geodeDefinition.geodeSeconds,
+		status = "queued",
+	}
+
+	table.insert(profile.geodeQueue, entry)
+	return entry
+end
+
+function GeodeService:buyGeode(userId, geodeId, nowUnix, rng)
+	local playerData = self.dependencies.playerData
+	local shopService = self.dependencies.shopService
+	local profile = playerData:getOrLoadProfile(userId)
+	if profile == nil then
+		return nil, "profile_not_loaded"
+	end
+
+	local geodeDefinition = Geodes[geodeId]
+	if geodeDefinition == nil then
+		return nil, "unknown_geode"
+	end
+
+	local offer = shopService:getOffer(geodeId, nowUnix)
+	if offer == nil then
+		return nil, "offer_unavailable"
+	end
+
+	local balance = getCurrencyAmount(profile, offer.currency)
+	if balance == nil then
+		return nil, "unsupported_currency"
+	end
+
+	if balance < offer.price then
+		return nil, "insufficient_funds"
+	end
+
+	local result
+	local _, mutateError = playerData:mutateProfile(userId, function(currentProfile)
+		local spent, spendError = spendCurrency(currentProfile, offer.currency, offer.price)
+		if not spent then
+			return nil, spendError
+		end
+
+		local geodeEntry, geodeError = self:createGeodeEntry(currentProfile, geodeId, nowUnix)
+		if geodeEntry == nil then
+			return nil, geodeError
+		end
+
+		result = {
+			offer = offer,
+			geodeEntry = geodeEntry,
+		}
+
+		return result
+	end)
+
+	if result ~= nil then
+		playerData:notifyProfileChanged(userId)
+	end
+
+	if result == nil and mutateError ~= nil then
+		return nil, mutateError
+	end
+
+	return result
+end
+
+function GeodeService:createResourceInstance(geodeId, nowUnix, rng)
+	local geodeDefinition = Geodes[geodeId]
+	if geodeDefinition == nil then
+		return nil, "unknown_geode"
+	end
+
+	local resourceRoll = GeodeRoller.rollGeode(geodeDefinition, rng)
+	if resourceRoll == nil then
+		return nil, "invalid_roll"
+	end
+
+	local traitRoll = TraitRoller.rollTrait(getTraitPool(), rng)
+	local resourceDefinition = Resources[resourceRoll.resourceId]
+	if resourceDefinition == nil then
+		return nil, "unknown_resource"
+	end
+
+	return {
+		id = Id.new("resource"),
+		resourceTypeId = resourceDefinition.id,
+		traitId = traitRoll and traitRoll.id or "none",
+		level = 1,
+		stationId = nil,
+		obtainedAt = nowUnix,
+	}
+end
+
+function GeodeService:createRewardResourceInstance(resourceId, nowUnix)
+	local resourceDefinition = Resources[resourceId]
+	if resourceDefinition == nil then
+		return nil, "unknown_resource"
+	end
+
+	return {
+		id = Id.new("resource"),
+		resourceTypeId = resourceDefinition.id,
+		traitId = "none",
+		level = 1,
+		stationId = nil,
+		obtainedAt = nowUnix,
+	}
+end
+
+function GeodeService:resolveGeode(geodeId, rng)
+	return self:createResourceInstance(geodeId, Time.nowUnix(), rng)
+end
+
+function GeodeService:start()
+	print("[GemFactory] GeodeService ready")
+end
+
+return GeodeService
+
+
+
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="42">
+          <Properties>
+            <string name="Name">MockPersistenceService</string>
+            <string name="Source"><![CDATA[--!strict
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+
+local TableUtil = require(Shared.Util.TableUtil)
+
+local MockPersistenceService = {}
+MockPersistenceService.__index = MockPersistenceService
+
+function MockPersistenceService.new()
+	return setmetatable({
+		store = {},
+		seeds = {},
+	}, MockPersistenceService)
+end
+
+function MockPersistenceService:load(userId)
+	local userKey = tostring(userId)
+	local stored = self.store[userKey]
+	if stored ~= nil then
+		return TableUtil.deepCopy(stored)
+	end
+
+	local seed = self.seeds[userKey]
+	if seed ~= nil then
+		return TableUtil.deepCopy(seed)
+	end
+
+	return nil
+end
+
+function MockPersistenceService:save(userId, profile)
+	self.store[tostring(userId)] = TableUtil.deepCopy(profile)
+end
+
+function MockPersistenceService:seed(userId, profile)
+	self.seeds[tostring(userId)] = TableUtil.deepCopy(profile)
+end
+
+function MockPersistenceService:reset()
+	table.clear(self.store)
+	table.clear(self.seeds)
+end
+
+function MockPersistenceService:start()
+	print("[GemFactory] MockPersistenceService ready")
+end
+
+return MockPersistenceService
+
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="43">
+          <Properties>
+            <string name="Name">OfflineProgressService</string>
+            <string name="Source"><![CDATA[--!strict
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+
+local EconomyConfig = require(Shared.Config.Economy)
+local OfflineMath = require(Shared.Domain.OfflineMath)
+local Time = require(Shared.Util.Time)
+
+local OfflineProgressService = {}
+OfflineProgressService.__index = OfflineProgressService
+
+function OfflineProgressService.new(dependencies)
+	return setmetatable({
+		dependencies = dependencies or {},
+	}, OfflineProgressService)
+end
+
+function OfflineProgressService:buildSummary(profile, nowUnix)
+	local passiveRate = self.dependencies.economyService:getPassiveRate(profile)
+	local summary = OfflineMath.buildSummary(
+		profile.session.lastLogoutUnix,
+		nowUnix,
+		passiveRate,
+		EconomyConfig.offlineCapSeconds
+	)
+
+	if summary == nil then
+		return nil
+	end
+
+	summary.finishedGeodes = OfflineMath.collectFinishedGeodeIds(profile.geodeQueue, nowUnix)
+	return summary
+end
+
+function OfflineProgressService:claimOfflineRewards(userId, nowUnix, rng, playerName)
+	local playerData = self.dependencies.playerData
+	local geodeQueueService = self.dependencies.geodeQueueService
+	local profile = playerData:getOrLoadProfile(userId)
+	if profile == nil then
+		return nil, "profile_not_loaded"
+	end
+
+	local currentUnix = nowUnix or Time.nowUnix()
+	local summary = profile.unclaimedOfflineRewards or self:buildSummary(profile, currentUnix)
+	if summary == nil then
+		return nil, "no_offline_rewards"
+	end
+
+	local result
+	local _, mutateError = playerData:mutateProfile(userId, function(currentProfile)
+		currentProfile.currencies.coins += summary.coins
+		local geodeResult = geodeQueueService:claimEntries(currentProfile, currentUnix, rng, nil, playerName)
+
+		currentProfile.unclaimedOfflineRewards = nil
+		currentProfile.session.lastLogoutUnix = nil
+
+		result = {
+			summary = summary,
+			reveals = geodeResult,
+		}
+
+		return result
+	end)
+
+	if result ~= nil then
+		playerData:notifyProfileChanged(userId)
+	end
+
+	if result == nil and mutateError ~= nil then
+		return nil, mutateError
+	end
+
+	return result
+end
+
+function OfflineProgressService:start()
+	print("[GemFactory] OfflineProgressService ready")
+end
+
+return OfflineProgressService
+
+
+
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="44">
+          <Properties>
+            <string name="Name">PlacementService</string>
+            <string name="Source"><![CDATA[--!strict
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+
+local World = require(Shared.Config.World)
+local PlacementRules = require(Shared.Domain.PlacementRules)
+local Id = require(Shared.Util.Id)
+
+local PlacementService = {}
+PlacementService.__index = PlacementService
+
+function PlacementService.new(dependencies)
+	return setmetatable({
+		dependencies = dependencies or {},
+	}, PlacementService)
+end
+
+function PlacementService:canPlace(profile, x, y, width, height)
+	if profile.plotState.plotId == nil then
+		return false, "plot_unassigned"
+	end
+
+	return PlacementRules.canPlace({
+		width = World.plotGridWidth,
+		height = World.plotGridHeight,
+		}, profile.plotState.gridOccupancy, x, y, width, height)
+end
+
+function PlacementService:findFirstOpenCell(profile, width, height)
+	if profile.plotState.plotId == nil then
+		return nil, "plot_unassigned"
+	end
+
+	return PlacementRules.findFirstPlacement({
+		width = World.plotGridWidth,
+		height = World.plotGridHeight,
+	}, profile.plotState.gridOccupancy, width, height)
+end
+
+function PlacementService:place(profile, objectType, objectId, x, y, width, height)
+	local canPlace, reason = self:canPlace(profile, x, y, width, height)
+	if not canPlace then
+		return nil, reason
+	end
+
+	local placementId = Id.new("placement")
+	local record = {
+		id = placementId,
+		plotId = profile.plotState.plotId,
+		objectType = objectType,
+		objectId = objectId,
+		x = x,
+		y = y,
+		width = width,
+		height = height,
+	}
+
+	profile.placedObjects[placementId] = record
+
+	for dx = 0, width - 1 do
+		for dy = 0, height - 1 do
+			local cellKey = PlacementRules.buildOccupancyKey(x + dx, y + dy)
+			profile.plotState.gridOccupancy[cellKey] = placementId
+		end
+	end
+
+	return record
+end
+
+function PlacementService:placeStation(profile, stationTypeId, x, y)
+	local stationService = self.dependencies.stationService
+	local stationDefinition = stationService and stationService:getDefinition(stationTypeId) or nil
+
+	if stationDefinition == nil then
+		return nil, "unknown_station"
+	end
+
+	local station = nil
+	for _, existingStation in pairs(profile.stationsById) do
+		if existingStation.stationTypeId == stationTypeId and existingStation.placement == nil then
+			station = existingStation
+			break
+		end
+	end
+
+	if station == nil then
+		if stationTypeId == (stationService and stationService:getStarterStationTypeId() or nil) then
+			station = stationService and stationService:ensureStarterStation(profile) or nil
+		else
+			station = stationService and stationService:createStationInstance(stationTypeId) or nil
+		end
+	end
+
+	if station == nil then
+		return nil, "station_unavailable"
+	end
+
+	if station.placement ~= nil then
+		return nil, "station_already_placed"
+	end
+
+	local targetX = x
+	local targetY = y
+	if targetX == nil or targetY == nil then
+		local placementTarget, placementReason = self:findFirstOpenCell(
+			profile,
+			stationDefinition.gridSize.width,
+			stationDefinition.gridSize.height
+		)
+		if placementTarget == nil then
+			return nil, placementReason
+		end
+
+		targetX = placementTarget.x
+		targetY = placementTarget.y
+	end
+
+	profile.stationsById[station.id] = station
+
+	local placement, reason = self:place(
+		profile,
+		"station",
+		station.id,
+		targetX,
+		targetY,
+		stationDefinition.gridSize.width,
+		stationDefinition.gridSize.height
+	)
+	if placement == nil then
+		if stationTypeId ~= (stationService and stationService:getStarterStationTypeId() or nil) then
+			profile.stationsById[station.id] = nil
+		end
+		return nil, reason
+	end
+
+	station.placement = {
+		plotId = placement.plotId,
+		x = placement.x,
+		y = placement.y,
+		width = placement.width,
+		height = placement.height,
+	}
+
+	return station, placement
+end
+
+function PlacementService:remove(profile, placementId)
+	local record = profile.placedObjects[placementId]
+	if record == nil then
+		return false, "placement_not_found"
+	end
+
+	PlacementRules.clearFootprint(profile.plotState.gridOccupancy, record)
+
+	local station = profile.stationsById[record.objectId]
+	if station ~= nil and station.placement ~= nil then
+		station.placement = nil
+	end
+
+	profile.placedObjects[placementId] = nil
+	return true
+end
+
+function PlacementService:move(profile, placementId, x, y)
+	local record = profile.placedObjects[placementId]
+	if record == nil then
+		return nil, "placement_not_found"
+	end
+
+	PlacementRules.clearFootprint(profile.plotState.gridOccupancy, record)
+
+	local canPlace, reason = self:canPlace(profile, x, y, record.width, record.height)
+	if not canPlace then
+		for dx = 0, record.width - 1 do
+			for dy = 0, record.height - 1 do
+				local cellKey = PlacementRules.buildOccupancyKey(record.x + dx, record.y + dy)
+				profile.plotState.gridOccupancy[cellKey] = placementId
+			end
+		end
+		return nil, reason
+	end
+
+	record.x = x
+	record.y = y
+
+	local station = profile.stationsById[record.objectId]
+	if station ~= nil and station.placement ~= nil then
+		station.placement.x = x
+		station.placement.y = y
+	end
+
+	for dx = 0, record.width - 1 do
+		for dy = 0, record.height - 1 do
+			local cellKey = PlacementRules.buildOccupancyKey(x + dx, y + dy)
+			profile.plotState.gridOccupancy[cellKey] = placementId
+		end
+	end
+
+	return record
+end
+
+function PlacementService:start()
+	print("[GemFactory] PlacementService ready")
+end
+
+return PlacementService
+
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="45">
+          <Properties>
+            <string name="Name">PlayerDataService</string>
+            <string name="Source"><![CDATA[--!strict
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+
+local PlayerProfile = require(Shared.Types.PlayerProfile)
+local TableUtil = require(Shared.Util.TableUtil)
+local Time = require(Shared.Util.Time)
+
+local PlayerDataService = {}
+PlayerDataService.__index = PlayerDataService
+
+function PlayerDataService.new(persistenceService)
+	return setmetatable({
+		persistenceService = persistenceService,
+		activeProfiles = {},
+		services = nil,
+		onProfileChanged = nil,
+	}, PlayerDataService)
+end
+
+function PlayerDataService:createDefaultProfile()
+	return PlayerProfile.new(Time.nowUnix())
+end
+
+function PlayerDataService:loadProfile(userId)
+	local userKey = tostring(userId)
+	local activeProfile = self.activeProfiles[userKey]
+	if activeProfile ~= nil then
+		return activeProfile
+	end
+
+	local savedProfile = self.persistenceService:load(userId)
+	local nowUnix = Time.nowUnix()
+	local profile = if savedProfile then PlayerProfile.reconcile(savedProfile, nowUnix) else PlayerProfile.new(nowUnix)
+	self.activeProfiles[userKey] = profile
+	return profile
+end
+
+function PlayerDataService:getProfile(userId)
+	return self.activeProfiles[tostring(userId)]
+end
+
+function PlayerDataService:getOrLoadProfile(userId)
+	return self:getProfile(userId) or self:loadProfile(userId)
+end
+
+function PlayerDataService:getActiveProfiles()
+	return self.activeProfiles
+end
+
+function PlayerDataService:notifyProfileChanged(userId)
+	if self.onProfileChanged ~= nil then
+		self.onProfileChanged(userId)
+	end
+end
+
+function PlayerDataService:mutateProfile(userId, mutator)
+	local profile = self:getProfile(userId)
+	if profile == nil then
+		return nil, "profile_not_loaded"
+	end
+
+	local result = table.pack(mutator(profile))
+	return table.unpack(result, 1, result.n)
+end
+
+function PlayerDataService:saveProfile(userId)
+	local profile = self:getProfile(userId)
+	if profile ~= nil then
+		profile.meta.lastSavedAt = Time.nowUnix()
+		self.persistenceService:save(userId, profile)
+	end
+end
+
+function PlayerDataService:onPlayerAdded(player)
+	local profile = self:loadProfile(player.UserId)
+	local services = self.services
+
+	if services ~= nil and services.plot ~= nil then
+		local plotId = services.plot:assignPlot(player.UserId)
+		if plotId ~= nil then
+			for _, placement in pairs(profile.placedObjects) do
+				placement.plotId = plotId
+			end
+
+			for _, station in pairs(profile.stationsById) do
+				if station.placement ~= nil then
+					station.placement.plotId = plotId
+				end
+			end
+
+			profile.plotState.plotId = plotId
+		end
+	end
+
+	if services ~= nil and services.offlineProgress ~= nil then
+		local summary = services.offlineProgress:buildSummary(profile, Time.nowUnix())
+		if summary ~= nil then
+			profile.unclaimedOfflineRewards = summary
+			profile.session.lastLogoutUnix = nil
+		end
+	end
+
+	profile.session.lastPassiveTickUnix = Time.nowUnix()
+	profile.session.passiveCoinRemainder = 0
+
+	self:notifyProfileChanged(player.UserId)
+end
+
+function PlayerDataService:onPlayerRemoving(player)
+	local profile = self:getProfile(player.UserId)
+	if profile ~= nil then
+		local nowUnix = Time.nowUnix()
+		if self.services ~= nil and self.services.economy ~= nil then
+			self.services.economy:flushPlayer(player.UserId, profile, nowUnix)
+		end
+
+		profile.session.lastLogoutUnix = nowUnix
+		profile.session.lastPassiveTickUnix = nil
+		profile.session.passiveCoinRemainder = 0
+	end
+
+	if self.services ~= nil and self.services.plot ~= nil then
+		self.services.plot:releasePlot(player.UserId)
+	end
+
+	self:releaseProfile(player.UserId)
+end
+
+function PlayerDataService:releaseProfile(userId)
+	self:saveProfile(userId)
+	self.activeProfiles[tostring(userId)] = nil
+end
+
+function PlayerDataService:getPublicState(userId, nowUnix)
+	local services = self.services
+	local profile = self:getOrLoadProfile(userId)
+	local currentUnix = nowUnix or Time.nowUnix()
+
+	local publicProfile = TableUtil.deepCopy(profile)
+	local shopState = nil
+	local dailyState = nil
+	local economyState = nil
+	local geodeQueueState = nil
+
+	if services ~= nil then
+		if services.shop ~= nil then
+			shopState = services.shop:getShopState(currentUnix)
+		end
+
+		if services.dailyRewards ~= nil then
+			dailyState = services.dailyRewards:getClaimState(profile, currentUnix)
+		end
+
+		if services.economy ~= nil then
+			economyState = services.economy:getEconomyState(profile)
+		end
+
+		if services.geodeQueue ~= nil then
+			geodeQueueState = services.geodeQueue:getQueueState(profile, currentUnix)
+		end
+	end
+
+	return {
+		userId = userId,
+		serverUnix = currentUnix,
+		profile = publicProfile,
+		economy = economyState,
+		shop = shopState,
+		dailyRewards = dailyState,
+		geodeQueue = geodeQueueState,
+		offlineRewards = TableUtil.deepCopy(profile.unclaimedOfflineRewards),
+	}
+end
+
+function PlayerDataService:start(services)
+	self.services = services
+	Players.PlayerAdded:Connect(function(player)
+		self:onPlayerAdded(player)
+	end)
+
+	Players.PlayerRemoving:Connect(function(player)
+		self:onPlayerRemoving(player)
+	end)
+
+	game:BindToClose(function()
+		for _, player in ipairs(Players:GetPlayers()) do
+			self:onPlayerRemoving(player)
+		end
+	end)
+
+	for _, player in ipairs(Players:GetPlayers()) do
+		self:onPlayerAdded(player)
+	end
+
+	print("[GemFactory] PlayerDataService ready")
+end
+
+return PlayerDataService
+
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="46">
+          <Properties>
+            <string name="Name">PlotService</string>
+            <string name="Source"><![CDATA[--!strict
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+
+local World = require(Shared.Config.World)
+
+local PlotService = {}
+PlotService.__index = PlotService
+
+local function getPlotPosition(index)
+	local plotOffset = World.plotOffsets[index]
+	if plotOffset ~= nil then
+		return {
+			x = World.plotOrigin.x + plotOffset.x,
+			y = World.plotOrigin.y,
+			z = World.plotOrigin.z + plotOffset.z,
+		}
+	end
+
+	local row = math.floor((index - 1) / World.plotColumns)
+	local column = (index - 1) % World.plotColumns
+	local horizontalStart = -(((World.plotColumns - 1) * World.plotSpacing) / 2)
+	local verticalStart = -(((math.max(World.plotRows, 1) - 1) * World.plotSpacing) / 2)
+
+	return {
+		x = World.plotOrigin.x + horizontalStart + (column * World.plotSpacing),
+		y = World.plotOrigin.y,
+		z = World.plotOrigin.z + verticalStart + (row * World.plotSpacing),
+	}
+end
+
+function PlotService.new(dependencies)
+	local plots = {}
+	local assignedByUserId = {}
+	local assignedByPlotId = {}
+	local plotsById = {}
+	local totalPlots = math.min(World.plotCount, World.maxPlots)
+
+	for index = 1, totalPlots do
+		local plotId = "plot_" .. tostring(index)
+		local position = getPlotPosition(index)
+
+		plots[index] = {
+			id = plotId,
+			index = index,
+			userId = nil,
+			position = position,
+		}
+		plotsById[plotId] = plots[index]
+	end
+
+	return setmetatable({
+		dependencies = dependencies or {},
+		plots = plots,
+		plotsById = plotsById,
+		assignedByUserId = assignedByUserId,
+		assignedByPlotId = assignedByPlotId,
+	}, PlotService)
+end
+
+function PlotService:assignPlot(userId)
+	local userKey = tostring(userId)
+	local existingPlotId = self.assignedByUserId[userKey]
+	if existingPlotId ~= nil then
+		return existingPlotId
+	end
+
+	for _, plot in ipairs(self.plots) do
+		if plot.userId == nil then
+			plot.userId = userId
+			self.assignedByUserId[userKey] = plot.id
+			self.assignedByPlotId[plot.id] = plot
+			return plot.id
+		end
+	end
+
+	return nil, "plot_limit_reached"
+end
+
+function PlotService:releasePlot(userId)
+	local userKey = tostring(userId)
+	local plotId = self.assignedByUserId[userKey]
+	if plotId == nil then
+		return false, "plot_not_assigned"
+	end
+
+	local plot = self.assignedByPlotId[plotId]
+	if plot ~= nil then
+		plot.userId = nil
+	end
+
+	self.assignedByUserId[userKey] = nil
+	self.assignedByPlotId[plotId] = nil
+	return true
+end
+
+function PlotService:getPlotLimit()
+	return #self.plots
+end
+
+function PlotService:getPlotById(plotId)
+	return self.plotsById[plotId]
+end
+
+function PlotService:getPlotForUserId(userId)
+	local plotId = self.assignedByUserId[tostring(userId)]
+	if plotId == nil then
+		return nil
+	end
+
+	return self.plotsById[plotId]
+end
+
+function PlotService:getAllPlots()
+	return self.plots
+end
+
+function PlotService:getPlotWorldPosition(plotId)
+	local plot = self:getPlotById(plotId)
+	if plot == nil then
+		return nil
+	end
+
+	return plot.position
+end
+
+function PlotService:start()
+	print("[GemFactory] PlotService ready")
+end
+
+return PlotService
+
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="47">
+          <Properties>
+            <string name="Name">ShopService</string>
+            <string name="Source"><![CDATA[--!strict
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+
+local Shops = require(Shared.Config.Shops)
+local ShopRotation = require(Shared.Domain.ShopRotation)
+local TableUtil = require(Shared.Util.TableUtil)
+
+local ShopService = {}
+ShopService.__index = ShopService
+
+function ShopService.new(dependencies)
+	return setmetatable({
+		dependencies = dependencies or {},
+	}, ShopService)
+end
+
+function ShopService:getHourlyOffer(nowUnix)
+	local offers = Shops.hourlyRotation
+	local state = ShopRotation.getHourlyState(nowUnix, #offers)
+	return offers[state.index], state.index, state.secondsRemaining
+end
+
+function ShopService:getOffer(offerId, nowUnix)
+	for _, offer in ipairs(Shops.starterOffers) do
+		if offer.offerId == offerId then
+			local copy = TableUtil.deepCopy(offer)
+			copy.source = "starter"
+			return copy
+		end
+	end
+
+	local hourlyOffer, hourlyIndex, secondsRemaining = self:getHourlyOffer(nowUnix)
+	if hourlyOffer ~= nil and hourlyOffer.offerId == offerId then
+		local copy = TableUtil.deepCopy(hourlyOffer)
+		copy.source = "hourly"
+		copy.rotationIndex = hourlyIndex
+		copy.secondsRemaining = secondsRemaining
+		return copy
+	end
+
+	return nil
+end
+
+function ShopService:getShopState(nowUnix)
+	local hourlyOffer, hourlyIndex, secondsRemaining = self:getHourlyOffer(nowUnix)
+	local currentHourlyOffer = nil
+	if hourlyOffer ~= nil then
+		currentHourlyOffer = TableUtil.deepCopy(hourlyOffer)
+		currentHourlyOffer.source = "hourly"
+		currentHourlyOffer.rotationIndex = hourlyIndex
+		currentHourlyOffer.secondsRemaining = secondsRemaining
+	end
+
+	return {
+		starterOffer = TableUtil.deepCopy(Shops.starterOffers[1]),
+		currentOffer = currentHourlyOffer,
+		offerIndex = hourlyIndex,
+		secondsRemaining = secondsRemaining,
+	}
+end
+
+function ShopService:start()
+	print("[GemFactory] ShopService ready")
+end
+
+return ShopService
+
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="48">
+          <Properties>
+            <string name="Name">StationService</string>
+            <string name="Source"><![CDATA[--!strict
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+
+local Stations = require(Shared.Config.Stations)
+local StationAssignment = require(Shared.Domain.StationAssignment)
+local World = require(Shared.Config.World)
+local Id = require(Shared.Util.Id)
+
+local StationService = {}
+StationService.__index = StationService
+
+function StationService.new(dependencies)
+	return setmetatable({
+		dependencies = dependencies or {},
+	}, StationService)
+end
+
+function StationService:getDefinition(stationTypeId)
+	return Stations[stationTypeId]
+end
+
+function StationService:getStarterStationTypeId()
+	return World.starterStationTypeId
+end
+
+function StationService:getStarterStation(profile)
+	for _, station in pairs(profile.stationsById) do
+		if station.stationTypeId == self:getStarterStationTypeId() then
+			return station
+		end
+	end
+
+	return nil
+end
+
+function StationService:createStationInstance(stationTypeId)
+	local stationDefinition = self:getDefinition(stationTypeId)
+	if stationDefinition == nil then
+		return nil, "unknown_station"
+	end
+
+	return {
+		id = Id.new("station"),
+		stationTypeId = stationTypeId,
+		level = 1,
+		occupantIds = {},
+		placement = nil,
+	}, nil
+end
+
+function StationService:grantStarterStation(profile)
+	local existingStarter = self:getStarterStation(profile)
+	if existingStarter ~= nil then
+		return existingStarter
+	end
+
+	local starterTypeId = self:getStarterStationTypeId()
+	local station = self:createStationInstance(starterTypeId)
+	if station == nil then
+		return nil, "starter_station_missing"
+	end
+
+	profile.stationsById[station.id] = station
+	return station
+end
+
+function StationService:ensureStarterStation(profile)
+	return self:grantStarterStation(profile)
+end
+
+function StationService:autoAssignResources(profile, resourceIds)
+	return StationAssignment.autoAssignResources(profile, Stations, resourceIds)
+end
+
+function StationService:assignResource(profile, resourceId, stationId)
+	return StationAssignment.assignResourceToStation(profile, Stations, resourceId, stationId)
+end
+
+function StationService:getTemplate(stationTypeId)
+	return self:getDefinition(stationTypeId)
+end
+
+function StationService:start()
+	print("[GemFactory] StationService ready")
+end
+
+return StationService
+
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="49">
+          <Properties>
+            <string name="Name">WorldReplicaService</string>
+            <string name="Source"><![CDATA[--!strict
+
+local Workspace = game:GetService("Workspace")
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+
+local Resources = require(Shared.Config.Resources)
+local Stations = require(Shared.Config.Stations)
+local World = require(Shared.Config.World)
+
+local WorldReplicaService = {}
+WorldReplicaService.__index = WorldReplicaService
+
+local SHARED_FLOOR_NAME = "SharedFloor"
+local PLOT_MARKER_FOLDER_NAME = "PlotMarkers"
+
+local ROCK_VARIANTS = {
+	{
+		{ x = -28, z = -26, height = 10, radius = 3.5, yaw = 8 },
+		{ x = 30, z = -18, height = 6, radius = 2.25, yaw = 28 },
+		{ x = -18, z = 30, height = 8, radius = 2.75, yaw = -18 },
+	},
+	{
+		{ x = 27, z = -28, height = 11, radius = 3.25, yaw = -12 },
+		{ x = -31, z = 14, height = 7, radius = 2.5, yaw = 34 },
+		{ x = 18, z = 29, height = 5, radius = 2.25, yaw = -24 },
+	},
+	{
+		{ x = -30, z = -6, height = 9, radius = 3, yaw = 22 },
+		{ x = 26, z = 24, height = 7, radius = 2.5, yaw = -30 },
+		{ x = -8, z = 31, height = 5, radius = 2.25, yaw = 14 },
+	},
+	{
+		{ x = 31, z = 8, height = 10, radius = 3.25, yaw = 16 },
+		{ x = -25, z = -29, height = 6, radius = 2.5, yaw = -26 },
+		{ x = 12, z = -31, height = 8, radius = 2.75, yaw = 10 },
+	},
+}
+
+function WorldReplicaService.new(dependencies)
+	return setmetatable({
+		dependencies = dependencies or {},
+		records = {},
+		models = {},
+		signatures = {},
+		running = false,
+	}, WorldReplicaService)
+end
+
+local function ensureWorldFolder()
+	local worldFolder = Workspace:FindFirstChild(World.worldFolderName)
+	if worldFolder == nil then
+		worldFolder = Instance.new("Folder")
+		worldFolder.Name = World.worldFolderName
+		worldFolder.Parent = Workspace
+	end
+
+	local plotFolder = worldFolder:FindFirstChild(World.plotFolderName)
+	if plotFolder == nil then
+		plotFolder = Instance.new("Folder")
+		plotFolder.Name = World.plotFolderName
+		plotFolder.Parent = worldFolder
+	end
+
+	return worldFolder, plotFolder
+end
+
+local function clearChildren(container)
+	for _, child in ipairs(container:GetChildren()) do
+		child:Destroy()
+	end
+end
+
+local function getPlotHalfSize()
+	return World.plotBaseSize.width / 2, World.plotBaseSize.depth / 2
+end
+
+local function getSharedFloorSize()
+	local sharedBaseplateSize = World.sharedBaseplateSize
+	if sharedBaseplateSize ~= nil then
+		return sharedBaseplateSize.width, sharedBaseplateSize.height, sharedBaseplateSize.depth
+	end
+
+	local padding = World.sharedFloorPadding or 32
+	return
+		(World.plotColumns * World.plotSpacing) + World.plotBaseSize.width + padding,
+		2,
+		(math.max(World.plotRows or 1, 1) * World.plotSpacing) + World.plotBaseSize.depth + padding
+end
+
+local function getResourceColor(resourceId, resourcesById)
+	local resource = resourcesById[resourceId]
+	local resourceDefinition = resource and Resources[resource.resourceTypeId] or nil
+	if resourceDefinition ~= nil and resourceDefinition.color ~= nil then
+		return resourceDefinition.color
+	end
+
+	local rarity = resourceDefinition and resourceDefinition.rarity or "Common"
+
+	if rarity == "Legendary" then
+		return Color3.fromRGB(255, 231, 135)
+	elseif rarity == "Epic" then
+		return Color3.fromRGB(164, 120, 255)
+	elseif rarity == "Rare" then
+		return Color3.fromRGB(93, 255, 195)
+	elseif rarity == "Uncommon" then
+		return Color3.fromRGB(185, 120, 255)
+	end
+
+	return Color3.fromRGB(240, 240, 255)
+end
+
+local function buildPlotSignature(plot, profile)
+	local signatureParts = {
+		tostring(plot.userId or "none"),
+		tostring(plot.index or 0),
+		tostring(profile and #profile.resourceOrder or 0),
+	}
+
+	if profile ~= nil then
+		local stationParts = {}
+		for stationId, station in pairs(profile.stationsById) do
+			if station.placement ~= nil and station.placement.plotId == plot.id then
+				local occupantParts = {}
+				for _, resourceId in ipairs(station.occupantIds) do
+					local resource = profile.resourcesById[resourceId]
+					if resource ~= nil then
+						table.insert(occupantParts, table.concat({
+							resourceId,
+							resource.resourceTypeId,
+							tostring(resource.traitId or "none"),
+						}, ":"))
+					else
+						table.insert(occupantParts, resourceId .. ":missing")
+					end
+				end
+
+				table.insert(stationParts, table.concat({
+					stationId,
+					station.stationTypeId,
+					tostring(station.placement.x),
+					tostring(station.placement.y),
+					tostring(station.level),
+					table.concat(occupantParts, ","),
+				}, ":"))
+			end
+		end
+
+		table.sort(stationParts)
+		table.insert(signatureParts, table.concat(stationParts, "|"))
+	end
+
+	return table.concat(signatureParts, "||")
+end
+
+local function createPart(parent, name, size, position, color, material)
+	local part = Instance.new("Part")
+	part.Name = name
+	part.Anchored = true
+	part.CanCollide = true
+	part.Size = size
+	part.Position = position
+	part.Color = color
+	part.Material = material
+	part.Parent = parent
+	return part
+end
+
+local function createDecorPart(parent, name, size, position, color, material)
+	local part = createPart(parent, name, size, position, color, material)
+	part.CanCollide = false
+	return part
+end
+
+local function buildSharedFloor(worldFolder)
+	local width, height, depth = getSharedFloorSize()
+	local floor = worldFolder:FindFirstChild(SHARED_FLOOR_NAME)
+	if floor == nil then
+		floor = createPart(
+			worldFolder,
+			SHARED_FLOOR_NAME,
+			Vector3.new(width, height, depth),
+			Vector3.new(World.plotOrigin.x, World.plotOrigin.y - 1.5, World.plotOrigin.z),
+			Color3.fromRGB(26, 24, 34),
+			Enum.Material.Slate
+		)
+	else
+		floor.Size = Vector3.new(width, height, depth)
+		floor.Position = Vector3.new(World.plotOrigin.x, World.plotOrigin.y - 1.5, World.plotOrigin.z)
+		floor.Color = Color3.fromRGB(26, 24, 34)
+		floor.Material = Enum.Material.Slate
+	end
+
+	local markers = worldFolder:FindFirstChild(PLOT_MARKER_FOLDER_NAME)
+	if markers ~= nil then
+		markers:Destroy()
+	end
+
+	markers = Instance.new("Folder")
+	markers.Name = PLOT_MARKER_FOLDER_NAME
+	markers.Parent = worldFolder
+
+	return floor, markers
+end
+
+local function addPlotMarker(markerFolder, plot)
+	local halfWidth, halfDepth = getPlotHalfSize()
+	local markerHeight = World.plotMarkerHeight or 1
+	local markerInset = 5
+	local markerColor = Color3.fromRGB(56, 51, 73)
+	local markerSizeX = Vector3.new(World.plotBaseSize.width - (markerInset * 2), markerHeight, 2)
+	local markerSizeZ = Vector3.new(2, markerHeight, World.plotBaseSize.depth - (markerInset * 2))
+
+	createDecorPart(
+		markerFolder,
+		plot.id .. "_NorthMarker",
+		markerSizeX,
+		Vector3.new(plot.position.x, plot.position.y + 0.65, plot.position.z - halfDepth + markerInset),
+		markerColor,
+		Enum.Material.Slate
+	)
+	createDecorPart(
+		markerFolder,
+		plot.id .. "_SouthMarker",
+		markerSizeX,
+		Vector3.new(plot.position.x, plot.position.y + 0.65, plot.position.z + halfDepth - markerInset),
+		markerColor,
+		Enum.Material.Slate
+	)
+	createDecorPart(
+		markerFolder,
+		plot.id .. "_WestMarker",
+		markerSizeZ,
+		Vector3.new(plot.position.x - halfWidth + markerInset, plot.position.y + 0.65, plot.position.z),
+		markerColor,
+		Enum.Material.Slate
+	)
+	createDecorPart(
+		markerFolder,
+		plot.id .. "_EastMarker",
+		markerSizeZ,
+		Vector3.new(plot.position.x + halfWidth - markerInset, plot.position.y + 0.65, plot.position.z),
+		markerColor,
+		Enum.Material.Slate
+	)
+end
+
+local function ensureStaticWorld(worldFolder, plots)
+	local floor = worldFolder:FindFirstChild(SHARED_FLOOR_NAME)
+	local markers = worldFolder:FindFirstChild(PLOT_MARKER_FOLDER_NAME)
+	if floor ~= nil and markers ~= nil then
+		return
+	end
+
+	local _, markerFolder = buildSharedFloor(worldFolder)
+	for _, plot in ipairs(plots) do
+		addPlotMarker(markerFolder, plot)
+	end
+end
+
+local function addPlotCornerCrystal(parent, name, position, color, height)
+	local crystal = createDecorPart(
+		parent,
+		name,
+		Vector3.new(2.5, height, 2.5),
+		position,
+		color,
+		Enum.Material.Neon
+	)
+	crystal.CFrame = CFrame.new(position) * CFrame.Angles(0, math.rad(15), math.rad(6))
+	return crystal
+end
+
+local function addRockSpikes(parent, plot)
+	local rockFolder = Instance.new("Folder")
+	rockFolder.Name = "RockSpikes"
+	rockFolder.Parent = parent
+
+	local variant = ROCK_VARIANTS[((plot.index or 1) - 1) % #ROCK_VARIANTS + 1]
+	local rockColor = Color3.fromRGB(37, 34, 46)
+	local accentColors = {
+		Color3.fromRGB(123, 242, 255),
+		Color3.fromRGB(180, 146, 255),
+		Color3.fromRGB(143, 255, 210),
+	}
+
+	for spikeIndex, spike in ipairs(variant) do
+		local rockPosition = Vector3.new(
+			plot.position.x + spike.x,
+			plot.position.y + (spike.height / 2),
+			plot.position.z + spike.z
+		)
+		local rock = createDecorPart(
+			rockFolder,
+			string.format("RockSpike_%d", spikeIndex),
+			Vector3.new(spike.radius * 2, spike.height, spike.radius * 2),
+			rockPosition,
+			rockColor,
+			Enum.Material.Slate
+		)
+		rock.CFrame = CFrame.new(rockPosition)
+			* CFrame.Angles(math.rad(4), math.rad(spike.yaw), math.rad(8))
+
+		local crystalPosition = rockPosition + Vector3.new(0.75, (spike.height / 2) + 1.5, -0.5)
+		addPlotCornerCrystal(
+			rockFolder,
+			string.format("CrystalShard_%d", spikeIndex),
+			crystalPosition,
+			accentColors[((plot.index or 1) + spikeIndex - 1) % #accentColors + 1],
+			math.max(3, spike.height * 0.45)
+		)
+	end
+end
+
+local function addAmbientCrystals(parent, plot)
+	local halfWidth, halfDepth = getPlotHalfSize()
+	addPlotCornerCrystal(
+		parent,
+		"RearCrystal",
+		Vector3.new(plot.position.x - halfWidth + 8, plot.position.y + 3.5, plot.position.z - halfDepth + 10),
+		Color3.fromRGB(110, 236, 255),
+		7
+	)
+	addPlotCornerCrystal(
+		parent,
+		"SideCrystal",
+		Vector3.new(plot.position.x + halfWidth - 10, plot.position.y + 4.5, plot.position.z + halfDepth - 12),
+		Color3.fromRGB(186, 156, 255),
+		9
+	)
+end
+
+function WorldReplicaService:_getPlotModel(plotId)
+	local _, plotFolder = ensureWorldFolder()
+	local plotModel = plotFolder:FindFirstChild(plotId)
+	if plotModel == nil then
+		plotModel = Instance.new("Model")
+		plotModel.Name = plotId
+		plotModel.Parent = plotFolder
+	end
+
+	return plotModel
+end
+
+function WorldReplicaService:_buildPlot(plot, profile, signature)
+	local plotModel = self:_getPlotModel(plot.id)
+	clearChildren(plotModel)
+	plotModel:SetAttribute("PlotId", plot.id)
+	plotModel:SetAttribute("OwnerUserId", plot.userId)
+	plotModel:SetAttribute("ResourceCount", profile and #profile.resourceOrder or 0)
+	plotModel:SetAttribute("StationCount", profile and (function()
+		local count = 0
+		for _, station in pairs(profile.stationsById) do
+			if station.placement ~= nil and station.placement.plotId == plot.id then
+				count += 1
+			end
+		end
+		return count
+	end)() or 0)
+
+	local base = createPart(
+		plotModel,
+		"PlotBase",
+		Vector3.new(World.plotBaseSize.width, World.plotBaseSize.height, World.plotBaseSize.depth),
+		Vector3.new(plot.position.x, plot.position.y, plot.position.z),
+		Color3.fromRGB(45, 42, 59),
+		Enum.Material.Slate
+	)
+	base.TopSurface = Enum.SurfaceType.Smooth
+
+	local trim = createDecorPart(
+		plotModel,
+		"PlotTrim",
+		Vector3.new(World.plotBaseSize.width - 6, 0.4, World.plotBaseSize.depth - 6),
+		Vector3.new(plot.position.x, plot.position.y + 1.2, plot.position.z),
+		Color3.fromRGB(58, 54, 78),
+		Enum.Material.Rock
+	)
+	trim.Transparency = 0.1
+
+	addAmbientCrystals(plotModel, plot)
+	addRockSpikes(plotModel, plot)
+
+	local stationFolder = Instance.new("Folder")
+	stationFolder.Name = World.stationFolderName
+	stationFolder.Parent = plotModel
+
+	local cellSize = World.cellSize
+	local gridOriginX = plot.position.x - ((World.plotGridWidth * cellSize) / 2) + (cellSize / 2)
+	local gridOriginZ = plot.position.z - ((World.plotGridHeight * cellSize) / 2) + (cellSize / 2)
+	for _, station in pairs(profile and profile.stationsById or {}) do
+		if station.placement ~= nil and station.placement.plotId == plot.id then
+			local stationDefinition = Stations[station.stationTypeId]
+			if stationDefinition ~= nil then
+				local stationPart = createPart(
+					stationFolder,
+					stationDefinition.displayName,
+					Vector3.new(
+						stationDefinition.gridSize.width * cellSize,
+						4,
+						stationDefinition.gridSize.height * cellSize
+					),
+					Vector3.new(
+						gridOriginX + ((station.placement.x - 1) * cellSize) + (((stationDefinition.gridSize.width - 1) * cellSize) / 2),
+						plot.position.y + 3,
+						gridOriginZ + ((station.placement.y - 1) * cellSize) + (((stationDefinition.gridSize.height - 1) * cellSize) / 2)
+					),
+					stationDefinition.color or Color3.fromRGB(120, 180, 120),
+					Enum.Material.Crystal
+				)
+
+				local occupantsFolder = Instance.new("Folder")
+				occupantsFolder.Name = "DisplayedResources"
+				occupantsFolder.Parent = stationPart
+
+				for occupantIndex, resourceId in ipairs(station.occupantIds) do
+					local displayPart = createDecorPart(
+						occupantsFolder,
+						resourceId,
+						Vector3.new(1.5, 1.5, 1.5),
+						stationPart.Position
+							+ Vector3.new(
+								(-stationPart.Size.X / 2) + 1.25 + (((occupantIndex - 1) % 3) * 1.75),
+								3,
+								(-stationPart.Size.Z / 2) + 1.25 + (math.floor((occupantIndex - 1) / 3) * 1.75)
+							),
+						getResourceColor(resourceId, profile and profile.resourcesById or {}),
+						Enum.Material.Neon
+					)
+					displayPart.Shape = Enum.PartType.Ball
+				end
+			end
+		end
+	end
+
+	self.models[plot.id] = plotModel
+	self.signatures[plot.id] = signature
+	self.records[plot.id] = {
+		plotId = plot.id,
+		userId = plot.userId,
+		resourceCount = profile and #profile.resourceOrder or 0,
+		stationCount = profile and (function()
+			local count = 0
+			for _, station in pairs(profile.stationsById) do
+				if station.placement ~= nil and station.placement.plotId == plot.id then
+					count += 1
+				end
+			end
+			return count
+		end)() or 0,
+	}
+end
+
+function WorldReplicaService:syncAll()
+	local plotService = self.dependencies.plotService
+	local playerDataService = self.dependencies.playerDataService
+	if plotService == nil or playerDataService == nil then
+		return
+	end
+
+	local worldFolder = ensureWorldFolder()
+	local plots = plotService:getAllPlots()
+	ensureStaticWorld(worldFolder, plots)
+
+	for _, plot in ipairs(plots) do
+		if plot.userId ~= nil then
+			local profile = playerDataService:getProfile(plot.userId)
+			local signature = buildPlotSignature(plot, profile)
+			if self.signatures[plot.id] ~= signature or self.models[plot.id] == nil then
+				self:_buildPlot(plot, profile, signature)
+			end
+		elseif self.models[plot.id] ~= nil then
+			self.models[plot.id]:Destroy()
+			self.models[plot.id] = nil
+			self.records[plot.id] = nil
+			self.signatures[plot.id] = nil
+		end
+	end
+end
+
+function WorldReplicaService:syncPlot(plotId, profile)
+	local plotService = self.dependencies.plotService
+	if plotService == nil then
+		return
+	end
+
+	local plot = plotService:getPlotById(plotId)
+	if plot == nil then
+		return
+	end
+
+	self:_buildPlot(plot, profile, buildPlotSignature(plot, profile))
+end
+
+function WorldReplicaService:clearPlot(plotId)
+	self.records[plotId] = nil
+	self.signatures[plotId] = nil
+	local model = self.models[plotId]
+	if model ~= nil then
+		model:Destroy()
+		self.models[plotId] = nil
+	end
+end
+
+function WorldReplicaService:start()
+	self.running = true
+	self:syncAll()
+
+	task.spawn(function()
+		while self.running do
+			self:syncAll()
+			task.wait(1)
+		end
+	end)
+
+	print("[GemFactory] WorldReplicaService ready")
+end
+
+return WorldReplicaService
+]]></string>
+          </Properties>
+        </Item>
+      </Item>
+      <Item class="Folder" referent="50">
+        <Properties>
+          <string name="Name">Systems</string>
+        </Properties>
+        <Item class="ModuleScript" referent="51">
+          <Properties>
+            <string name="Name">RareAnnouncementSystem</string>
+            <string name="Source"><![CDATA[--!strict
+
+local RareAnnouncementSystem = {}
+RareAnnouncementSystem.__index = RareAnnouncementSystem
+
+function RareAnnouncementSystem.new(remoteEvent)
+	return setmetatable({
+		remoteEvent = remoteEvent,
+	}, RareAnnouncementSystem)
+end
+
+function RareAnnouncementSystem:announce(playerName, resourceName, traitName)
+	local payload = {
+		message = string.format("%s revealed %s (%s)", playerName, resourceName, traitName or "none"),
+		playerName = playerName,
+		resourceName = resourceName,
+		traitName = traitName or "none",
+	}
+
+	print(string.format("[GemFactory] Rare reveal: %s revealed %s (%s)", playerName, resourceName, traitName or "none"))
+
+	if self.remoteEvent ~= nil then
+		self.remoteEvent:FireAllClients(payload)
+	end
+end
+
+function RareAnnouncementSystem:start()
+	print("[GemFactory] RareAnnouncementSystem ready")
+end
+
+return RareAnnouncementSystem
+]]></string>
+          </Properties>
+        </Item>
+      </Item>
+    </Item>
+  </Item>
+  <Item class="SoundService" referent="52">
+    <Properties>
+      <string name="Name">SoundService</string>
+      <bool name="RespectFilteringEnabled">true</bool>
+    </Properties>
+  </Item>
+  <Item class="StarterPlayer" referent="53">
+    <Properties>
+      <string name="Name">StarterPlayer</string>
+    </Properties>
+    <Item class="StarterPlayerScripts" referent="54">
+      <Properties>
+        <string name="Name">StarterPlayerScripts</string>
+      </Properties>
+      <Item class="LocalScript" referent="55">
+        <Properties>
+          <string name="Name">Client</string>
+          <string name="Source"><![CDATA[local ClientBootstrap = require(script.Bootstrap.ClientBootstrap)
+
+ClientBootstrap.start()
+]]></string>
+        </Properties>
+        <Item class="Folder" referent="56">
+          <Properties>
+            <string name="Name">Bootstrap</string>
+          </Properties>
+          <Item class="ModuleScript" referent="57">
+            <Properties>
+              <string name="Name">ClientBootstrap</string>
+              <string name="Source"><![CDATA[--!strict
+
+local ClientBootstrap = {}
+
+function ClientBootstrap.start()
+	local AppController = require(script.Parent.Parent.Controllers.AppController)
+	local app = AppController.new()
+	app:start()
+
+	print("[GemFactory] Client bootstrap started")
+	return app
+end
+
+return ClientBootstrap
+
+]]></string>
+            </Properties>
+          </Item>
+        </Item>
+        <Item class="Folder" referent="58">
+          <Properties>
+            <string name="Name">Controllers</string>
+          </Properties>
+          <Item class="ModuleScript" referent="59">
+            <Properties>
+              <string name="Name">AppController</string>
+              <string name="Source"><![CDATA[--!strict
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+
+local TableUtil = require(Shared.Util.TableUtil)
+local Time = require(Shared.Util.Time)
+local Signal = require(Shared.Util.Signal)
+local PlayerProfile = require(Shared.Types.PlayerProfile)
+local Shops = require(Shared.Config.Shops)
+local ShopRotation = require(Shared.Domain.ShopRotation)
+local RemoteNames = require(Shared.Net.RemoteNames)
+
+local RootScreen = require(script.Parent.Parent.UI.Screens.RootScreen)
+
+local HUDController = require(script.Parent.HUDController)
+local ShopController = require(script.Parent.ShopController)
+local GeodeController = require(script.Parent.GeodeController)
+local PlotController = require(script.Parent.PlotController)
+local PlacementController = require(script.Parent.PlacementController)
+local DailyRewardsController = require(script.Parent.DailyRewardsController)
+local NotificationsController = require(script.Parent.NotificationsController)
+local Palette = require(script.Parent.Parent.UI.Theme.Palette)
+
+local AppController = {}
+AppController.__index = AppController
+
+local function buildHourlyShopState(nowUnix: number)
+	local offers = Shops.hourlyRotation
+	local starterOffer = Shops.starterOffers[1]
+	local offerIndex = 1
+	local currentOffer = nil
+	local secondsRemaining = 0
+
+	if #offers > 0 then
+		offerIndex = ShopRotation.getHourlyIndex(nowUnix, #offers)
+		currentOffer = TableUtil.deepCopy(offers[offerIndex])
+		secondsRemaining = ShopRotation.getSecondsUntilNextRotation(nowUnix)
+	end
+
+	return {
+		currentOffer = currentOffer,
+		offerIndex = offerIndex,
+		secondsRemaining = secondsRemaining,
+		starterOffer = TableUtil.deepCopy(starterOffer),
+	}
+end
+
+local function buildDefaultState(nowUnix: number)
+	return {
+		profile = PlayerProfile.new(nowUnix),
+		shop = buildHourlyShopState(nowUnix),
+		announcements = {},
+		connectionMessage = "Loading crystal cavern...",
+	}
+end
+
+local function normalizeAnnouncements(payload, currentAnnouncements)
+	local announcements = {}
+
+	if type(payload) == "string" then
+		table.insert(announcements, payload)
+	elseif type(payload) == "table" then
+		if #payload > 0 then
+			for _, item in ipairs(payload) do
+				if type(item) == "string" then
+					table.insert(announcements, item)
+				elseif type(item) == "table" then
+					table.insert(announcements, tostring(item.message or item.text or item.title or "Crystal reveal spotted"))
+				end
+			end
+		else
+			table.insert(announcements, tostring(payload.message or payload.text or payload.title or "Crystal reveal spotted"))
+		end
+	end
+
+	if #announcements == 0 then
+		return TableUtil.deepCopy(currentAnnouncements)
+	end
+
+	while #announcements > 5 do
+		table.remove(announcements)
+	end
+
+	return announcements
+end
+
+local function normalizeShopState(currentShop, payload)
+	local shop = TableUtil.deepCopy(currentShop)
+
+	if type(payload) ~= "table" then
+		return shop
+	end
+
+	if payload.currentOffer ~= nil then
+		shop.currentOffer = TableUtil.deepCopy(payload.currentOffer)
+	elseif payload.offerId ~= nil or payload.price ~= nil or payload.currency ~= nil then
+		shop.currentOffer = TableUtil.deepCopy(payload)
+	end
+
+	if payload.offerIndex ~= nil then
+		shop.offerIndex = payload.offerIndex
+	end
+
+	if payload.secondsRemaining ~= nil then
+		shop.secondsRemaining = math.max(0, payload.secondsRemaining)
+	end
+
+	if payload.starterOffer ~= nil then
+		shop.starterOffer = TableUtil.deepCopy(payload.starterOffer)
+	end
+
+	return shop
+end
+
+local function normalizeProfileState(currentProfile, payload, nowUnix)
+	local profile = TableUtil.deepCopy(currentProfile)
+
+	if type(payload) ~= "table" then
+		return profile
+	end
+
+	local profilePayload = payload.profile
+	if profilePayload == nil and payload.currencies ~= nil and payload.resourcesById ~= nil then
+		profilePayload = payload
+	end
+
+	if profilePayload ~= nil then
+		profile = PlayerProfile.reconcile(profilePayload, nowUnix)
+	end
+
+	if payload.currencies ~= nil then
+		profile.currencies = TableUtil.reconcile(profile.currencies, payload.currencies)
+	end
+
+	if payload.resourcesById ~= nil then
+		profile.resourcesById = TableUtil.reconcile(profile.resourcesById, payload.resourcesById)
+	end
+
+	if payload.resourceOrder ~= nil then
+		profile.resourceOrder = TableUtil.deepCopy(payload.resourceOrder)
+	end
+
+	if payload.stationsById ~= nil then
+		profile.stationsById = TableUtil.reconcile(profile.stationsById, payload.stationsById)
+	end
+
+	if payload.placedObjects ~= nil then
+		profile.placedObjects = TableUtil.reconcile(profile.placedObjects, payload.placedObjects)
+	end
+
+	if payload.geodeQueue ~= nil then
+		profile.geodeQueue = TableUtil.deepCopy(payload.geodeQueue)
+	end
+
+	if payload.unclaimedOfflineRewards ~= nil then
+		profile.unclaimedOfflineRewards = TableUtil.deepCopy(payload.unclaimedOfflineRewards)
+	end
+
+	if payload.dailyRewards ~= nil then
+		profile.dailyRewards = TableUtil.reconcile(profile.dailyRewards, payload.dailyRewards)
+	end
+
+	if payload.progression ~= nil then
+		profile.progression = TableUtil.reconcile(profile.progression, payload.progression)
+	end
+
+	if payload.plotState ~= nil then
+		profile.plotState = TableUtil.reconcile(profile.plotState, payload.plotState)
+	end
+
+	if payload.session ~= nil then
+		profile.session = TableUtil.reconcile(profile.session, payload.session)
+	end
+
+	return profile
+end
+
+local function normalizePayload(state, payload, nowUnix)
+	local nextState = TableUtil.deepCopy(state)
+
+	if type(payload) ~= "table" then
+		return nextState
+	end
+
+	if payload.state ~= nil then
+		payload = payload.state
+	end
+
+	nextState.profile = normalizeProfileState(nextState.profile, payload, nowUnix)
+
+	if payload.shop ~= nil then
+		nextState.shop = normalizeShopState(nextState.shop, payload.shop)
+	elseif payload.currentOffer ~= nil or payload.offerId ~= nil or payload.price ~= nil then
+		nextState.shop = normalizeShopState(nextState.shop, payload)
+	end
+
+	if payload.announcements ~= nil then
+		nextState.announcements = normalizeAnnouncements(payload.announcements, nextState.announcements)
+	end
+
+	if payload.connectionMessage ~= nil then
+		nextState.connectionMessage = tostring(payload.connectionMessage)
+	end
+
+	return nextState
+end
+
+function AppController.new()
+	local nowUnix = Time.nowUnix()
+	local context = {
+		palette = Palette,
+		stateChanged = Signal.new(),
+		screen = nil,
+		app = nil,
+	}
+
+	local self = setmetatable({
+		context = context,
+		state = buildDefaultState(nowUnix),
+		remotes = {},
+		controllers = {},
+		_running = false,
+	}, AppController)
+
+	context.app = self
+	self.controllers = {
+		HUDController.new(context),
+		ShopController.new(context),
+		GeodeController.new(context),
+		PlotController.new(context),
+		PlacementController.new(context),
+		DailyRewardsController.new(context),
+		NotificationsController.new(context),
+	}
+
+	return self
+end
+
+function AppController:getState()
+	return self.state
+end
+
+function AppController:emitState(reason)
+	self.context.stateChanged:Fire(self.state, Time.nowUnix(), reason)
+end
+
+function AppController:applyPayload(payload, reason)
+	self.state = normalizePayload(self.state, payload, Time.nowUnix())
+	self:emitState(reason or "state")
+end
+
+function AppController:setStatus(message)
+	self.state.connectionMessage = message
+	self:emitState("status")
+end
+
+function AppController:pushAnnouncement(message)
+	if message == nil or message == "" then
+		return
+	end
+
+	table.insert(self.state.announcements, 1, message)
+	while #self.state.announcements > 5 do
+		table.remove(self.state.announcements)
+	end
+
+	self:emitState("announcement")
+end
+
+function AppController:getRemote(name)
+	return self.remotes[name]
+end
+
+function AppController:invokeRemote(name, ...)
+	local remote = self:getRemote(name)
+	if remote == nil then
+		return false, "remote_unavailable"
+	end
+
+	local ok, result = pcall(function(...)
+		return remote:InvokeServer(...)
+	end, ...)
+
+	if not ok then
+		return false, result
+	end
+
+	if type(result) == "table" then
+		self:applyPayload(result, name)
+	end
+
+	return true, result
+end
+
+function AppController:requestBuyStarterGeode()
+	local ok, result = self:invokeRemote(RemoteNames.RequestBuyGeode, "starter_geode")
+	if ok and type(result) == "table" and result.ok == true then
+		self:setStatus("Starter geode purchase requested.")
+	else
+		local errorText = type(result) == "table" and result.errorCode or result
+		self:setStatus("Starter geode purchase failed: " .. tostring(errorText))
+	end
+	return ok, result
+end
+
+function AppController:requestClaimFinishedGeodes()
+	local ok, result = self:invokeRemote(RemoteNames.RequestClaimFinishedGeode)
+	if ok and type(result) == "table" and result.ok == true then
+		self:setStatus("Ready geodes claimed.")
+	else
+		local errorText = type(result) == "table" and result.errorCode or result
+		self:setStatus("Ready geode claim failed: " .. tostring(errorText))
+	end
+	return ok, result
+end
+
+function AppController:requestPlaceStarterStation()
+	local ok, result = self:invokeRemote(RemoteNames.RequestPlaceStation)
+	if ok and type(result) == "table" and result.ok == true then
+		self:setStatus("Starter station placed.")
+	else
+		local errorText = type(result) == "table" and result.errorCode or result
+		self:setStatus("Starter station placement failed: " .. tostring(errorText))
+	end
+	return ok, result
+end
+
+function AppController:requestClaimDailyReward()
+	local ok, result = self:invokeRemote(RemoteNames.RequestClaimDailyReward)
+	if ok and type(result) == "table" and result.ok == true then
+		self:setStatus("Daily reward claim requested.")
+	else
+		local errorText = type(result) == "table" and result.errorCode or result
+		self:setStatus("Daily reward claim failed: " .. tostring(errorText))
+	end
+	return ok, result
+end
+
+function AppController:requestCollectOfflineRewards()
+	local ok, result = self:invokeRemote(RemoteNames.RequestCollectOfflineRewards)
+	if ok and type(result) == "table" and result.ok == true then
+		self:setStatus("Offline rewards claim requested.")
+	else
+		local errorText = type(result) == "table" and result.errorCode or result
+		self:setStatus("Offline rewards claim failed: " .. tostring(errorText))
+	end
+	return ok, result
+end
+
+function AppController:connectRemoteEvents()
+	local stateUpdated = self:getRemote(RemoteNames.StateUpdated)
+	if stateUpdated ~= nil then
+		stateUpdated.OnClientEvent:Connect(function(payload)
+			self:applyPayload(payload, "remote_state")
+		end)
+	end
+
+	local shopUpdated = self:getRemote(RemoteNames.ShopRotationUpdated)
+	if shopUpdated ~= nil then
+		shopUpdated.OnClientEvent:Connect(function(payload)
+			self:applyPayload({ shop = payload }, "remote_shop")
+		end)
+	end
+
+	local rareRevealAnnounced = self:getRemote(RemoteNames.RareRevealAnnounced)
+	if rareRevealAnnounced ~= nil then
+		rareRevealAnnounced.OnClientEvent:Connect(function(payload)
+			local text = nil
+			if type(payload) == "string" then
+				text = payload
+			elseif type(payload) == "table" then
+				text = tostring(payload.message or payload.text or payload.title or "Crystal reveal spotted")
+			end
+
+			if text ~= nil then
+				self:pushAnnouncement(text)
+			end
+		end)
+	end
+end
+
+function AppController:syncInitialState()
+	local initialStateRemote = self:getRemote(RemoteNames.GetInitialState)
+	if initialStateRemote == nil then
+		self.state.connectionMessage = "Server state endpoint unavailable. Showing local preview state."
+		return
+	end
+
+	local ok, result = pcall(function()
+		return initialStateRemote:InvokeServer()
+	end)
+
+	if ok and result ~= nil then
+		self:applyPayload(result, "initial_sync")
+		self.state.connectionMessage = "Connected to server."
+	else
+		self.state.connectionMessage = "Using local preview state."
+	end
+end
+
+function AppController:resolveRemotes()
+	local remotesFolder = ReplicatedStorage:FindFirstChild("Remotes") or ReplicatedStorage:WaitForChild("Remotes", 10)
+	if remotesFolder == nil then
+		self.remotes = {}
+		return
+	end
+
+	local remotes = {}
+	for remoteName, className in pairs(require(Shared.Net.Remotes).definitions) do
+		local remote = remotesFolder:FindFirstChild(remoteName)
+		if remote ~= nil and remote.ClassName == className then
+			remotes[remoteName] = remote
+		end
+	end
+
+	self.remotes = remotes
+end
+
+function AppController:start()
+	if self._running then
+		return
+	end
+
+	self._running = true
+	self.context.screen = RootScreen.new(self.context)
+	self.context.screen:setStatusText(self.state.connectionMessage)
+
+	self:resolveRemotes()
+	self:connectRemoteEvents()
+	self:syncInitialState()
+
+	for _, controller in ipairs(self.controllers) do
+		if controller.start ~= nil then
+			controller:start()
+		end
+	end
+
+	self:emitState("bootstrap")
+
+	task.spawn(function()
+		while self._running do
+			task.wait(1)
+			self:emitState("tick")
+		end
+	end)
+
+	print("[GemFactory] Client app started")
+end
+
+return AppController
+
+
+]]></string>
+            </Properties>
+          </Item>
+          <Item class="ModuleScript" referent="60">
+            <Properties>
+              <string name="Name">DailyRewardsController</string>
+              <string name="Source"><![CDATA[--!strict
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+
+local DailyRewardsConfig = require(Shared.Config.DailyRewards)
+local Time = require(Shared.Util.Time)
+
+local DailyRewardsController = {}
+DailyRewardsController.__index = DailyRewardsController
+
+local function formatDuration(seconds: number): string
+	local safeSeconds = math.max(0, math.floor(seconds))
+	local hours = math.floor(safeSeconds / 3600)
+	local minutes = math.floor((safeSeconds % 3600) / 60)
+	local remaining = safeSeconds % 60
+	return string.format("%02d:%02d:%02d", hours, minutes, remaining)
+end
+
+local function formatReward(reward)
+	if reward.rewardType == "coins" then
+		return string.format("%d coins", reward.amount)
+	end
+
+	if reward.rewardType == "gems" then
+		return string.format("%d gems", reward.amount)
+	end
+
+	if reward.rewardId ~= nil then
+		return string.format("%s x%d", tostring(reward.rewardId), reward.amount)
+	end
+
+	return string.format("%s x%d", tostring(reward.rewardType), reward.amount)
+end
+
+local function getClaimState(profile, nowUnix)
+	local rewards = DailyRewardsConfig.days
+	local currentDay = math.clamp(profile.dailyRewards.currentDay, 1, #rewards)
+	local reward = rewards[currentDay]
+	local lastClaimUnix = profile.dailyRewards.lastClaimUnix
+	local cooldownSeconds = 24 * 60 * 60
+	local canClaim = lastClaimUnix == nil or (nowUnix - lastClaimUnix) >= cooldownSeconds
+	local nextClaimUnix = if canClaim then nowUnix else lastClaimUnix + cooldownSeconds
+
+	return {
+		currentDay = currentDay,
+		reward = reward,
+		canClaim = canClaim,
+		nextClaimUnix = nextClaimUnix,
+	}
+end
+
+function DailyRewardsController.new(context)
+	return setmetatable({
+		context = context or {},
+	}, DailyRewardsController)
+end
+
+function DailyRewardsController:start()
+	local screen = self.context.screen
+	local app = self.context.app
+
+	local function refresh(state, nowUnix)
+		local profile = state.profile
+		local claimState = getClaimState(profile, nowUnix)
+		screen:setDailyText(string.format(
+			"Day %d reward: %s\nStreak: %d\nNext claim: %s",
+			claimState.currentDay,
+			formatReward(claimState.reward),
+			profile.dailyRewards.streakCount or 0,
+			if claimState.canClaim then "Ready now" else formatDuration(claimState.nextClaimUnix - nowUnix)
+		))
+
+		screen:setDailyButtonState(
+			claimState.canClaim,
+			if claimState.canClaim then "Claim Daily Reward" else string.format("Claim in %s", formatDuration(claimState.nextClaimUnix - nowUnix))
+		)
+	end
+
+	screen.buttons.claimDaily.Activated:Connect(function()
+		app:requestClaimDailyReward()
+	end)
+
+	self.context.stateChanged:Connect(refresh)
+	refresh(app:getState(), Time.nowUnix())
+end
+
+return DailyRewardsController
+]]></string>
+            </Properties>
+          </Item>
+          <Item class="ModuleScript" referent="61">
+            <Properties>
+              <string name="Name">GeodeController</string>
+              <string name="Source"><![CDATA[--!strict
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+
+local Geodes = require(Shared.Config.Geodes)
+local Time = require(Shared.Util.Time)
+
+local GeodeController = {}
+GeodeController.__index = GeodeController
+
+local function formatDuration(seconds: number): string
+	local safeSeconds = math.max(0, math.floor(seconds))
+	local hours = math.floor(safeSeconds / 3600)
+	local minutes = math.floor((safeSeconds % 3600) / 60)
+	local remaining = safeSeconds % 60
+	return string.format("%02d:%02d:%02d", hours, minutes, remaining)
+end
+
+function GeodeController.new(context)
+	return setmetatable({
+		context = context or {},
+	}, GeodeController)
+end
+
+function GeodeController:start()
+	local screen = self.context.screen
+	local app = self.context.app
+
+	local function refresh(state, nowUnix)
+		local queue = state.profile.geodeQueue
+		local readyCount = 0
+		if #queue == 0 then
+			screen:setGeodeText("No geodes are cracking yet.\nBuy a geode from the shop to start the reveal loop.")
+			screen:setClaimReadyGeodesButton(false, "Claim Ready Geodes")
+			return
+		end
+
+		local lines = {}
+		for index, entry in ipairs(queue) do
+			if index > 4 then
+				table.insert(lines, string.format("...and %d more", #queue - 4))
+				break
+			end
+
+			local geodeDefinition = Geodes[entry.geodeId]
+			local remaining = math.max(0, (entry.endsAt or nowUnix) - nowUnix)
+			if remaining <= 0 or entry.status == "finished" then
+				readyCount += 1
+			end
+			table.insert(lines, string.format(
+				"%s - %s - %s",
+				geodeDefinition and geodeDefinition.displayName or entry.geodeId,
+				(remaining <= 0 or entry.status == "finished") and "ready to claim" or (entry.status == "queued" and "cracking" or (entry.status or "queued")),
+				formatDuration(remaining)
+			))
+		end
+
+		if readyCount > 0 then
+			table.insert(lines, 1, string.format("%d geode%s ready to claim.", readyCount, if readyCount == 1 then "" else "s"))
+		else
+			table.insert(lines, 1, "Geodes are cracking. Claim them here when the timers finish.")
+		end
+
+		screen:setGeodeText(table.concat(lines, "\n"))
+		screen:setClaimReadyGeodesButton(
+			readyCount > 0,
+			if readyCount > 0 then string.format("Claim Ready Geode%s", if readyCount == 1 then "" else "s") else "Claim Ready Geodes"
+		)
+	end
+
+	screen.buttons.claimReadyGeodes.Activated:Connect(function()
+		app:requestClaimFinishedGeodes()
+	end)
+
+	self.context.stateChanged:Connect(refresh)
+	refresh(app:getState(), Time.nowUnix())
+end
+
+return GeodeController
+
+
+]]></string>
+            </Properties>
+          </Item>
+          <Item class="ModuleScript" referent="62">
+            <Properties>
+              <string name="Name">HUDController</string>
+              <string name="Source"><![CDATA[--!strict
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+
+local Resources = require(Shared.Config.Resources)
+local Stations = require(Shared.Config.Stations)
+local Traits = require(Shared.Config.Traits)
+local EconomyMath = require(Shared.Domain.EconomyMath)
+local EconomyConfig = require(Shared.Config.Economy)
+local Time = require(Shared.Util.Time)
+
+local HUDController = {}
+HUDController.__index = HUDController
+
+local function countEntries(input)
+	local count = 0
+	for _ in pairs(input) do
+		count += 1
+	end
+	return count
+end
+
+local function formatNumber(value: number): string
+	local text = tostring(math.floor(value + 0.5))
+	while true do
+		local nextText = text:gsub("^(-?%d+)(%d%d%d)", "%1,%2")
+		if nextText == text then
+			break
+		end
+		text = nextText
+	end
+	return text
+end
+
+local function computePassiveRate(profile)
+	local total = 0
+
+	for _, resource in pairs(profile.resourcesById) do
+		local resourceDefinition = Resources[resource.resourceTypeId]
+		if resourceDefinition ~= nil and resource.stationId ~= nil then
+			local traitDefinition = Traits[resource.traitId or "none"] or Traits.none
+			local stationInstance = profile.stationsById[resource.stationId]
+			local stationDefinition = stationInstance and Stations[stationInstance.stationTypeId] or nil
+			local stationMultiplier = stationDefinition and stationDefinition.incomeMultiplier or 1
+			local traitMultiplier = traitDefinition.multiplier or 1
+			local prestigeMultiplier = EconomyMath.getPrestigeMultiplier(
+				profile.progression.prestigeCount,
+				EconomyConfig.prestigeStep,
+				EconomyConfig.basePrestigeMultiplier
+			)
+
+			total += EconomyMath.getResourceIncome(
+				resourceDefinition.baseCoinRate,
+				traitMultiplier,
+				stationMultiplier,
+				prestigeMultiplier,
+				1
+			)
+		end
+	end
+
+	return total
+end
+
+function HUDController.new(context)
+	return setmetatable({
+		context = context or {},
+	}, HUDController)
+end
+
+function HUDController:start()
+	local screen = self.context.screen
+	local app = self.context.app
+
+	local function refresh(state)
+		local profile = state.profile
+		local resourceCount = countEntries(profile.resourcesById)
+		local stationCount = countEntries(profile.stationsById)
+		local queueCount = #profile.geodeQueue
+		local passiveRate = computePassiveRate(profile)
+		local cavernValue = profile.currencies.coins + (resourceCount * 25) + (stationCount * 50) + (queueCount * 5)
+		local plotId = profile.plotState.plotId or "Unassigned"
+
+		screen:setStatusText(state.connectionMessage or "Ready")
+		screen:setOverviewText(string.format(
+			"Coins: %s\nPassive: %s / sec\nCavern Value: %s\nResources: %d\nStations: %d\nQueue: %d\nPlot: %s",
+			formatNumber(profile.currencies.coins),
+			formatNumber(passiveRate),
+			formatNumber(cavernValue),
+			resourceCount,
+			stationCount,
+			queueCount,
+			plotId
+		))
+	end
+
+	self.context.stateChanged:Connect(refresh)
+	refresh(app:getState(), Time.nowUnix())
+end
+
+return HUDController
+
+
+]]></string>
+            </Properties>
+          </Item>
+          <Item class="ModuleScript" referent="63">
+            <Properties>
+              <string name="Name">NotificationsController</string>
+              <string name="Source"><![CDATA[--!strict
+
+local NotificationsController = {}
+NotificationsController.__index = NotificationsController
+
+local function formatNumber(value)
+	local text = tostring(math.floor((value or 0) + 0.5))
+	while true do
+		local nextText = text:gsub("^(-?%d+)(%d%d%d)", "%1,%2")
+		if nextText == text then
+			break
+		end
+		text = nextText
+	end
+	return text
+end
+
+function NotificationsController.new(context)
+	return setmetatable({
+		context = context or {},
+	}, NotificationsController)
+end
+
+function NotificationsController:start()
+	local screen = self.context.screen
+	local app = self.context.app
+
+	local function formatDuration(seconds: number): string
+		local safeSeconds = math.max(0, math.floor(seconds))
+		local hours = math.floor(safeSeconds / 3600)
+		local minutes = math.floor((safeSeconds % 3600) / 60)
+		local remaining = safeSeconds % 60
+		return string.format("%02d:%02d:%02d", hours, minutes, remaining)
+	end
+
+	local function formatAnnouncementList(announcements)
+		if #announcements == 0 then
+			return "No announcements yet."
+		end
+
+		local lines = {}
+		for index, announcement in ipairs(announcements) do
+			if index > 3 then
+				table.insert(lines, string.format("...and %d more", #announcements - 3))
+				break
+			end
+			table.insert(lines, tostring(announcement))
+		end
+
+		return table.concat(lines, "\n")
+	end
+
+	local function refresh(state)
+		local profile = state.profile
+		local offlineReward = profile.unclaimedOfflineRewards
+		local offlineText = "No offline cache ready yet."
+		local offlineButtonText = "Claim Offline Cache"
+		local offlineEnabled = false
+
+		if offlineReward ~= nil then
+			offlineText = string.format(
+				"Offline coins: %s\nElapsed: %s\nFinished geodes: %d",
+				formatNumber(offlineReward.coins),
+				formatDuration(offlineReward.elapsedSeconds),
+				#offlineReward.finishedGeodes
+			)
+			offlineButtonText = string.format("Claim Offline Cache (%s coins)", formatNumber(offlineReward.coins))
+			offlineEnabled = true
+		end
+
+		screen:setOfflineText(offlineText)
+		screen:setOfflineButtonState(offlineEnabled, offlineButtonText)
+		screen:setNotificationsText(formatAnnouncementList(state.announcements))
+	end
+
+	screen.buttons.claimOffline.Activated:Connect(function()
+		app:requestCollectOfflineRewards()
+	end)
+
+	self.context.stateChanged:Connect(refresh)
+	refresh(app:getState())
+end
+
+return NotificationsController
+
+
+]]></string>
+            </Properties>
+          </Item>
+          <Item class="ModuleScript" referent="64">
+            <Properties>
+              <string name="Name">PlacementController</string>
+              <string name="Source"><![CDATA[--!strict
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+
+local Stations = require(Shared.Config.Stations)
+local World = require(Shared.Config.World)
+
+local PlacementController = {}
+PlacementController.__index = PlacementController
+
+function PlacementController.new(context)
+	return setmetatable({
+		context = context or {},
+	}, PlacementController)
+end
+
+function PlacementController:start()
+	local screen = self.context.screen
+	local app = self.context.app
+	local starterStation = Stations[World.starterStationTypeId]
+
+	local function refresh(state)
+		local plotId = state.profile.plotState.plotId or "Unassigned"
+		local starterPlaced = false
+		local placedStationCount = 0
+		for _, station in pairs(state.profile.stationsById) do
+			if station.placement ~= nil then
+				placedStationCount += 1
+				if station.stationTypeId == World.starterStationTypeId then
+					starterPlaced = true
+				end
+			end
+		end
+
+		screen:setPlacementText(string.format(
+			"Placement snaps to a %d x %d cavern grid.\nCurrent lot: %s\nPlaced stations: %d\nStarter station footprint: %dx%d",
+			World.plotGridWidth,
+			World.plotGridHeight,
+			plotId,
+			placedStationCount,
+			starterStation and starterStation.gridSize.width or 0,
+			starterStation and starterStation.gridSize.height or 0
+		))
+
+		screen:setPlaceStarterStationButton(
+			not starterPlaced and plotId ~= "Unassigned",
+			if starterPlaced then "Starter Station Placed" else "Place Starter Station"
+		)
+	end
+
+	screen.buttons.placeStarterStation.Activated:Connect(function()
+		app:requestPlaceStarterStation()
+	end)
+
+	self.context.stateChanged:Connect(refresh)
+	refresh(app:getState())
+end
+
+return PlacementController
+
+]]></string>
+            </Properties>
+          </Item>
+          <Item class="ModuleScript" referent="65">
+            <Properties>
+              <string name="Name">PlotController</string>
+              <string name="Source"><![CDATA[--!strict
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+
+local World = require(Shared.Config.World)
+
+local PlotController = {}
+PlotController.__index = PlotController
+
+function PlotController.new(context)
+	return setmetatable({
+		context = context or {},
+	}, PlotController)
+end
+
+function PlotController:start()
+	local screen = self.context.screen
+	local app = self.context.app
+
+	local function refresh(state)
+		local profile = state.profile
+		local plotId = profile.plotState.plotId or "Unassigned"
+		local occupiedCells = 0
+		for _ in pairs(profile.plotState.gridOccupancy) do
+			occupiedCells += 1
+		end
+
+		screen:setPlotText(string.format(
+			"Cavern Lot: %s\nGrid: %d x %d\nOccupied Cells: %d\nUnlocked Zones: %d",
+			plotId,
+			World.plotGridWidth,
+			World.plotGridHeight,
+			occupiedCells,
+			#profile.progression.unlockedZones
+		))
+	end
+
+	self.context.stateChanged:Connect(refresh)
+	refresh(app:getState())
+end
+
+return PlotController
+]]></string>
+            </Properties>
+          </Item>
+          <Item class="ModuleScript" referent="66">
+            <Properties>
+              <string name="Name">ShopController</string>
+              <string name="Source"><![CDATA[--!strict
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+
+local Shops = require(Shared.Config.Shops)
+
+local ShopController = {}
+ShopController.__index = ShopController
+
+local function formatNumber(value: number): string
+	local text = tostring(math.floor(value + 0.5))
+	while true do
+		local nextText = text:gsub("^(-?%d+)(%d%d%d)", "%1,%2")
+		if nextText == text then
+			break
+		end
+		text = nextText
+	end
+	return text
+end
+
+local function formatDuration(seconds: number): string
+	local safeSeconds = math.max(0, math.floor(seconds))
+	local hours = math.floor(safeSeconds / 3600)
+	local minutes = math.floor((safeSeconds % 3600) / 60)
+	local remaining = safeSeconds % 60
+	return string.format("%02d:%02d:%02d", hours, minutes, remaining)
+end
+
+function ShopController.new(context)
+	return setmetatable({
+		context = context or {},
+	}, ShopController)
+end
+
+function ShopController:start()
+	local screen = self.context.screen
+	local app = self.context.app
+	local starterOffer = Shops.starterOffers[1]
+
+	local function profileCoins(state)
+		return state.profile.currencies.coins or 0
+	end
+
+	local function refresh(state)
+		local shopState = state.shop
+		local currentOffer = shopState.currentOffer or shopState.starterOffer or starterOffer
+		local secondsRemaining = shopState.secondsRemaining or 0
+
+		screen:setShopText(string.format(
+			"Limited offer: %s\nPrice: %s %s\nRefreshes in: %s\nStarter geodes stay available from the button below.",
+			currentOffer.displayName or currentOffer.offerId or "Unknown Offer",
+			formatNumber(currentOffer.price or starterOffer.price),
+			string.lower(currentOffer.currency or starterOffer.currency or "coins"),
+			formatDuration(secondsRemaining)
+		))
+
+		screen:setBuyStarterButton(
+			(profileCoins(state) >= starterOffer.price),
+			string.format("Buy Starter Geode (%s coins)", formatNumber(starterOffer.price))
+		)
+	end
+
+	screen.buttons.buyStarter.Activated:Connect(function()
+		app:requestBuyStarterGeode()
+	end)
+
+	self.context.stateChanged:Connect(refresh)
+	refresh(app:getState())
+end
+
+return ShopController
+
+]]></string>
+            </Properties>
+          </Item>
+        </Item>
+        <Item class="Folder" referent="67">
+          <Properties>
+            <string name="Name">UI</string>
+          </Properties>
+          <Item class="Folder" referent="68">
+            <Properties>
+              <string name="Name">Components</string>
+            </Properties>
+            <Item class="ModuleScript" referent="69">
+              <Properties>
+                <string name="Name">Panel</string>
+                <string name="Source"><![CDATA[--!strict
+
+local Panel = {}
+
+local function applyStroke(parent: Instance, palette)
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = palette.border
+	stroke.Thickness = 1
+	stroke.Transparency = 0.15
+	stroke.Parent = parent
+	return stroke
+end
+
+function Panel.createCard(parent: Instance, title: string, palette, layoutOrder: number?)
+	local card = Instance.new("Frame")
+	card.Name = title .. "Card"
+	card.BackgroundColor3 = palette.background.panel
+	card.BorderSizePixel = 0
+	card.AutomaticSize = Enum.AutomaticSize.Y
+	card.Size = UDim2.new(1, 0, 0, 0)
+	card.LayoutOrder = layoutOrder or 0
+	card.Parent = parent
+
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 14)
+	corner.Parent = card
+
+	applyStroke(card, palette)
+
+	local padding = Instance.new("UIPadding")
+	padding.PaddingTop = UDim.new(0, 14)
+	padding.PaddingBottom = UDim.new(0, 14)
+	padding.PaddingLeft = UDim.new(0, 14)
+	padding.PaddingRight = UDim.new(0, 14)
+	padding.Parent = card
+
+	local titleLabel = Instance.new("TextLabel")
+	titleLabel.BackgroundTransparency = 1
+	titleLabel.Size = UDim2.new(1, 0, 0, 24)
+	titleLabel.Font = Enum.Font.GothamBold
+	titleLabel.Text = title
+	titleLabel.TextColor3 = palette.accentSoft
+	titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+	titleLabel.TextSize = 18
+	titleLabel.Parent = card
+
+	local body = Instance.new("Frame")
+	body.Name = "Body"
+	body.BackgroundTransparency = 1
+	body.AutomaticSize = Enum.AutomaticSize.Y
+	body.Position = UDim2.new(0, 0, 0, 30)
+	body.Size = UDim2.new(1, 0, 0, 0)
+	body.Parent = card
+
+	local bodyLayout = Instance.new("UIListLayout")
+	bodyLayout.Padding = UDim.new(0, 10)
+	bodyLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	bodyLayout.Parent = body
+
+	return {
+		frame = card,
+		body = body,
+		title = titleLabel,
+	}
+end
+
+function Panel.createLabel(parent: Instance, text: string, palette, layoutOrder: number?)
+	local label = Instance.new("TextLabel")
+	label.BackgroundTransparency = 1
+	label.AutomaticSize = Enum.AutomaticSize.Y
+	label.Size = UDim2.new(1, 0, 0, 0)
+	label.LayoutOrder = layoutOrder or 0
+	label.Font = Enum.Font.Gotham
+	label.Text = text
+	label.TextColor3 = palette.text
+	label.TextSize = 15
+	label.TextWrapped = true
+	label.TextXAlignment = Enum.TextXAlignment.Left
+	label.TextYAlignment = Enum.TextYAlignment.Top
+	label.Parent = parent
+	return label
+end
+
+function Panel.createButton(parent: Instance, text: string, palette, layoutOrder: number?)
+	local button = Instance.new("TextButton")
+	button.BackgroundColor3 = palette.accent
+	button.BorderSizePixel = 0
+	button.AutoButtonColor = true
+	button.AutomaticSize = Enum.AutomaticSize.Y
+	button.Size = UDim2.new(1, 0, 0, 36)
+	button.LayoutOrder = layoutOrder or 0
+	button.Font = Enum.Font.GothamBold
+	button.Text = text
+	button.TextColor3 = palette.shadow
+	button.TextSize = 15
+	button.TextWrapped = true
+	button.Parent = parent
+
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 10)
+	corner.Parent = button
+
+	return button
+end
+
+return Panel
+]]></string>
+              </Properties>
+            </Item>
+          </Item>
+          <Item class="Folder" referent="70">
+            <Properties>
+              <string name="Name">Screens</string>
+            </Properties>
+            <Item class="ModuleScript" referent="71">
+              <Properties>
+                <string name="Name">RootScreen</string>
+                <string name="Source"><![CDATA[--!strict
+
+local Players = game:GetService("Players")
+
+local Panel = require(script.Parent.Parent.Components.Panel)
+
+local RootScreen = {}
+RootScreen.__index = RootScreen
+
+function RootScreen.new(context)
+	local palette = context.palette
+	local playerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
+
+	local screenGui = Instance.new("ScreenGui")
+	screenGui.Name = "GemFactoryHud"
+	screenGui.IgnoreGuiInset = false
+	screenGui.ResetOnSpawn = false
+	screenGui.DisplayOrder = 50
+	screenGui.Parent = playerGui
+
+	local backdrop = Instance.new("Frame")
+	backdrop.Name = "Backdrop"
+	backdrop.AnchorPoint = Vector2.new(1, 0)
+	backdrop.BackgroundColor3 = palette.background.page
+	backdrop.BorderSizePixel = 0
+	backdrop.Position = UDim2.new(1, -20, 0, 20)
+	backdrop.Size = UDim2.new(0, 420, 1, -40)
+	backdrop.Parent = screenGui
+
+	local backdropCorner = Instance.new("UICorner")
+	backdropCorner.CornerRadius = UDim.new(0, 18)
+	backdropCorner.Parent = backdrop
+
+	local backdropStroke = Instance.new("UIStroke")
+	backdropStroke.Color = palette.border
+	backdropStroke.Thickness = 1
+	backdropStroke.Transparency = 0.15
+	backdropStroke.Parent = backdrop
+
+	local header = Instance.new("Frame")
+	header.Name = "Header"
+	header.BackgroundColor3 = palette.background.panelAlt
+	header.BorderSizePixel = 0
+	header.Size = UDim2.new(1, 0, 0, 72)
+	header.Parent = backdrop
+
+	local headerCorner = Instance.new("UICorner")
+	headerCorner.CornerRadius = UDim.new(0, 18)
+	headerCorner.Parent = header
+
+	local headerStroke = Instance.new("UIStroke")
+	headerStroke.Color = palette.border
+	headerStroke.Thickness = 1
+	headerStroke.Transparency = 0.2
+	headerStroke.Parent = header
+
+	local headerPadding = Instance.new("UIPadding")
+	headerPadding.PaddingTop = UDim.new(0, 14)
+	headerPadding.PaddingBottom = UDim.new(0, 14)
+	headerPadding.PaddingLeft = UDim.new(0, 18)
+	headerPadding.PaddingRight = UDim.new(0, 18)
+	headerPadding.Parent = header
+
+	local title = Instance.new("TextLabel")
+	title.BackgroundTransparency = 1
+	title.Size = UDim2.new(1, -200, 0, 24)
+	title.Font = Enum.Font.GothamBold
+	title.Text = "Gem Factory"
+	title.TextColor3 = palette.text
+	title.TextSize = 24
+	title.TextXAlignment = Enum.TextXAlignment.Left
+	title.Parent = header
+
+	local status = Instance.new("TextLabel")
+	status.BackgroundTransparency = 1
+	status.Position = UDim2.new(0, 0, 0, 28)
+	status.Size = UDim2.new(1, -200, 0, 18)
+	status.Font = Enum.Font.Gotham
+	status.Text = "Loading crystal cavern..."
+	status.TextColor3 = palette.muted
+	status.TextSize = 14
+	status.TextXAlignment = Enum.TextXAlignment.Left
+	status.Parent = header
+
+	local collapseButton = Instance.new("TextButton")
+	collapseButton.Name = "CollapseButton"
+	collapseButton.AnchorPoint = Vector2.new(1, 0.5)
+	collapseButton.AutoButtonColor = true
+	collapseButton.BackgroundColor3 = palette.accent
+	collapseButton.BorderSizePixel = 0
+	collapseButton.Position = UDim2.new(1, -4, 0.5, 0)
+	collapseButton.Size = UDim2.new(0, 44, 0, 32)
+	collapseButton.Font = Enum.Font.GothamBold
+	collapseButton.Text = "X"
+	collapseButton.TextColor3 = palette.shadow
+	collapseButton.TextSize = 18
+	collapseButton.Parent = header
+
+	local collapseCorner = Instance.new("UICorner")
+	collapseCorner.CornerRadius = UDim.new(0, 10)
+	collapseCorner.Parent = collapseButton
+
+	local scroll = Instance.new("ScrollingFrame")
+	scroll.Name = "Scroll"
+	scroll.BackgroundTransparency = 1
+	scroll.BorderSizePixel = 0
+	scroll.Position = UDim2.new(0, 18, 0, 90)
+	scroll.Size = UDim2.new(1, -36, 1, -108)
+	scroll.ScrollBarThickness = 6
+	scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+	scroll.Parent = backdrop
+
+	local scrollPadding = Instance.new("UIPadding")
+	scrollPadding.PaddingBottom = UDim.new(0, 14)
+	scrollPadding.Parent = scroll
+
+	local layout = Instance.new("UIListLayout")
+	layout.SortOrder = Enum.SortOrder.LayoutOrder
+	layout.Padding = UDim.new(0, 14)
+	layout.Parent = scroll
+
+	local overview = Panel.createCard(scroll, "Crystal Cavern Overview", palette, 1)
+	local overviewLabel = Panel.createLabel(overview.body, "Loading crystal cavern statistics...", palette, 1)
+
+	local shop = Panel.createCard(scroll, "Hourly Shop", palette, 2)
+	local shopLabel = Panel.createLabel(shop.body, "Loading shop rotation...", palette, 1)
+	local buyStarter = Panel.createButton(shop.body, "Buy Starter Geode", palette, 2)
+
+	local geode = Panel.createCard(scroll, "Geode Queue", palette, 3)
+	local geodeLabel = Panel.createLabel(geode.body, "Waiting for geode data...", palette, 1)
+	local claimReadyGeodes = Panel.createButton(geode.body, "Claim Ready Geodes", palette, 2)
+
+	local daily = Panel.createCard(scroll, "Daily Rewards", palette, 4)
+	local dailyLabel = Panel.createLabel(daily.body, "Waiting for daily reward data...", palette, 1)
+	local claimDaily = Panel.createButton(daily.body, "Claim Daily Reward", palette, 2)
+
+	local offline = Panel.createCard(scroll, "Offline Cache", palette, 5)
+	local offlineLabel = Panel.createLabel(offline.body, "No offline rewards ready yet.", palette, 1)
+	local claimOffline = Panel.createButton(offline.body, "Claim Offline Cache", palette, 2)
+
+	local plot = Panel.createCard(scroll, "Cavern Plot", palette, 6)
+	local plotLabel = Panel.createLabel(plot.body, "Waiting for plot assignment...", palette, 1)
+
+	local placement = Panel.createCard(scroll, "Placement Grid", palette, 7)
+	local placementLabel = Panel.createLabel(placement.body, "Preparing starter station placement...", palette, 1)
+	local placeStarterStation = Panel.createButton(placement.body, "Place Starter Station", palette, 2)
+
+	local notifications = Panel.createCard(scroll, "Cavern Announcements", palette, 8)
+	local notificationsLabel = Panel.createLabel(notifications.body, "No announcements yet.", palette, 1)
+
+	local reopenButton = Instance.new("TextButton")
+	reopenButton.Name = "OpenHudButton"
+	reopenButton.AnchorPoint = Vector2.new(1, 0)
+	reopenButton.AutoButtonColor = true
+	reopenButton.BackgroundColor3 = palette.accent
+	reopenButton.BorderSizePixel = 0
+	reopenButton.Position = UDim2.new(1, -20, 0, 20)
+	reopenButton.Size = UDim2.new(0, 170, 0, 44)
+	reopenButton.Visible = false
+	reopenButton.Font = Enum.Font.GothamBold
+	reopenButton.Text = "Open Gem HUD"
+	reopenButton.TextColor3 = palette.shadow
+	reopenButton.TextSize = 16
+	reopenButton.Parent = screenGui
+
+	local reopenCorner = Instance.new("UICorner")
+	reopenCorner.CornerRadius = UDim.new(0, 12)
+	reopenCorner.Parent = reopenButton
+
+	local reopenStroke = Instance.new("UIStroke")
+	reopenStroke.Color = palette.border
+	reopenStroke.Thickness = 1
+	reopenStroke.Transparency = 0.15
+	reopenStroke.Parent = reopenButton
+
+	local self = setmetatable({
+		gui = screenGui,
+		backdrop = backdrop,
+		scroll = scroll,
+		reopenButton = reopenButton,
+		labels = {
+			status = status,
+			overview = overviewLabel,
+			shop = shopLabel,
+			geode = geodeLabel,
+			daily = dailyLabel,
+			offline = offlineLabel,
+			plot = plotLabel,
+			placement = placementLabel,
+			notifications = notificationsLabel,
+		},
+		buttons = {
+			buyStarter = buyStarter,
+			claimReadyGeodes = claimReadyGeodes,
+			claimDaily = claimDaily,
+			claimOffline = claimOffline,
+			placeStarterStation = placeStarterStation,
+		},
+		buttonColors = {
+			buyStarter = buyStarter.BackgroundColor3,
+			claimReadyGeodes = claimReadyGeodes.BackgroundColor3,
+			claimDaily = claimDaily.BackgroundColor3,
+			claimOffline = claimOffline.BackgroundColor3,
+			placeStarterStation = placeStarterStation.BackgroundColor3,
+		},
+		isOpen = true,
+	}, RootScreen)
+
+	local function setOpen(isOpen)
+		self.isOpen = isOpen
+		self.backdrop.Visible = isOpen
+		self.reopenButton.Visible = not isOpen
+	end
+
+	collapseButton.Activated:Connect(function()
+		setOpen(false)
+	end)
+
+	reopenButton.Activated:Connect(function()
+		setOpen(true)
+	end)
+
+	self:setClaimReadyGeodesButton(false, "Claim Ready Geodes")
+	self:setOfflineButtonState(false, "Claim Offline Cache")
+	self:setPlaceStarterStationButton(true, "Place Starter Station")
+	return self
+end
+
+function RootScreen:setStatusText(text)
+	self.labels.status.Text = text
+end
+
+function RootScreen:setOverviewText(text)
+	self.labels.overview.Text = text
+end
+
+function RootScreen:setShopText(text)
+	self.labels.shop.Text = text
+end
+
+function RootScreen:setGeodeText(text)
+	self.labels.geode.Text = text
+end
+
+function RootScreen:setClaimReadyGeodesButton(enabled, text)
+	self.buttons.claimReadyGeodes.Active = enabled
+	self.buttons.claimReadyGeodes.AutoButtonColor = enabled
+	self.buttons.claimReadyGeodes.Text = text
+	self.buttons.claimReadyGeodes.BackgroundColor3 = if enabled then self.buttonColors.claimReadyGeodes else Color3.fromRGB(120, 120, 120)
+end
+
+function RootScreen:setDailyText(text)
+	self.labels.daily.Text = text
+end
+
+function RootScreen:setOfflineText(text)
+	self.labels.offline.Text = text
+end
+
+function RootScreen:setPlotText(text)
+	self.labels.plot.Text = text
+end
+
+function RootScreen:setPlacementText(text)
+	self.labels.placement.Text = text
+end
+
+function RootScreen:setPlaceStarterStationButton(enabled, text)
+	self.buttons.placeStarterStation.Active = enabled
+	self.buttons.placeStarterStation.AutoButtonColor = enabled
+	self.buttons.placeStarterStation.Text = text
+	self.buttons.placeStarterStation.BackgroundColor3 = if enabled then self.buttonColors.placeStarterStation else Color3.fromRGB(120, 120, 120)
+end
+
+function RootScreen:setNotificationsText(text)
+	self.labels.notifications.Text = text
+end
+
+function RootScreen:setBuyStarterButton(enabled, text)
+	self.buttons.buyStarter.Active = enabled
+	self.buttons.buyStarter.AutoButtonColor = enabled
+	self.buttons.buyStarter.Text = text
+	self.buttons.buyStarter.BackgroundColor3 = if enabled then self.buttonColors.buyStarter else Color3.fromRGB(120, 120, 120)
+end
+
+function RootScreen:setDailyButtonState(enabled, text)
+	self.buttons.claimDaily.Active = enabled
+	self.buttons.claimDaily.AutoButtonColor = enabled
+	self.buttons.claimDaily.Text = text
+	self.buttons.claimDaily.BackgroundColor3 = if enabled then self.buttonColors.claimDaily else Color3.fromRGB(120, 120, 120)
+end
+
+function RootScreen:setOfflineButtonState(enabled, text)
+	self.buttons.claimOffline.Active = enabled
+	self.buttons.claimOffline.AutoButtonColor = enabled
+	self.buttons.claimOffline.Text = text
+	self.buttons.claimOffline.BackgroundColor3 = if enabled then self.buttonColors.claimOffline else Color3.fromRGB(120, 120, 120)
+end
+
+function RootScreen:destroy()
+	self.gui:Destroy()
+end
+
+return RootScreen
+
+
+
+]]></string>
+              </Properties>
+            </Item>
+          </Item>
+          <Item class="Folder" referent="72">
+            <Properties>
+              <string name="Name">Theme</string>
+            </Properties>
+            <Item class="ModuleScript" referent="73">
+              <Properties>
+                <string name="Name">Palette</string>
+                <string name="Source"><![CDATA[--!strict
+
+local Palette = {
+	background = {
+		page = Color3.fromRGB(14, 12, 24),
+		panel = Color3.fromRGB(24, 20, 39),
+		panelAlt = Color3.fromRGB(33, 28, 53),
+	},
+	accent = Color3.fromRGB(109, 230, 255),
+	accentSoft = Color3.fromRGB(201, 175, 255),
+	text = Color3.fromRGB(242, 244, 255),
+	muted = Color3.fromRGB(167, 171, 201),
+	success = Color3.fromRGB(102, 224, 186),
+	danger = Color3.fromRGB(235, 111, 146),
+	border = Color3.fromRGB(73, 72, 114),
+	shadow = Color3.fromRGB(6, 6, 12),
+}
+
+return Palette
+]]></string>
+              </Properties>
+            </Item>
+          </Item>
+        </Item>
+      </Item>
+    </Item>
+  </Item>
+  <Item class="Workspace" referent="74">
+    <Properties>
+      <string name="Name">Workspace</string>
+      <bool name="FilteringEnabled">true</bool>
+      <bool name="NeedsPivotMigration">false</bool>
+    </Properties>
+    <Item class="Part" referent="75">
+      <Properties>
+        <string name="Name">Baseplate</string>
+        <bool name="Anchored">true</bool>
+        <Color3uint8 name="Color3uint8">6512483</Color3uint8>
+        <bool name="Locked">true</bool>
+        <Vector3 name="Position">
+          <X>0</X>
+          <Y>-10</Y>
+          <Z>0</Z>
+        </Vector3>
+        <Vector3 name="size">
+          <X>512</X>
+          <Y>20</Y>
+          <Z>512</Z>
+        </Vector3>
+      </Properties>
+    </Item>
+  </Item>
+</roblox>
