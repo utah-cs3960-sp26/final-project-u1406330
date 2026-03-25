@@ -74,4 +74,3 @@ src/
 - Rewards are gems, rare minerals, crystals, and other valuable resources.
 - Progress should feel like building a richer, busier gem-processing operation inside a magical cavern.
 - The long-term fantasy is moving from a tiny starter setup to a high-value gem empire filled with rare finds and premium production upgrades.
-
