@@ -1,71 +1,66 @@
 # Current State
 
-## Project Snapshot
+## Summary
 
-Gem Factory is currently a playable Roblox MVP built around a shared cavern map, owned geodes, manual plot placement, timed cracking, and passive income from placed stations. The project is structured as deterministic shared gameplay/domain modules plus thin server services and client controllers.
+Gem Factory is currently at a playable MVP stage. The main early loop works in Studio: buy a geode, place it on your plot, wait for it to finish, click it open, place a starter station, and begin passive income. The project is now centered around an inventory-first geode flow instead of the old auto-placement flow.
 
-The canonical design direction is still `gem_factory_design.md`, but the implemented game slice is intentionally smaller and focused on proving the main early loop.
+## Done
 
-## What Works Right Now
+- Shared cavern world with up to 8 player plots is in place.
+- Player profiles load through the mock persistence layer and reconcile into the current schema.
+- Server bootstrap, client bootstrap, remotes, and state sync are wired.
+- Shared deterministic modules exist for economy, placement, geode state, geode rolling, station assignment, shop rotation, and offline math.
+- HUD panels exist for shop, geodes, plot, daily rewards, offline rewards, overview, and announcements.
+- Starter geode purchase works from the HUD.
+- Bought geodes are stored as owned geodes instead of auto-placing immediately.
+- Players can enter geode placement mode and place geodes onto their own plot by clicking a grid cell.
+- Placed geodes visibly exist on the plot and progress toward ready state.
+- Ready geodes can be clicked on the plot to crack open.
+- Cracking a geode grants a resource and removes the geode from owned/placed state.
+- Revealed resources auto-assign into available placed stations when possible.
+- Starter station placement works with deterministic first-fit behavior when coordinates are not provided.
+- Passive income works online.
+- Offline reward summaries work.
+- Offline geode progress now preserves finished geodes as ready to open instead of auto-opening them.
+- World replica renders plots, stations, displayed resources, and geodes.
+- A lightweight local reveal effect exists for geode cracking: shell split, bounce, and shine.
+- README has been updated to reflect the current loop.
+- `rojo build default.project.json -o build-check.rbxlx` succeeds.
 
-- Players load into a shared cavern map with up to 8 plots.
-- Player profiles are created/reconciled through the mock persistence layer.
-- The client requests initial state from the server and updates from server remotes.
-- The HUD shows shop, currencies, plot info, geode info, daily rewards, offline rewards, and announcements.
-- Players can buy a starter geode from the HUD.
-- Bought geodes are now stored as owned inventory geodes instead of auto-placing immediately.
-- Players can place a geode onto their own plot by entering placement mode and clicking a grid cell.
-- Placed geodes continue their timer and become ready on the plot.
-- Ready geodes can be clicked in-world to crack open.
-- Opening a geode grants a rolled resource and removes the geode from owned state and plot occupancy.
-- Newly revealed resources auto-assign into available placed stations when possible.
-- The starter station can be placed with deterministic first-fit placement when no coordinates are provided.
-- Passive income runs online and offline.
-- Offline progress now preserves finished geodes as ready-to-open instead of auto-opening them.
-- The world replica renders plots, placed stations, displayed resources, and placed geodes.
-- Ready geode opening now plays a local client-side crack/reveal effect with shell split, bounce, and shine.
+## In Progress
 
-## Current Core Loop
+- The new geode flow has been implemented, but it still needs more Studio playtesting to shake out interaction edge cases.
+- The placement UX works, but it is still minimal and not yet polished with a proper ghost/preview workflow.
+- The geode reveal effect is present, but it is still a simple client-side effect rather than a fuller replicated presentation.
+- Deterministic specs have been updated/added for the new lifecycle, but the repo still does not have a terminal-integrated automated test runner.
+- README now includes a `Proposal` section describing the intended game features and the agentic feedback loop for development quality.
 
-1. Buy a starter geode.
-2. Place it on your plot.
+## Next Up
+
+- Playtest the full geode lifecycle in Studio and capture any edge cases around placement, opening, and reconnect/offline flow.
+- Add a better placement preview so geode placement feels clearer before click confirmation.
+- Improve geode/world feedback so cracking feels more rewarding and readable.
+- Add a proper automated way to execute the specs locally outside Studio.
+- Implement move/upgrade flows for placed objects.
+- Continue replacing debug-style world visuals with stronger cave/factory presentation.
+
+## Current MVP Loop
+
+1. Buy a starter geode from the HUD.
+2. Place the geode onto your plot.
 3. Wait for the timer to finish.
 4. Click the ready geode on the plot to crack it open.
 5. Place the starter station.
 6. Let the revealed resource auto-slot into the station.
 7. Watch passive income begin.
 
-## Recent Changes
+## Notes
 
-- Reworked geodes from an auto-placed flow to an inventory-first flow.
-- Added explicit server remotes for geode placement and cracking.
-- Added client geode interaction handling for plot-click placement and in-world cracking.
-- Added shared owned-geode lifecycle state via `geodesById` and `geodeOrder`.
-- Updated offline reward behavior so completed timers do not silently convert into resources.
-- Updated docs/specs to reflect the new geode lifecycle.
-
-## Important Implementation Notes
-
-- `src/shared` contains the deterministic math and lifecycle logic that should remain the source of truth for rules.
-- `src/server` owns validation, profile mutation, placement, economy, and world replication.
-- `src/client` is still intentionally lightweight and mostly HUD/input driven.
-- There is now a meaningful distinction between:
-  - stored geodes in inventory
-  - owned geodes placed on the plot
-  - finished geodes ready to open
-- The visual cracking/reveal animation is client-side polish layered on top of server-authoritative open results.
-
-## Verification State
-
-- `rojo build default.project.json -o build-check.rbxlx` succeeds locally.
-- Deterministic specs exist under `tests/`.
-- A proper local automated test runner is still not wired into the repo, so specs are authored but not being executed from the terminal yet.
-
-## Known Gaps / Next Follow-Through
-
-- Geode placement is currently click-to-cell placement, but it is still a minimal UX and does not yet include a richer placement preview/ghost.
-- The reveal animation is local-only polish and not yet a fully replicated cinematic sequence.
-- The world replica is still simple geometry and debug-friendly visuals rather than final art direction.
-- There is still no terminal-integrated automated spec runner.
-- Movement/upgrading of placed objects remains unimplemented.
-- The repo currently has active uncommitted changes related to this geode flow update and supporting docs/tests.
+- `gem_factory_design.md` is still the canonical design reference.
+- The implemented project slice is intentionally narrower than the full design vision.
+- The most important current architectural split is:
+  - `src/shared` for deterministic rules and state logic
+  - `src/server` for authority and profile mutation
+  - `src/client` for HUD, input, and presentation
+- There is now an important distinction between stored geodes, placed geodes, and ready-to-open geodes.
+- The repo currently has active uncommitted work related to this geode flow update and supporting docs/tests.

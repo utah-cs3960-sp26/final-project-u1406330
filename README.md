@@ -1,6 +1,48 @@
 # final-project-u1406330
 
-Gem Factory is a Roblox idle progression game built around the same retention-heavy loop as games like Grow A Garden, but themed around geodes, gems, rare minerals, and crystal cavern growth. This repo contains the Rojo project skeleton, shared config modules, bootstrap entrypoints, server foundation, and a HUD-driven first playable loop.
+## Proposal
+
+My final project proposal is a simple Roblox idle game called Gem Factory that uses many of the same game design principles found in the popular Roblox game Grow A Garden. The basic gameplay is described in the MVP Loop and Theme Direction sections below. The idea for this project came from a video I watched analyzing the design of Grow A Garden. The video can be found here: https://www.youtube.com/watch?v=5WQHP7BnQ9M
+.
+
+Grow A Garden is intentionally extremely simple, and in some people's opinion it is not even a very good game mechanically. Despite this, it has managed to attract a massive player base. The reason for this is not the gameplay itself, but the psychological strategies the game uses to keep players engaged. The game constantly creates the feeling that something rewarding is about to happen, which makes players stay longer than they planned.
+
+Some of these strategies include
+
+• Idle progression where progress continues even when the player is offline
+• Variable rewards such as rare drops and random shop rotations
+• Timers and restocks that encourage players to stay just a little longer
+• Big number progression where values grow rapidly over time
+• Scarcity events such as limited items or weekly updates
+• Social comparison where players see other players with larger bases
+• A very simple gameplay loop that is easy to understand and repeat
+
+Because of these systems the gameplay itself can be extremely basic while still retaining players effectively.
+
+For the agentic loop in this project, I will build test suites for the backend logic and verify in game features using Roblox Studio, Roblox’s built in development environment. This allows the agent to iterate on the project through both repeatable code level testing and direct gameplay validation.
+
+A natural question is how well an AI agent can actually model and generate parts of a game world. From my testing the results have been surprisingly good. The agent has been able to generate environments, models, and even basic animations and GUI components from prompts.
+
+I think this project is a good fit for an AI agent because the underlying mechanics are extremely simple. Vibe coded games are still often rough around the edges, but this type of game has such a straightforward structure that an agent has a realistic chance of producing something functional.
+
+If the game ends up working well, it would be an interesting demonstration of what AI assisted development is capable of. And if it somehow becomes successful, I might even make a little money from it.
+
+## Current MVP Loop
+
+1. Buy a starter geode from the HUD.
+2. Place that geode onto your plot from inventory.
+3. Wait for the geode timer to finish.
+4. Click the finished geode in the world to crack it open.
+5. Place the starter station on the player plot.
+6. Let revealed resources auto-slot into the placed station.
+7. Watch passive income begin ticking online.
+
+## Theme Direction
+
+- Players collect and break geodes instead of hatching anything zoo-based.
+- Rewards are gems, rare minerals, crystals, and other valuable resources.
+- Progress should feel like building a richer, busier gem-processing operation inside a magical cavern.
+- The long-term fantasy is moving from a tiny starter setup to a high-value gem empire filled with rare finds and premium production upgrades.
 
 ## Current Structure
 
@@ -23,7 +65,7 @@ src/
     Util/
 ```
 
-## How To Work In It
+## How To Work With This Project
 
 - `src/server/init.server.luau` starts the server bootstrap.
 - `src/client/init.client.luau` starts the client bootstrap and creates the HUD.
@@ -59,20 +101,3 @@ src/
 - `rojo build default.project.json -o build.rbxlx` succeeds locally.
 - Deterministic specs live under `tests/`, including new placement-search and station-assignment coverage.
 - A dedicated local automated test runner is not wired in this repo yet, so the specs are currently authored for Studio-side or future runner integration rather than executed from the terminal.
-
-## Current MVP Loop
-
-1. Buy a starter geode from the HUD.
-2. Place that geode onto your plot from inventory.
-3. Wait for the geode timer to finish.
-4. Click the finished geode in the world to crack it open.
-5. Place the starter station on the player plot.
-6. Let revealed resources auto-slot into the placed station.
-7. Watch passive income begin ticking online.
-
-## Theme Direction
-
-- Players collect and break geodes instead of hatching anything zoo-based.
-- Rewards are gems, rare minerals, crystals, and other valuable resources.
-- Progress should feel like building a richer, busier gem-processing operation inside a magical cavern.
-- The long-term fantasy is moving from a tiny starter setup to a high-value gem empire filled with rare finds and premium production upgrades.
