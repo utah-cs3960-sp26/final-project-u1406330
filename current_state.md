@@ -25,6 +25,7 @@ Gem Factory is currently at a playable MVP stage. The main early loop works in S
 - World replica renders plots, stations, displayed resources, and geodes.
 - A lightweight local reveal effect exists for geode cracking: shell split, bounce, and shine.
 - README has been updated to reflect the current loop.
+- README now includes a more casual Week 13 section covering what works, next-week plans, and Codex usage.
 - `rojo build default.project.json -o build-check.rbxlx` succeeds.
 
 ## In Progress
@@ -33,7 +34,7 @@ Gem Factory is currently at a playable MVP stage. The main early loop works in S
 - The placement UX works, but it is still minimal and not yet polished with a proper ghost/preview workflow.
 - The geode reveal effect is present, but it is still a simple client-side effect rather than a fuller replicated presentation.
 - Deterministic specs have been updated/added for the new lifecycle, but the repo still does not have a terminal-integrated automated test runner.
-- README now includes a `Proposal` section describing the intended game features and the agentic feedback loop for development quality.
+- README now includes a `Proposal` section describing the intended game features and the agentic feedback loop for development quality, plus a more casual Week 13 section.
 
 ## Next Up
 

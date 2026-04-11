@@ -27,6 +27,14 @@ I think this project is a good fit for an AI agent because the underlying mechan
 
 If the game ends up working well, it would be an interesting demonstration of what AI assisted development is capable of. And if it somehow becomes successful, I might even make a little money from it.
 
+## Week 13
+
+The game world is pretty far along for the current version. The baseplate is in, the player plots work, geodes can be placed, and the geode cracking feature is working now. The main loop is basically: buy a geode, put it on your plot, wait for it to finish, crack it open, and then use what comes out to start making passive income.
+
+For next week, my plan is mostly to keep adding features and polish the game more. I want to do more testing in Roblox Studio, make placement feel clearer, improve the geode cracking effect, and keep cleaning up the early game loop so it feels more like an actual idle game and less like just a prototype.
+
+I am using Codex instead of Amp, so I do not have any Amp threads to link. The smartest thing the agent loop did this week was probably helping create models, animations, and world stuff pretty quickly, even when I did not have a super specific idea of what would look good. I honestly have not seen it do anything especially stupid yet. The main thing I changed going forward is just being more careful about documenting the project state and checking features with tests or Studio checks instead of only trusting that something looked okay in the interactive window.
+
 ## Current MVP Loop
 
 1. Buy a starter geode from the HUD.
