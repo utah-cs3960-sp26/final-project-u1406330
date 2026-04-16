@@ -4,6 +4,9 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
+local Resources = require(Shared.Config.Resources)
+local Traits = require(Shared.Config.Traits)
+local RewardPresentation = require(Shared.Domain.RewardPresentation)
 local TableUtil = require(Shared.Util.TableUtil)
 local Time = require(Shared.Util.Time)
 local Signal = require(Shared.Util.Signal)
@@ -212,6 +215,85 @@ local function normalizePayload(state, payload, nowUnix)
 	return nextState
 end
 
+local function getResourceCelebrationSpec(resource)
+	if type(resource) ~= "table" then
+		return nil
+	end
+
+	local resourceTypeId = resource.resourceTypeId
+	if type(resourceTypeId) ~= "string" then
+		return nil
+	end
+
+	local resourceDefinition = Resources[resourceTypeId]
+	local rarityName = if resourceDefinition ~= nil and type(resourceDefinition.rarity) == "string"
+		then resourceDefinition.rarity
+		else "Common"
+	local rarityIndex = RewardPresentation.getResourceCelebrationTier(resourceDefinition)
+	local traitId = if type(resource.traitId) == "string" then resource.traitId else "none"
+	local traitDefinition = Traits[traitId] or Traits.none
+	local displayName = if resourceDefinition ~= nil and resourceDefinition.displayName ~= nil then resourceDefinition.displayName else resourceTypeId
+	if traitDefinition ~= nil and traitDefinition.id ~= "none" then
+		displayName = string.format("%s %s", traitDefinition.displayName, displayName)
+	end
+
+	return {
+		kind = "resource",
+		headline = "RESOURCE!",
+		primary = displayName,
+		detail = rarityName .. " treasure!",
+		resourceTypeId = resourceTypeId,
+		traitId = traitId,
+		rarityLabel = rarityName,
+		rarityIndex = rarityIndex + 1,
+		accentColor = if resourceDefinition ~= nil then resourceDefinition.color else nil,
+		reelValues = {
+			rarityName,
+			displayName,
+			traitDefinition ~= nil and traitDefinition.id ~= "none" and traitDefinition.displayName or "Bonus",
+		},
+		showSlotMachine = rarityIndex > 0,
+	}
+end
+
+local function getAttributeCelebrationSpec(resource)
+	if type(resource) ~= "table" then
+		return nil
+	end
+
+	local traitId = if type(resource.traitId) == "string" then resource.traitId else "none"
+	if traitId == "none" then
+		return nil
+	end
+
+	local traitDefinition = Traits[traitId]
+	if traitDefinition == nil then
+		return nil
+	end
+
+	local traitRank = RewardPresentation.getTraitCelebrationTier(traitDefinition)
+	local multiplier = traitDefinition.multiplier or traitDefinition.sellMultiplier or 1
+	local displayName = traitDefinition.displayName or traitId
+
+	return {
+		kind = "attribute",
+		headline = "ATTRIBUTE!",
+		primary = displayName,
+		detail = string.format("Sell value x%.2f", multiplier),
+		traitId = traitId,
+		rarityLabel = traitDefinition.rarity or displayName,
+		rarityIndex = traitRank + 1,
+		accentColor = traitDefinition.accentColor,
+		highlightColor = traitDefinition.glowColor,
+		reelValues = {
+			displayName,
+			string.upper(displayName),
+			string.format("x%.2f", multiplier),
+		},
+		showSlotMachine = true,
+	}
+end
+
 function AppController.new()
 	local nowUnix = Time.nowUnix()
 	local context = {
@@ -277,6 +359,30 @@ function AppController:pushAnnouncement(message)
 	end
 
 	self:emitState("announcement")
+end
+
+function AppController:showOpenResultCelebrations(openResult)
+	local screen = self.context.screen
+	if screen == nil or screen.showMiningPopup == nil or type(openResult) ~= "table" then
+		return
+	end
+
+	local createdResources = openResult.createdResources
+	if type(createdResources) ~= "table" then
+		return
+	end
+
+	for _, resource in ipairs(createdResources) do
+		local resourceCelebration = getResourceCelebrationSpec(resource)
+		if resourceCelebration ~= nil then
+			screen:showMiningPopup(resourceCelebration)
+		end
+
+		local attributeCelebration = getAttributeCelebrationSpec(resource)
+		if attributeCelebration ~= nil then
+			screen:showMiningPopup(attributeCelebration)
+		end
+	end
 end
 
 function AppController:getRemote(name)
@@ -414,6 +520,7 @@ function AppController:requestOpenReadyGeode(geodeInstanceId)
 		else
 			self:setStatus("Ready geode opened.")
 		end
+		self:showOpenResultCelebrations(openResult)
 	else
 		local errorText = type(result) == "table" and result.errorCode or result
 		self:setStatus("Ready geode crack failed: " .. tostring(errorText))
@@ -431,6 +538,7 @@ function AppController:requestClaimFinishedGeodes()
 		else
 			self:setStatus("Ready geode opened.")
 		end
+		self:showOpenResultCelebrations(openResult)
 	else
 		local errorText = type(result) == "table" and result.errorCode or result
 		self:setStatus("Ready geode crack failed: " .. tostring(errorText))

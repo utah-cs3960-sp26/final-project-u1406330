@@ -6,7 +6,7 @@ function TraitRoller.getTotalWeight(entries: { any }): number
 	local totalWeight = 0
 
 	for _, entry in ipairs(entries) do
-		if type(entry.weight) == "number" and entry.weight > 0 then
+		if type(entry) == "table" and type(entry.weight) == "number" and entry.weight > 0 then
 			totalWeight += entry.weight
 		end
 	end
@@ -18,7 +18,7 @@ local function pickWeighted(entries: { any }, roll: number)
 	local cursor = 0
 
 	for _, entry in ipairs(entries) do
-		local weight = if type(entry.weight) == "number" then entry.weight else 0
+		local weight = if type(entry) == "table" and type(entry.weight) == "number" then entry.weight else 0
 		if weight <= 0 then
 			continue
 		end

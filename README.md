@@ -61,7 +61,9 @@ Important entry points:
 - Server-authoritative Vault place/sell actions for geodes and revealed resources.
 - Grid placement for geodes, resources, and starter stations.
 - Timed geode lifecycle with ready-to-crack world interaction.
-- Weighted geode reward rolls and trait-aware resource instances.
+- Weighted geode reward rolls and attribute-aware resource instances with independent attribute rarity.
+- Bubbly slot-machine style reward popups for uncommon-or-better mining/geode reveal outcomes.
+- Three procedural placed-resource visual families with rarity glow and attribute effects.
 - Station assignment and passive income systems still exist, but cracked resources now enter the Vault first.
 - Online passive income and offline reward summaries.
 - Daily rewards, pickaxe shop rotation data, HUD panels, and rare reveal announcements.

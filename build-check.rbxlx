@@ -596,39 +596,182 @@ local Traits = {
 	none = {
 		id = "none",
 		displayName = "None",
-		weight = 88,
+		rarity = "Common",
+		rarityRank = 0,
+		weight = 8200,
 		multiplier = 1,
+		sellMultiplier = 1,
+		accentColor = Color3.fromRGB(235, 240, 245),
+		glowColor = Color3.fromRGB(246, 250, 255),
+		sparkColor = Color3.fromRGB(212, 225, 240),
+		shineStrength = 0,
+		burstScale = 0,
+		description = "A plain find with no extra flair.",
 	},
-	flawless = {
-		id = "flawless",
-		displayName = "Flawless",
-		weight = 6,
-		multiplier = 1.5,
+	fiery = {
+		id = "fiery",
+		displayName = "Fiery",
+		rarity = "Uncommon",
+		rarityRank = 1,
+		weight = 1800,
+		multiplier = 1.18,
+		sellMultiplier = 1.18,
+		accentColor = Color3.fromRGB(255, 122, 74),
+		glowColor = Color3.fromRGB(255, 176, 92),
+		sparkColor = Color3.fromRGB(255, 206, 90),
+		shineStrength = 0.55,
+		burstScale = 1.1,
+		description = "Warm, lively, and a little bit spicy.",
 	},
-	prismatic = {
-		id = "prismatic",
-		displayName = "Prismatic",
-		weight = 3,
-		multiplier = 1.8,
+	frosted = {
+		id = "frosted",
+		displayName = "Frosted",
+		rarity = "Uncommon",
+		rarityRank = 1,
+		weight = 1100,
+		multiplier = 1.22,
+		sellMultiplier = 1.22,
+		accentColor = Color3.fromRGB(150, 229, 255),
+		glowColor = Color3.fromRGB(201, 245, 255),
+		sparkColor = Color3.fromRGB(237, 255, 255),
+		shineStrength = 0.5,
+		burstScale = 1.08,
+		description = "Cool light with a crisp shimmer.",
 	},
-	celestial = {
-		id = "celestial",
-		displayName = "Celestial",
-		weight = 1.5,
-		multiplier = 2,
+	verdant = {
+		id = "verdant",
+		displayName = "Verdant",
+		rarity = "Rare",
+		rarityRank = 2,
+		weight = 700,
+		multiplier = 1.38,
+		sellMultiplier = 1.38,
+		accentColor = Color3.fromRGB(91, 214, 150),
+		glowColor = Color3.fromRGB(162, 242, 194),
+		sparkColor = Color3.fromRGB(220, 255, 233),
+		shineStrength = 0.7,
+		burstScale = 1.2,
+		description = "Bright and growing with a fresh mineral glow.",
 	},
 	radiant = {
 		id = "radiant",
 		displayName = "Radiant",
-		weight = 0.8,
-		multiplier = 2.35,
+		rarity = "Rare",
+		rarityRank = 2,
+		weight = 400,
+		multiplier = 1.55,
+		sellMultiplier = 1.55,
+		accentColor = Color3.fromRGB(255, 214, 102),
+		glowColor = Color3.fromRGB(255, 240, 150),
+		sparkColor = Color3.fromRGB(255, 252, 214),
+		shineStrength = 0.78,
+		burstScale = 1.24,
+		description = "A cheerful gleam that reads from across the mine.",
+	},
+	prismatic = {
+		id = "prismatic",
+		displayName = "Prismatic",
+		rarity = "Epic",
+		rarityRank = 3,
+		weight = 180,
+		multiplier = 1.85,
+		sellMultiplier = 1.85,
+		accentColor = Color3.fromRGB(166, 134, 255),
+		glowColor = Color3.fromRGB(230, 184, 255),
+		sparkColor = Color3.fromRGB(191, 245, 255),
+		shineStrength = 0.95,
+		burstScale = 1.32,
+		description = "Shifts colors as it catches the light.",
+	},
+	celestial = {
+		id = "celestial",
+		displayName = "Celestial",
+		rarity = "Epic",
+		rarityRank = 3,
+		weight = 80,
+		multiplier = 2.1,
+		sellMultiplier = 2.1,
+		accentColor = Color3.fromRGB(120, 201, 255),
+		glowColor = Color3.fromRGB(197, 234, 255),
+		sparkColor = Color3.fromRGB(255, 255, 255),
+		shineStrength = 1.05,
+		burstScale = 1.38,
+		description = "Feels like it fell from a bright sky.",
 	},
 	void_touched = {
 		id = "void_touched",
 		displayName = "Void-Touched",
-		weight = 0.2,
-		multiplier = 3,
+		rarity = "Legendary",
+		rarityRank = 4,
+		weight = 30,
+		multiplier = 2.85,
+		sellMultiplier = 2.85,
+		accentColor = Color3.fromRGB(97, 117, 255),
+		glowColor = Color3.fromRGB(186, 167, 255),
+		sparkColor = Color3.fromRGB(236, 236, 255),
+		shineStrength = 1.2,
+		burstScale = 1.55,
+		description = "Strangely quiet, with a deep starfield sheen.",
 	},
+	starlit = {
+		id = "starlit",
+		displayName = "Starlit",
+		rarity = "Legendary",
+		rarityRank = 4,
+		weight = 8,
+		multiplier = 3.2,
+		sellMultiplier = 3.2,
+		accentColor = Color3.fromRGB(255, 232, 168),
+		glowColor = Color3.fromRGB(255, 245, 210),
+		sparkColor = Color3.fromRGB(255, 255, 255),
+		shineStrength = 1.3,
+		burstScale = 1.68,
+		description = "A rare glow that looks like it learned to sparkle.",
+	},
+	cosmic = {
+		id = "cosmic",
+		displayName = "Cosmic",
+		rarity = "Mythic",
+		rarityRank = 5,
+		weight = 2,
+		multiplier = 4.5,
+		sellMultiplier = 4.5,
+		accentColor = Color3.fromRGB(255, 186, 219),
+		glowColor = Color3.fromRGB(202, 167, 255),
+		sparkColor = Color3.fromRGB(255, 255, 255),
+		shineStrength = 1.45,
+		burstScale = 1.85,
+		description = "A breathtaking shimmer with a galactic edge.",
+	},
+	singularity = {
+		id = "singularity",
+		displayName = "Singularity",
+		rarity = "Mythic",
+		rarityRank = 5,
+		weight = 1,
+		multiplier = 10,
+		sellMultiplier = 10,
+		accentColor = Color3.fromRGB(255, 247, 208),
+		glowColor = Color3.fromRGB(255, 255, 255),
+		sparkColor = Color3.fromRGB(176, 255, 251),
+		shineStrength = 1.65,
+		burstScale = 2.1,
+		description = "Almost impossible. The kind of find people remember.",
+	},
+}
+
+Traits.order = {
+	Traits.none,
+	Traits.fiery,
+	Traits.frosted,
+	Traits.verdant,
+	Traits.radiant,
+	Traits.prismatic,
+	Traits.celestial,
+	Traits.void_touched,
+	Traits.starlit,
+	Traits.cosmic,
+	Traits.singularity,
 }
 
 return Traits
@@ -1203,6 +1346,100 @@ return PlacementRules
         </Item>
         <Item class="ModuleScript" referent="20">
           <Properties>
+            <string name="Name">RewardPresentation</string>
+            <string name="Source"><![CDATA[--!strict
+
+local RewardPresentation = {}
+
+local RarityRanks = {
+	Common = 0,
+	Uncommon = 1,
+	Rare = 2,
+	Epic = 3,
+	Legendary = 4,
+	Mythic = 5,
+}
+
+local function getRarityRank(rarity: any): number
+	if type(rarity) ~= "string" then
+		return 0
+	end
+
+	return RarityRanks[rarity] or 0
+end
+
+local function getCelebrationTierFromRank(rank: number): number
+	return math.max(0, rank)
+end
+
+local function getScaleFromTier(tier: number, growthStep: number): number
+	if tier <= 0 then
+		return 0
+	end
+
+	return 1 + (tier * growthStep)
+end
+
+function RewardPresentation.getResourceRarityRank(resourceDefinition: any): number
+	if resourceDefinition == nil then
+		return 0
+	end
+
+	return getRarityRank(resourceDefinition.rarity)
+end
+
+function RewardPresentation.getResourceCelebrationTier(resourceDefinition: any): number
+	return getCelebrationTierFromRank(RewardPresentation.getResourceRarityRank(resourceDefinition))
+end
+
+function RewardPresentation.getResourceSlotMachineScale(resourceDefinition: any): number
+	local tier = RewardPresentation.getResourceCelebrationTier(resourceDefinition)
+	return getScaleFromTier(tier, 0.35)
+end
+
+function RewardPresentation.getTraitRarityRank(traitDefinition: any): number
+	if traitDefinition == nil then
+		return 0
+	end
+
+	if type(traitDefinition.rarityRank) == "number" then
+		return traitDefinition.rarityRank
+	end
+
+	return getRarityRank(traitDefinition.rarity)
+end
+
+function RewardPresentation.getTraitCelebrationTier(traitDefinition: any): number
+	return getCelebrationTierFromRank(RewardPresentation.getTraitRarityRank(traitDefinition))
+end
+
+function RewardPresentation.getTraitSlotMachineScale(traitDefinition: any): number
+	local tier = RewardPresentation.getTraitCelebrationTier(traitDefinition)
+	return getScaleFromTier(tier, 0.4)
+end
+
+function RewardPresentation.getRewardBurstScale(resourceDefinition: any, traitDefinition: any): number
+	local resourceScale = RewardPresentation.getResourceSlotMachineScale(resourceDefinition)
+	local traitScale = RewardPresentation.getTraitSlotMachineScale(traitDefinition)
+
+	if resourceScale <= 0 and traitScale <= 0 then
+		return 0
+	end
+
+	return 1 + (resourceScale * 0.6) + (traitScale * 0.4)
+end
+
+function RewardPresentation.shouldUseSlotMachineReveal(resourceDefinition: any, traitDefinition: any): boolean
+	return RewardPresentation.getResourceCelebrationTier(resourceDefinition) > 0
+		or RewardPresentation.getTraitCelebrationTier(traitDefinition) > 0
+end
+
+return RewardPresentation
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="21">
+          <Properties>
             <string name="Name">ShopRotation</string>
             <string name="Source"><![CDATA[--!strict
 
@@ -1233,7 +1470,7 @@ return ShopRotation
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="21">
+        <Item class="ModuleScript" referent="22">
           <Properties>
             <string name="Name">StationAssignment</string>
             <string name="Source"><![CDATA[--!strict
@@ -1369,7 +1606,7 @@ return StationAssignment
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="22">
+        <Item class="ModuleScript" referent="23">
           <Properties>
             <string name="Name">TraitRoller</string>
             <string name="Source"><![CDATA[--!strict
@@ -1380,7 +1617,7 @@ function TraitRoller.getTotalWeight(entries: { any }): number
 	local totalWeight = 0
 
 	for _, entry in ipairs(entries) do
-		if type(entry.weight) == "number" and entry.weight > 0 then
+		if type(entry) == "table" and type(entry.weight) == "number" and entry.weight > 0 then
 			totalWeight += entry.weight
 		end
 	end
@@ -1392,7 +1629,7 @@ local function pickWeighted(entries: { any }, roll: number)
 	local cursor = 0
 
 	for _, entry in ipairs(entries) do
-		local weight = if type(entry.weight) == "number" then entry.weight else 0
+		local weight = if type(entry) == "table" and type(entry.weight) == "number" then entry.weight else 0
 		if weight <= 0 then
 			continue
 		end
@@ -1426,10 +1663,12 @@ return TraitRoller
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="23">
+        <Item class="ModuleScript" referent="24">
           <Properties>
             <string name="Name">VaultMath</string>
             <string name="Source"><![CDATA[--!strict
+
+local RewardPresentation = require(script.Parent.RewardPresentation)
 
 local VaultMath = {}
 
@@ -1439,7 +1678,7 @@ function VaultMath.getResourceSellValue(resourceDefinition, traitDefinition): nu
 	end
 
 	local baseCoinRate = resourceDefinition.baseCoinRate or 0
-	local traitMultiplier = if traitDefinition ~= nil then traitDefinition.multiplier or 1 else 1
+	local traitMultiplier = if traitDefinition ~= nil then traitDefinition.sellMultiplier or traitDefinition.multiplier or 1 else 1
 	return math.max(1, math.floor((baseCoinRate * 25 * traitMultiplier) + 0.5))
 end
 
@@ -1452,16 +1691,28 @@ function VaultMath.getGeodeSellValue(geodeDefinition): number
 	return math.max(1, math.floor((geodeSeconds * 3) + 0.5))
 end
 
+function VaultMath.getResourceRarityTier(resourceDefinition): number
+	return RewardPresentation.getResourceCelebrationTier(resourceDefinition)
+end
+
+function VaultMath.getTraitRarityTier(traitDefinition): number
+	return RewardPresentation.getTraitCelebrationTier(traitDefinition)
+end
+
+function VaultMath.getRewardPresentationScale(resourceDefinition, traitDefinition): number
+	return RewardPresentation.getRewardBurstScale(resourceDefinition, traitDefinition)
+end
+
 return VaultMath
 ]]></string>
           </Properties>
         </Item>
       </Item>
-      <Item class="Folder" referent="24">
+      <Item class="Folder" referent="25">
         <Properties>
           <string name="Name">Net</string>
         </Properties>
-        <Item class="ModuleScript" referent="25">
+        <Item class="ModuleScript" referent="26">
           <Properties>
             <string name="Name">RemoteNames</string>
             <string name="Source"><![CDATA[--!strict
@@ -1494,7 +1745,7 @@ return RemoteNames
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="26">
+        <Item class="ModuleScript" referent="27">
           <Properties>
             <string name="Name">Remotes</string>
             <string name="Source"><![CDATA[--!strict
@@ -1530,11 +1781,11 @@ return Remotes
           </Properties>
         </Item>
       </Item>
-      <Item class="Folder" referent="27">
+      <Item class="Folder" referent="28">
         <Properties>
           <string name="Name">Types</string>
         </Properties>
-        <Item class="ModuleScript" referent="28">
+        <Item class="ModuleScript" referent="29">
           <Properties>
             <string name="Name">GeodeTypes</string>
             <string name="Source"><![CDATA[--!strict
@@ -1561,7 +1812,7 @@ return {}
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="29">
+        <Item class="ModuleScript" referent="30">
           <Properties>
             <string name="Name">PlayerProfile</string>
             <string name="Source"><![CDATA[--!strict
@@ -1714,7 +1965,7 @@ return PlayerProfile
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="30">
+        <Item class="ModuleScript" referent="31">
           <Properties>
             <string name="Name">ResourceTypes</string>
             <string name="Source"><![CDATA[--!strict
@@ -1739,7 +1990,7 @@ return {}
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="31">
+        <Item class="ModuleScript" referent="32">
           <Properties>
             <string name="Name">StationTypes</string>
             <string name="Source"><![CDATA[--!strict
@@ -1777,11 +2028,11 @@ return {}
           </Properties>
         </Item>
       </Item>
-      <Item class="Folder" referent="32">
+      <Item class="Folder" referent="33">
         <Properties>
           <string name="Name">Util</string>
         </Properties>
-        <Item class="ModuleScript" referent="33">
+        <Item class="ModuleScript" referent="34">
           <Properties>
             <string name="Name">Id</string>
             <string name="Source"><![CDATA[--!strict
@@ -1803,7 +2054,7 @@ return Id
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="34">
+        <Item class="ModuleScript" referent="35">
           <Properties>
             <string name="Name">Result</string>
             <string name="Source"><![CDATA[--!strict
@@ -1840,7 +2091,7 @@ return Result
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="35">
+        <Item class="ModuleScript" referent="36">
           <Properties>
             <string name="Name">Signal</string>
             <string name="Source"><![CDATA[--!strict
@@ -1887,7 +2138,7 @@ return Signal
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="36">
+        <Item class="ModuleScript" referent="37">
           <Properties>
             <string name="Name">TableUtil</string>
             <string name="Source"><![CDATA[--!strict
@@ -1951,7 +2202,7 @@ return TableUtil
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="37">
+        <Item class="ModuleScript" referent="38">
           <Properties>
             <string name="Name">Time</string>
             <string name="Source"><![CDATA[--!strict
@@ -1978,11 +2229,11 @@ return Time
       </Item>
     </Item>
   </Item>
-  <Item class="ServerScriptService" referent="38">
+  <Item class="ServerScriptService" referent="39">
     <Properties>
       <string name="Name">ServerScriptService</string>
     </Properties>
-    <Item class="Script" referent="39">
+    <Item class="Script" referent="40">
       <Properties>
         <string name="Name">Server</string>
         <token name="RunContext">0</token>
@@ -1991,11 +2242,11 @@ return Time
 ServerBootstrap.start()
 ]]></string>
       </Properties>
-      <Item class="Folder" referent="40">
+      <Item class="Folder" referent="41">
         <Properties>
           <string name="Name">Bootstrap</string>
         </Properties>
-        <Item class="ModuleScript" referent="41">
+        <Item class="ModuleScript" referent="42">
           <Properties>
             <string name="Name">ServerBootstrap</string>
             <string name="Source"><![CDATA[--!strict
@@ -2526,11 +2777,11 @@ return ServerBootstrap
           </Properties>
         </Item>
       </Item>
-      <Item class="Folder" referent="42">
+      <Item class="Folder" referent="43">
         <Properties>
           <string name="Name">Services</string>
         </Properties>
-        <Item class="ModuleScript" referent="43">
+        <Item class="ModuleScript" referent="44">
           <Properties>
             <string name="Name">DailyRewardsService</string>
             <string name="Source"><![CDATA[--!strict
@@ -2670,7 +2921,7 @@ return DailyRewardsService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="44">
+        <Item class="ModuleScript" referent="45">
           <Properties>
             <string name="Name">EconomyService</string>
             <string name="Source"><![CDATA[--!strict
@@ -2810,7 +3061,7 @@ return EconomyService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="45">
+        <Item class="ModuleScript" referent="46">
           <Properties>
             <string name="Name">GeodeQueueService</string>
             <string name="Source"><![CDATA[--!strict
@@ -2996,7 +3247,7 @@ return GeodeQueueService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="46">
+        <Item class="ModuleScript" referent="47">
           <Properties>
             <string name="Name">GeodeService</string>
             <string name="Source"><![CDATA[--!strict
@@ -3017,13 +3268,18 @@ local GeodeService = {}
 GeodeService.__index = GeodeService
 
 local function getTraitPool()
-	return {
+	return Traits.order or {
 		Traits.none,
-		Traits.flawless,
+		Traits.fiery,
+		Traits.frosted,
+		Traits.verdant,
+		Traits.radiant,
 		Traits.prismatic,
 		Traits.celestial,
-		Traits.radiant,
 		Traits.void_touched,
+		Traits.starlit,
+		Traits.cosmic,
+		Traits.singularity,
 	}
 end
 
@@ -3286,7 +3542,7 @@ return GeodeService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="47">
+        <Item class="ModuleScript" referent="48">
           <Properties>
             <string name="Name">GeodeToolService</string>
             <string name="Source"><![CDATA[--!strict
@@ -3444,7 +3700,7 @@ return GeodeToolService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="48">
+        <Item class="ModuleScript" referent="49">
           <Properties>
             <string name="Name">MiningService</string>
             <string name="Source"><![CDATA[--!strict
@@ -3692,7 +3948,7 @@ return MiningService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="49">
+        <Item class="ModuleScript" referent="50">
           <Properties>
             <string name="Name">MockPersistenceService</string>
             <string name="Source"><![CDATA[--!strict
@@ -3749,7 +4005,7 @@ return MockPersistenceService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="50">
+        <Item class="ModuleScript" referent="51">
           <Properties>
             <string name="Name">OfflineProgressService</string>
             <string name="Source"><![CDATA[--!strict
@@ -3844,7 +4100,7 @@ return OfflineProgressService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="51">
+        <Item class="ModuleScript" referent="52">
           <Properties>
             <string name="Name">PickaxeToolService</string>
             <string name="Source"><![CDATA[--!strict
@@ -4073,7 +4329,7 @@ return PickaxeToolService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="52">
+        <Item class="ModuleScript" referent="53">
           <Properties>
             <string name="Name">PlacementService</string>
             <string name="Source"><![CDATA[--!strict
@@ -4399,7 +4655,7 @@ return PlacementService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="53">
+        <Item class="ModuleScript" referent="54">
           <Properties>
             <string name="Name">PlayerDataService</string>
             <string name="Source"><![CDATA[--!strict
@@ -4620,7 +4876,7 @@ return PlayerDataService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="54">
+        <Item class="ModuleScript" referent="55">
           <Properties>
             <string name="Name">PlotService</string>
             <string name="Source"><![CDATA[--!strict
@@ -4759,7 +5015,7 @@ return PlotService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="55">
+        <Item class="ModuleScript" referent="56">
           <Properties>
             <string name="Name">ShopService</string>
             <string name="Source"><![CDATA[--!strict
@@ -4834,7 +5090,7 @@ return ShopService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="56">
+        <Item class="ModuleScript" referent="57">
           <Properties>
             <string name="Name">StationService</string>
             <string name="Source"><![CDATA[--!strict
@@ -4930,7 +5186,7 @@ return StationService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="57">
+        <Item class="ModuleScript" referent="58">
           <Properties>
             <string name="Name">VaultService</string>
             <string name="Source"><![CDATA[--!strict
@@ -5118,7 +5374,7 @@ return VaultService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="58">
+        <Item class="ModuleScript" referent="59">
           <Properties>
             <string name="Name">WorldReplicaService</string>
             <string name="Source"><![CDATA[--!strict
@@ -5130,6 +5386,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 
 local Geodes = require(Shared.Config.Geodes)
 local Resources = require(Shared.Config.Resources)
+local Traits = require(Shared.Config.Traits)
 local Stations = require(Shared.Config.Stations)
 local World = require(Shared.Config.World)
 
@@ -5257,6 +5514,723 @@ local function getGeodeTint(geodeTypeId: string?, readyState: string)
 	end
 
 	return readyState == "ready" and Color3.fromRGB(174, 191, 212) or Color3.fromRGB(92, 96, 104)
+end
+
+local function normalizeVisualKey(value)
+	if value == nil then
+		return ""
+	end
+
+	local text = string.lower(tostring(value))
+	text = text:gsub("[%s%-]+", "_")
+	text = text:gsub("[^%w_]", "")
+	return text
+end
+
+local function titleCaseLabel(value)
+	local source = tostring(value or "")
+	source = source:gsub("_", " ")
+	source = source:gsub("%-", " ")
+
+	local words = {}
+	for word in source:gmatch("%S+") do
+		local firstLetter = word:sub(1, 1)
+		local rest = word:sub(2)
+		table.insert(words, string.upper(firstLetter) .. string.lower(rest))
+	end
+
+	return table.concat(words, " ")
+end
+
+local function getStringHash(value)
+	local hash = 0
+	local text = tostring(value or "")
+
+	for index = 1, #text do
+		hash = (hash * 33 + string.byte(text, index)) % 2147483647
+	end
+
+	return hash
+end
+
+local function blendColor(baseColor, targetColor, alpha)
+	return baseColor:Lerp(targetColor, alpha)
+end
+
+local RESOURCE_RARITY_ORDER = {
+	Common = 1,
+	Uncommon = 2,
+	Rare = 3,
+	Epic = 4,
+	Legendary = 5,
+}
+
+local RESOURCE_RARITY_ACCENTS = {
+	Common = Color3.fromRGB(244, 249, 255),
+	Uncommon = Color3.fromRGB(188, 145, 255),
+	Rare = Color3.fromRGB(108, 228, 193),
+	Epic = Color3.fromRGB(118, 213, 255),
+	Legendary = Color3.fromRGB(255, 224, 117),
+}
+
+local RESOURCE_TYPE_VARIANTS = {
+	quartz = "gemstone",
+	amethyst = "gemstone",
+	emerald_cluster = "cluster",
+	diamond_core = "artifact",
+	star_shard = "artifact",
+}
+
+local TRAIT_EFFECT_PRESETS = {
+	{
+		keywords = { "fiery", "fire", "ember", "blaze", "burn" },
+		accent = Color3.fromRGB(255, 123, 56),
+		accent2 = Color3.fromRGB(255, 214, 92),
+		particleTexture = "rbxasset://textures/particles/fire_main.dds",
+		beam = false,
+		lightBoost = 1.1,
+	},
+	{
+		keywords = { "icy", "frost", "freeze", "glacial", "snow" },
+		accent = Color3.fromRGB(138, 226, 255),
+		accent2 = Color3.fromRGB(236, 250, 255),
+		particleTexture = "rbxasset://textures/particles/sparkles_main.dds",
+		beam = false,
+		lightBoost = 0.95,
+	},
+	{
+		keywords = { "prismatic", "prism", "rainbow" },
+		accent = Color3.fromRGB(255, 126, 180),
+		accent2 = Color3.fromRGB(120, 220, 255),
+		particleTexture = "rbxasset://textures/particles/sparkles_main.dds",
+		beam = true,
+		lightBoost = 1.15,
+	},
+	{
+		keywords = { "celestial", "star", "lunar", "astral" },
+		accent = Color3.fromRGB(255, 236, 160),
+		accent2 = Color3.fromRGB(174, 220, 255),
+		particleTexture = "rbxasset://textures/particles/sparkles_main.dds",
+		beam = true,
+		lightBoost = 1.2,
+	},
+	{
+		keywords = { "radiant", "glow", "sun", "luminous" },
+		accent = Color3.fromRGB(255, 221, 118),
+		accent2 = Color3.fromRGB(255, 248, 216),
+		particleTexture = "rbxasset://textures/particles/sparkles_main.dds",
+		beam = true,
+		lightBoost = 1.15,
+	},
+	{
+		keywords = { "void", "abyss", "shadow", "night" },
+		accent = Color3.fromRGB(104, 92, 188),
+		accent2 = Color3.fromRGB(58, 54, 88),
+		particleTexture = "rbxasset://textures/particles/smoke_main.dds",
+		beam = true,
+		lightBoost = 0.75,
+	},
+	{
+		keywords = { "verdant", "nature", "leaf", "growth" },
+		accent = Color3.fromRGB(128, 231, 146),
+		accent2 = Color3.fromRGB(218, 255, 188),
+		particleTexture = "rbxasset://textures/particles/sparkles_main.dds",
+		beam = false,
+		lightBoost = 1.0,
+	},
+	{
+		keywords = { "storm", "thunder", "electric", "arcane" },
+		accent = Color3.fromRGB(108, 194, 255),
+		accent2 = Color3.fromRGB(255, 255, 255),
+		particleTexture = "rbxasset://textures/particles/sparkles_main.dds",
+		beam = true,
+		lightBoost = 1.05,
+	},
+}
+
+local function getRarityRank(rarity)
+	return RESOURCE_RARITY_ORDER[rarity or "Common"] or 1
+end
+
+local function getResourceRarityScale(rarity)
+	local rarityRank = getRarityRank(rarity)
+	return 0.92 + ((rarityRank - 1) * 0.14)
+end
+
+local function getResourceRarityAccent(rarity, baseColor)
+	local rarityAccent = RESOURCE_RARITY_ACCENTS[rarity or "Common"] or baseColor
+	return baseColor:Lerp(rarityAccent, math.clamp(0.15 + (getRarityRank(rarity) * 0.12), 0, 0.65))
+end
+
+local function resolveTraitDisplayName(traitId)
+	if traitId == nil or traitId == "none" then
+		return nil
+	end
+
+	local traitDefinition = Traits[traitId]
+	if traitDefinition ~= nil and traitDefinition.displayName ~= nil then
+		return traitDefinition.displayName
+	end
+
+	return titleCaseLabel(traitId)
+end
+
+local function resolveTraitPreset(traitId)
+	local normalizedTraitId = normalizeVisualKey(traitId)
+	if normalizedTraitId == "" or normalizedTraitId == "none" then
+		return nil
+	end
+
+	for _, preset in ipairs(TRAIT_EFFECT_PRESETS) do
+		for _, keyword in ipairs(preset.keywords) do
+			if string.find(normalizedTraitId, keyword, 1, true) ~= nil then
+				return preset
+			end
+		end
+	end
+
+	return nil
+end
+
+local getResourceVariantShape
+
+local function resolveResourceVisualProfile(resourceTypeId, resourceDefinition)
+	local rarity = if resourceDefinition ~= nil and resourceDefinition.rarity ~= nil then resourceDefinition.rarity else "Common"
+	local variantId = getResourceVariantShape(resourceTypeId, resourceDefinition)
+	local rarityRank = getRarityRank(rarity)
+
+	local baseColor = if resourceDefinition ~= nil and resourceDefinition.color ~= nil
+		then resourceDefinition.color
+		else RESOURCE_RARITY_ACCENTS[rarity] or Color3.fromRGB(240, 240, 255)
+	local accentColor = getResourceRarityAccent(rarity, baseColor)
+	local glowColor = blendColor(accentColor, Color3.fromRGB(255, 255, 255), 0.25)
+
+	return {
+		baseColor = baseColor,
+		accentColor = accentColor,
+		glowColor = glowColor,
+		displayName = if resourceDefinition ~= nil and resourceDefinition.displayName ~= nil then resourceDefinition.displayName else "Resource",
+		rarity = rarity,
+		rarityRank = rarityRank,
+		scale = getResourceRarityScale(rarity),
+		variantId = variantId,
+	}
+end
+
+local function createVisualBasePart(parent, className, name, size, position, color, material)
+	local part = Instance.new(className)
+	part.Name = name
+	part.Anchored = true
+	part.CanCollide = false
+	part.CanQuery = false
+	part.CanTouch = false
+	part.Size = size
+	part.Position = position
+	part.Color = color
+	part.Material = material
+	part.Parent = parent
+	return part
+end
+
+local function orientPart(part, yawRadians, pitchRadians, rollRadians)
+	part.CFrame = CFrame.new(part.Position) * CFrame.Angles(pitchRadians or 0, yawRadians or 0, rollRadians or 0)
+end
+
+local function createColoredLight(parent, color, brightness, range)
+	local light = Instance.new("PointLight")
+	light.Color = color
+	light.Brightness = brightness
+	light.Range = range
+	light.Shadows = false
+	light.Parent = parent
+	return light
+end
+
+local function createSparkEmitter(parent, texture, colorA, colorB, rate, lifetimeMin, lifetimeMax, speedMin, speedMax, sizeStart, sizeEnd)
+	local emitter = Instance.new("ParticleEmitter")
+	emitter.Texture = texture
+	emitter.Color = ColorSequence.new(colorA, colorB)
+	emitter.LightEmission = 1
+	emitter.Rate = rate
+	emitter.Lifetime = NumberRange.new(lifetimeMin, lifetimeMax)
+	emitter.Speed = NumberRange.new(speedMin, speedMax)
+	emitter.SpreadAngle = Vector2.new(180, 180)
+	emitter.Size = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, sizeStart),
+		NumberSequenceKeypoint.new(1, sizeEnd),
+	})
+	emitter.Transparency = NumberSequence.new(0.05, 1)
+	emitter.EmissionDirection = Enum.NormalId.Top
+	emitter.Drag = 1
+	emitter.Parent = parent
+	return emitter
+end
+
+local function createResourceBillboard(parentPart, titleText, subtitleText, accentColor, rarityRank)
+	local billboard = Instance.new("BillboardGui")
+	billboard.Name = parentPart.Name .. "_Marker"
+	billboard.Size = UDim2.fromOffset(188 + (rarityRank * 4), 54 + (rarityRank > 3 and 6 or 0))
+	billboard.StudsOffset = Vector3.new(0, 2.8 + (rarityRank * 0.08), 0)
+	billboard.AlwaysOnTop = true
+	billboard.Parent = parentPart
+
+	local frame = Instance.new("Frame")
+	frame.BackgroundColor3 = Color3.fromRGB(30, 26, 40)
+	frame.BackgroundTransparency = 0.12
+	frame.Size = UDim2.fromScale(1, 1)
+	frame.Parent = billboard
+
+	local frameCorner = Instance.new("UICorner")
+	frameCorner.CornerRadius = UDim.new(0, 8)
+	frameCorner.Parent = frame
+
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = accentColor
+	stroke.Thickness = 2
+	stroke.Transparency = 0.05
+	stroke.Parent = frame
+
+	local padding = Instance.new("UIPadding")
+	padding.PaddingTop = UDim.new(0, 4)
+	padding.PaddingBottom = UDim.new(0, 4)
+	padding.PaddingLeft = UDim.new(0, 8)
+	padding.PaddingRight = UDim.new(0, 8)
+	padding.Parent = frame
+
+	local layout = Instance.new("UIListLayout")
+	layout.FillDirection = Enum.FillDirection.Vertical
+	layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	layout.VerticalAlignment = Enum.VerticalAlignment.Center
+	layout.SortOrder = Enum.SortOrder.LayoutOrder
+	layout.Padding = UDim.new(0, 0)
+	layout.Parent = frame
+
+	local titleLabel = Instance.new("TextLabel")
+	titleLabel.LayoutOrder = 1
+	titleLabel.BackgroundTransparency = 1
+	titleLabel.Size = UDim2.new(1, 0, 0, 26)
+	titleLabel.Font = Enum.Font.FredokaOne
+	titleLabel.Text = titleText
+	titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	titleLabel.TextStrokeColor3 = Color3.fromRGB(22, 18, 30)
+	titleLabel.TextStrokeTransparency = 0.55
+	titleLabel.TextScaled = true
+	titleLabel.TextWrapped = true
+	titleLabel.Parent = frame
+
+	local subtitleLabel = Instance.new("TextLabel")
+	subtitleLabel.LayoutOrder = 2
+	subtitleLabel.BackgroundTransparency = 1
+	subtitleLabel.Size = UDim2.new(1, 0, 0, 16)
+	subtitleLabel.Font = Enum.Font.FredokaOne
+	subtitleLabel.Text = subtitleText
+	subtitleLabel.TextColor3 = accentColor
+	subtitleLabel.TextStrokeColor3 = Color3.fromRGB(22, 18, 30)
+	subtitleLabel.TextStrokeTransparency = 0.7
+	subtitleLabel.TextScaled = true
+	subtitleLabel.TextWrapped = true
+	subtitleLabel.Parent = frame
+
+	return billboard
+end
+
+local function createRarityEffects(parentPart, profile, visualVariantId)
+	if profile.rarityRank <= 1 then
+		return
+	end
+
+	local glowAttachment = Instance.new("Attachment")
+	glowAttachment.Name = "RarityGlowAttachment"
+	glowAttachment.Position = Vector3.new(0, parentPart.Size.Y * 0.35, 0)
+	glowAttachment.Parent = parentPart
+
+	createColoredLight(
+		parentPart,
+		profile.glowColor,
+		0.55 + (profile.rarityRank * 0.18),
+		5.5 + (profile.rarityRank * 1.4)
+	)
+
+	local sparkleRate = 2 + (profile.rarityRank * 3)
+	if visualVariantId == "artifact" then
+		sparkleRate += 2
+	end
+
+	createSparkEmitter(
+		glowAttachment,
+		"rbxasset://textures/particles/sparkles_main.dds",
+		profile.accentColor,
+		profile.glowColor,
+		sparkleRate,
+		0.75,
+		1.35,
+		0.4,
+		1.0 + (profile.rarityRank * 0.18),
+		0.22,
+		0
+	)
+
+	if profile.rarityRank >= 3 then
+		local leftAttachment = Instance.new("Attachment")
+		leftAttachment.Name = "RarityBeamLeft"
+		leftAttachment.Position = Vector3.new(parentPart.Size.X * 0.45, 0, 0)
+		leftAttachment.Parent = parentPart
+
+		local rightAttachment = Instance.new("Attachment")
+		rightAttachment.Name = "RarityBeamRight"
+		rightAttachment.Position = Vector3.new(-parentPart.Size.X * 0.45, 0, 0)
+		rightAttachment.Parent = parentPart
+
+		local beam = Instance.new("Beam")
+		beam.Attachment0 = leftAttachment
+		beam.Attachment1 = rightAttachment
+		beam.Color = ColorSequence.new(profile.accentColor, profile.glowColor)
+		beam.FaceCamera = true
+		beam.LightEmission = 1
+		beam.Width0 = 0.08 + (profile.rarityRank * 0.02)
+		beam.Width1 = 0.12 + (profile.rarityRank * 0.02)
+		beam.Transparency = NumberSequence.new(0.15, 0.9)
+		beam.Parent = parentPart
+	end
+end
+
+local function applyTraitEffects(parentPart, profile, traitId)
+	local preset = resolveTraitPreset(traitId)
+	if preset == nil then
+		return resolveTraitDisplayName(traitId)
+	end
+
+	local traitDisplayName = resolveTraitDisplayName(traitId)
+	local effectAttachment = Instance.new("Attachment")
+	effectAttachment.Name = "TraitEffectAttachment"
+	effectAttachment.Position = Vector3.new(0, parentPart.Size.Y * 0.18, 0)
+	effectAttachment.Parent = parentPart
+
+	local lightBoost = preset.lightBoost or 1
+	createColoredLight(
+		parentPart,
+		preset.accent2,
+		0.45 + (profile.rarityRank * 0.12 * lightBoost),
+		4.5 + (profile.rarityRank * 1.1)
+	)
+
+	createSparkEmitter(
+		effectAttachment,
+		preset.particleTexture,
+		preset.accent,
+		preset.accent2,
+		3 + (profile.rarityRank * 2),
+		0.7,
+		1.1,
+		0.25,
+		0.9 + (profile.rarityRank * 0.14),
+		0.18,
+		0
+	)
+
+	if normalizeVisualKey(traitId):find("fiery", 1, true) ~= nil or normalizeVisualKey(traitId):find("fire", 1, true) ~= nil then
+		createSparkEmitter(
+			effectAttachment,
+			"rbxasset://textures/particles/fire_main.dds",
+			Color3.fromRGB(255, 160, 72),
+			Color3.fromRGB(255, 230, 120),
+			5 + profile.rarityRank,
+			0.45,
+			0.9,
+			0.35,
+			1.15,
+			0.2,
+			0
+		)
+	end
+
+	if preset.beam then
+		local forwardAttachment = Instance.new("Attachment")
+		forwardAttachment.Name = "TraitBeamForward"
+		forwardAttachment.Position = Vector3.new(0, 0, parentPart.Size.Z * 0.42)
+		forwardAttachment.Parent = parentPart
+
+		local backwardAttachment = Instance.new("Attachment")
+		backwardAttachment.Name = "TraitBeamBackward"
+		backwardAttachment.Position = Vector3.new(0, 0, -parentPart.Size.Z * 0.42)
+		backwardAttachment.Parent = parentPart
+
+		local beam = Instance.new("Beam")
+		beam.Attachment0 = forwardAttachment
+		beam.Attachment1 = backwardAttachment
+		beam.Color = ColorSequence.new(preset.accent, preset.accent2)
+		beam.FaceCamera = true
+		beam.LightEmission = 1
+		beam.Width0 = 0.08 + (profile.rarityRank * 0.01)
+		beam.Width1 = 0.02 + (profile.rarityRank * 0.01)
+		beam.Transparency = NumberSequence.new(0.2, 1)
+		beam.Parent = parentPart
+	end
+
+	return traitDisplayName
+end
+
+getResourceVariantShape = function(resourceTypeId, resourceDefinition)
+	local resourceKey = normalizeVisualKey(resourceTypeId)
+	local rarity = if resourceDefinition ~= nil and resourceDefinition.rarity ~= nil then resourceDefinition.rarity else "Common"
+	local rarityRank = getRarityRank(rarity)
+	local variantId = RESOURCE_TYPE_VARIANTS[resourceKey] or "gemstone"
+
+	if variantId == "gemstone" then
+		if resourceKey:find("cluster", 1, true) ~= nil or rarityRank == 3 then
+			variantId = "cluster"
+		end
+
+		if resourceKey:find("core", 1, true) ~= nil
+			or resourceKey:find("shard", 1, true) ~= nil
+			or rarityRank >= 4
+		then
+			variantId = "artifact"
+		end
+	end
+
+	return variantId
+end
+
+local function buildPolishedGemstone(resourcePart, profile, rootYaw)
+	local scale = profile.scale
+	local baseColor = profile.baseColor
+	local accentColor = profile.accentColor
+	local glowColor = profile.glowColor
+	local centerSize = Vector3.new(1.65, 2.2, 1.65) * scale
+
+	resourcePart.Size = centerSize
+	resourcePart.Color = blendColor(baseColor, Color3.fromRGB(255, 255, 255), 0.1)
+	resourcePart.Material = Enum.Material.Glass
+	resourcePart.Transparency = 0.12
+	resourcePart.Reflectance = 0.16
+	orientPart(resourcePart, rootYaw, math.rad(0), math.rad(34))
+
+	local topTip = createVisualBasePart(
+		resourcePart,
+		"Part",
+		"GemTopTip",
+		Vector3.new(centerSize.X * 0.72, centerSize.Y * 0.34, centerSize.Z * 0.72),
+		resourcePart.Position + Vector3.new(0, centerSize.Y * 0.48, 0),
+		accentColor,
+		Enum.Material.Neon
+	)
+	orientPart(topTip, rootYaw, math.rad(-8), math.rad(45))
+	topTip.Transparency = 0.08
+
+	local bottomTip = createVisualBasePart(
+		resourcePart,
+		"Part",
+		"GemBottomTip",
+		Vector3.new(centerSize.X * 0.72, centerSize.Y * 0.34, centerSize.Z * 0.72),
+		resourcePart.Position + Vector3.new(0, -centerSize.Y * 0.48, 0),
+		blendColor(baseColor, Color3.fromRGB(10, 10, 16), 0.2),
+		Enum.Material.SmoothPlastic
+	)
+	orientPart(bottomTip, rootYaw, math.rad(8), math.rad(225))
+	bottomTip.Transparency = 0.18
+
+	local sideBand = createVisualBasePart(
+		resourcePart,
+		"Part",
+		"GemBand",
+		Vector3.new(centerSize.X * 1.08, centerSize.Y * 0.16, centerSize.Z * 1.08),
+		resourcePart.Position + Vector3.new(0, 0, 0),
+		blendColor(baseColor, Color3.fromRGB(18, 15, 26), 0.22),
+		Enum.Material.SmoothPlastic
+	)
+	orientPart(sideBand, rootYaw, 0, math.rad(45))
+	sideBand.Transparency = 0.08
+
+	for index, yOffset in ipairs({ 0.2, -0.12, 0.05, -0.26 }) do
+		local accentShard = createVisualBasePart(
+			resourcePart,
+			"Part",
+			string.format("GemFacet_%d", index),
+			Vector3.new(centerSize.X * 0.2, centerSize.Y * 0.7, centerSize.Z * 0.12),
+			resourcePart.Position
+				+ Vector3.new(
+					math.cos(rootYaw + (math.rad(90) * (index - 1))) * centerSize.X * 0.42,
+					yOffset,
+					math.sin(rootYaw + (math.rad(90) * (index - 1))) * centerSize.Z * 0.42
+				),
+			glowColor,
+			Enum.Material.Neon
+		)
+		orientPart(accentShard, rootYaw + math.rad((index - 1) * 45), math.rad(10), math.rad(12))
+		accentShard.Transparency = 0.2
+	end
+end
+
+local function buildCrystalCluster(resourcePart, profile, rootYaw)
+	local scale = profile.scale
+	local baseColor = profile.baseColor
+	local accentColor = profile.accentColor
+	local glowColor = profile.glowColor
+	local coreSize = Vector3.new(1.25, 2.45, 1.25) * scale
+
+	resourcePart.Size = coreSize
+	resourcePart.Color = blendColor(baseColor, Color3.fromRGB(255, 255, 255), 0.08)
+	resourcePart.Material = Enum.Material.Crystal
+	resourcePart.Transparency = 0.08
+	resourcePart.Reflectance = 0.12
+	orientPart(resourcePart, rootYaw, math.rad(-5), math.rad(22))
+
+	local baseRock = createVisualBasePart(
+		resourcePart,
+		"Part",
+		"ClusterBase",
+		Vector3.new(coreSize.X * 1.55, coreSize.Y * 0.28, coreSize.Z * 1.55),
+		resourcePart.Position + Vector3.new(0, -coreSize.Y * 0.5, 0),
+		blendColor(baseColor, Color3.fromRGB(20, 18, 28), 0.42),
+		Enum.Material.Slate
+	)
+	orientPart(baseRock, rootYaw, 0, math.rad(4))
+	baseRock.Transparency = 0.1
+
+	local shardOffsets = {
+		{ x = -0.46, y = 0.22, z = -0.08, yaw = 12, roll = 10 },
+		{ x = 0.34, y = 0.38, z = 0.12, yaw = -16, roll = -8 },
+		{ x = 0.08, y = -0.02, z = -0.42, yaw = 24, roll = 14 },
+		{ x = -0.1, y = 0.58, z = 0.34, yaw = 38, roll = 18 },
+	}
+
+	for index, shard in ipairs(shardOffsets) do
+		local shardPart = createVisualBasePart(
+			resourcePart,
+			"Part",
+			string.format("ClusterShard_%d", index),
+			Vector3.new(coreSize.X * (0.35 + (index * 0.05)), coreSize.Y * (0.55 + (index * 0.08)), coreSize.Z * 0.22),
+			resourcePart.Position
+				+ Vector3.new(
+					shard.x * coreSize.X,
+					shard.y * coreSize.Y,
+					shard.z * coreSize.Z
+				),
+			if index % 2 == 0 then accentColor else glowColor,
+			Enum.Material.Neon
+		)
+		orientPart(shardPart, rootYaw + math.rad(shard.yaw), math.rad(4 + (index * 3)), math.rad(shard.roll))
+		shardPart.Transparency = 0.12 + (index * 0.03)
+	end
+end
+
+local function buildArtifactCore(resourcePart, profile, rootYaw)
+	local scale = profile.scale
+	local baseColor = profile.baseColor
+	local accentColor = profile.accentColor
+	local glowColor = profile.glowColor
+	local coreSize = Vector3.new(1.55, 2.0, 1.55) * scale
+
+	resourcePart.Size = coreSize
+	resourcePart.Color = blendColor(baseColor, Color3.fromRGB(255, 255, 255), 0.18)
+	resourcePart.Material = Enum.Material.Neon
+	resourcePart.Transparency = 0.09
+	resourcePart.Reflectance = 0.05
+	orientPart(resourcePart, rootYaw, math.rad(0), math.rad(45))
+
+	local crown = createVisualBasePart(
+		resourcePart,
+		"Part",
+		"ArtifactCrown",
+		Vector3.new(coreSize.X * 0.72, coreSize.Y * 0.42, coreSize.Z * 0.72),
+		resourcePart.Position + Vector3.new(0, coreSize.Y * 0.42, 0),
+		accentColor,
+		Enum.Material.ForceField
+	)
+	orientPart(crown, rootYaw + math.rad(22), math.rad(-10), math.rad(34))
+	crown.Transparency = 0.16
+
+	local coreCap = createVisualBasePart(
+		resourcePart,
+		"Part",
+		"ArtifactCoreCap",
+		Vector3.new(coreSize.X * 0.88, coreSize.Y * 0.18, coreSize.Z * 0.88),
+		resourcePart.Position,
+		blendColor(baseColor, Color3.fromRGB(22, 18, 34), 0.15),
+		Enum.Material.SmoothPlastic
+	)
+	orientPart(coreCap, rootYaw, 0, math.rad(45))
+	coreCap.Transparency = 0.12
+
+	local haloBars = {
+		{ name = "ArtifactHaloEast", size = Vector3.new(coreSize.X * 1.35, 0.14, 0.14), offset = Vector3.new(coreSize.X * 0.1, 0, 0), yaw = 0 },
+		{ name = "ArtifactHaloNorth", size = Vector3.new(0.14, 0.14, coreSize.Z * 1.35), offset = Vector3.new(0, 0, coreSize.Z * 0.1), yaw = 0 },
+		{ name = "ArtifactHaloSlashOne", size = Vector3.new(coreSize.X * 1.28, 0.12, 0.12), offset = Vector3.new(0, 0, 0), yaw = 45 },
+		{ name = "ArtifactHaloSlashTwo", size = Vector3.new(coreSize.X * 1.28, 0.12, 0.12), offset = Vector3.new(0, 0, 0), yaw = -45 },
+	}
+
+	for index, halo in ipairs(haloBars) do
+		local haloBar = createVisualBasePart(
+			resourcePart,
+			"Part",
+			halo.name,
+			halo.size,
+			resourcePart.Position + halo.offset,
+			if index % 2 == 0 then glowColor else accentColor,
+			Enum.Material.Neon
+		)
+		orientPart(haloBar, rootYaw + math.rad(halo.yaw), 0, 0)
+		haloBar.Transparency = 0.2
+	end
+
+	local shardOffsets = {
+		{ x = 0.34, y = 0.44, z = -0.1, yaw = 0, roll = 18 },
+		{ x = -0.3, y = -0.34, z = 0.14, yaw = 140, roll = -16 },
+		{ x = 0.02, y = 0.1, z = 0.42, yaw = 70, roll = 4 },
+	}
+
+	for index, shard in ipairs(shardOffsets) do
+		local shardPart = createVisualBasePart(
+			resourcePart,
+			"Part",
+			string.format("ArtifactShard_%d", index),
+			Vector3.new(coreSize.X * 0.25, coreSize.Y * (0.62 + (index * 0.06)), coreSize.Z * 0.14),
+			resourcePart.Position
+				+ Vector3.new(
+					shard.x * coreSize.X,
+					shard.y * coreSize.Y,
+					shard.z * coreSize.Z
+				),
+			if index == 1 then glowColor else accentColor,
+			Enum.Material.Neon
+		)
+		orientPart(shardPart, rootYaw + math.rad(shard.yaw), math.rad(8), math.rad(shard.roll))
+		shardPart.Transparency = 0.16
+	end
+end
+
+local function buildResourceVisual(resourcePart, resourceTypeId, traitId)
+	local resourceDefinition = if resourceTypeId ~= nil then Resources[resourceTypeId] else nil
+	local profile = resolveResourceVisualProfile(resourceTypeId, resourceDefinition)
+	local rootYaw = math.rad((getStringHash(resourcePart.Name) % 360) - 180)
+
+	resourcePart:SetAttribute("ResourceVisualVariant", profile.variantId)
+	resourcePart:SetAttribute("ResourceRarity", profile.rarity)
+	resourcePart:SetAttribute("ResourceRarityRank", profile.rarityRank)
+	resourcePart:SetAttribute("TraitDisplayName", resolveTraitDisplayName(traitId) or "None")
+
+	if profile.variantId == "artifact" then
+		buildArtifactCore(resourcePart, profile, rootYaw)
+	elseif profile.variantId == "cluster" then
+		buildCrystalCluster(resourcePart, profile, rootYaw)
+	else
+		buildPolishedGemstone(resourcePart, profile, rootYaw)
+	end
+
+	createRarityEffects(resourcePart, profile, profile.variantId)
+	local traitDisplayName = applyTraitEffects(resourcePart, profile, traitId)
+	if traitDisplayName == nil then
+		traitDisplayName = "None"
+	end
+
+	createResourceBillboard(
+		resourcePart,
+		if traitDisplayName ~= "None" then string.format("%s %s", traitDisplayName, profile.displayName) else profile.displayName,
+		if traitDisplayName ~= "None" then string.format("%s - %s", profile.rarity, traitDisplayName) else profile.rarity,
+		profile.accentColor,
+		profile.rarityRank
+	)
 end
 
 local function collectPlacedGeodes(profile, plotId, nowUnix)
@@ -5848,35 +6822,18 @@ local function addGeodes(parent, plot, profile, nowUnix)
 end
 
 local function createResourcePart(parent, resourceName, resourceTypeId, traitId, position)
-	local resourceDefinition = if resourceTypeId ~= nil then Resources[resourceTypeId] else nil
 	local resourcePart = createDecorPart(
 		parent,
 		resourceName,
 		Vector3.new(3, 3, 3),
 		position,
-		resourceDefinition and resourceDefinition.color or Color3.fromRGB(240, 240, 255),
+		Color3.fromRGB(240, 240, 255),
 		Enum.Material.Neon
 	)
-	resourcePart.Shape = Enum.PartType.Ball
 	resourcePart:SetAttribute("ResourceId", resourceName)
 	resourcePart:SetAttribute("ResourceTypeId", resourceTypeId)
 	resourcePart:SetAttribute("TraitId", traitId or "none")
-
-	local marker = Instance.new("BillboardGui")
-	marker.Name = resourceName .. "_Marker"
-	marker.Size = UDim2.fromOffset(140, 28)
-	marker.StudsOffset = Vector3.new(0, 2.6, 0)
-	marker.AlwaysOnTop = true
-	marker.Parent = resourcePart
-
-	local label = Instance.new("TextLabel")
-	label.BackgroundTransparency = 1
-	label.Size = UDim2.fromScale(1, 1)
-	label.Font = Enum.Font.GothamBold
-	label.Text = resourceDefinition and resourceDefinition.displayName or "Resource"
-	label.TextColor3 = Color3.fromRGB(248, 248, 255)
-	label.TextScaled = true
-	label.Parent = marker
+	buildResourceVisual(resourcePart, resourceTypeId, traitId)
 end
 
 local function addResources(parent, plot, profile)
@@ -6098,11 +7055,11 @@ return WorldReplicaService
           </Properties>
         </Item>
       </Item>
-      <Item class="Folder" referent="59">
+      <Item class="Folder" referent="60">
         <Properties>
           <string name="Name">Systems</string>
         </Properties>
-        <Item class="ModuleScript" referent="60">
+        <Item class="ModuleScript" referent="61">
           <Properties>
             <string name="Name">RareAnnouncementSystem</string>
             <string name="Source"><![CDATA[--!strict
@@ -6140,11 +7097,11 @@ return RareAnnouncementSystem
           </Properties>
         </Item>
       </Item>
-      <Item class="Folder" referent="61">
+      <Item class="Folder" referent="62">
         <Properties>
           <string name="Name">Util</string>
         </Properties>
-        <Item class="ModuleScript" referent="62">
+        <Item class="ModuleScript" referent="63">
           <Properties>
             <string name="Name">PickaxeModelBuilder</string>
             <string name="Source"><![CDATA[--!strict
@@ -6312,21 +7269,21 @@ return PickaxeModelBuilder
       </Item>
     </Item>
   </Item>
-  <Item class="SoundService" referent="63">
+  <Item class="SoundService" referent="64">
     <Properties>
       <string name="Name">SoundService</string>
       <bool name="RespectFilteringEnabled">true</bool>
     </Properties>
   </Item>
-  <Item class="StarterPlayer" referent="64">
+  <Item class="StarterPlayer" referent="65">
     <Properties>
       <string name="Name">StarterPlayer</string>
     </Properties>
-    <Item class="StarterPlayerScripts" referent="65">
+    <Item class="StarterPlayerScripts" referent="66">
       <Properties>
         <string name="Name">StarterPlayerScripts</string>
       </Properties>
-      <Item class="LocalScript" referent="66">
+      <Item class="LocalScript" referent="67">
         <Properties>
           <string name="Name">Client</string>
           <string name="Source"><![CDATA[local ClientBootstrap = require(script.Bootstrap.ClientBootstrap)
@@ -6334,11 +7291,11 @@ return PickaxeModelBuilder
 ClientBootstrap.start()
 ]]></string>
         </Properties>
-        <Item class="Folder" referent="67">
+        <Item class="Folder" referent="68">
           <Properties>
             <string name="Name">Bootstrap</string>
           </Properties>
-          <Item class="ModuleScript" referent="68">
+          <Item class="ModuleScript" referent="69">
             <Properties>
               <string name="Name">ClientBootstrap</string>
               <string name="Source"><![CDATA[--!strict
@@ -6360,11 +7317,11 @@ return ClientBootstrap
             </Properties>
           </Item>
         </Item>
-        <Item class="Folder" referent="69">
+        <Item class="Folder" referent="70">
           <Properties>
             <string name="Name">Controllers</string>
           </Properties>
-          <Item class="ModuleScript" referent="70">
+          <Item class="ModuleScript" referent="71">
             <Properties>
               <string name="Name">AppController</string>
               <string name="Source"><![CDATA[--!strict
@@ -6373,6 +7330,9 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
+local Resources = require(Shared.Config.Resources)
+local Traits = require(Shared.Config.Traits)
+local RewardPresentation = require(Shared.Domain.RewardPresentation)
 local TableUtil = require(Shared.Util.TableUtil)
 local Time = require(Shared.Util.Time)
 local Signal = require(Shared.Util.Signal)
@@ -6581,6 +7541,85 @@ local function normalizePayload(state, payload, nowUnix)
 	return nextState
 end
 
+local function getResourceCelebrationSpec(resource)
+	if type(resource) ~= "table" then
+		return nil
+	end
+
+	local resourceTypeId = resource.resourceTypeId
+	if type(resourceTypeId) ~= "string" then
+		return nil
+	end
+
+	local resourceDefinition = Resources[resourceTypeId]
+	local rarityName = if resourceDefinition ~= nil and type(resourceDefinition.rarity) == "string"
+		then resourceDefinition.rarity
+		else "Common"
+	local rarityIndex = RewardPresentation.getResourceCelebrationTier(resourceDefinition)
+	local traitId = if type(resource.traitId) == "string" then resource.traitId else "none"
+	local traitDefinition = Traits[traitId] or Traits.none
+	local displayName = if resourceDefinition ~= nil and resourceDefinition.displayName ~= nil then resourceDefinition.displayName else resourceTypeId
+	if traitDefinition ~= nil and traitDefinition.id ~= "none" then
+		displayName = string.format("%s %s", traitDefinition.displayName, displayName)
+	end
+
+	return {
+		kind = "resource",
+		headline = "RESOURCE!",
+		primary = displayName,
+		detail = rarityName .. " treasure!",
+		resourceTypeId = resourceTypeId,
+		traitId = traitId,
+		rarityLabel = rarityName,
+		rarityIndex = rarityIndex + 1,
+		accentColor = if resourceDefinition ~= nil then resourceDefinition.color else nil,
+		reelValues = {
+			rarityName,
+			displayName,
+			traitDefinition ~= nil and traitDefinition.id ~= "none" and traitDefinition.displayName or "Bonus",
+		},
+		showSlotMachine = rarityIndex > 0,
+	}
+end
+
+local function getAttributeCelebrationSpec(resource)
+	if type(resource) ~= "table" then
+		return nil
+	end
+
+	local traitId = if type(resource.traitId) == "string" then resource.traitId else "none"
+	if traitId == "none" then
+		return nil
+	end
+
+	local traitDefinition = Traits[traitId]
+	if traitDefinition == nil then
+		return nil
+	end
+
+	local traitRank = RewardPresentation.getTraitCelebrationTier(traitDefinition)
+	local multiplier = traitDefinition.multiplier or traitDefinition.sellMultiplier or 1
+	local displayName = traitDefinition.displayName or traitId
+
+	return {
+		kind = "attribute",
+		headline = "ATTRIBUTE!",
+		primary = displayName,
+		detail = string.format("Sell value x%.2f", multiplier),
+		traitId = traitId,
+		rarityLabel = traitDefinition.rarity or displayName,
+		rarityIndex = traitRank + 1,
+		accentColor = traitDefinition.accentColor,
+		highlightColor = traitDefinition.glowColor,
+		reelValues = {
+			displayName,
+			string.upper(displayName),
+			string.format("x%.2f", multiplier),
+		},
+		showSlotMachine = true,
+	}
+end
+
 function AppController.new()
 	local nowUnix = Time.nowUnix()
 	local context = {
@@ -6646,6 +7685,30 @@ function AppController:pushAnnouncement(message)
 	end
 
 	self:emitState("announcement")
+end
+
+function AppController:showOpenResultCelebrations(openResult)
+	local screen = self.context.screen
+	if screen == nil or screen.showMiningPopup == nil or type(openResult) ~= "table" then
+		return
+	end
+
+	local createdResources = openResult.createdResources
+	if type(createdResources) ~= "table" then
+		return
+	end
+
+	for _, resource in ipairs(createdResources) do
+		local resourceCelebration = getResourceCelebrationSpec(resource)
+		if resourceCelebration ~= nil then
+			screen:showMiningPopup(resourceCelebration)
+		end
+
+		local attributeCelebration = getAttributeCelebrationSpec(resource)
+		if attributeCelebration ~= nil then
+			screen:showMiningPopup(attributeCelebration)
+		end
+	end
 end
 
 function AppController:getRemote(name)
@@ -6783,6 +7846,7 @@ function AppController:requestOpenReadyGeode(geodeInstanceId)
 		else
 			self:setStatus("Ready geode opened.")
 		end
+		self:showOpenResultCelebrations(openResult)
 	else
 		local errorText = type(result) == "table" and result.errorCode or result
 		self:setStatus("Ready geode crack failed: " .. tostring(errorText))
@@ -6800,6 +7864,7 @@ function AppController:requestClaimFinishedGeodes()
 		else
 			self:setStatus("Ready geode opened.")
 		end
+		self:showOpenResultCelebrations(openResult)
 	else
 		local errorText = type(result) == "table" and result.errorCode or result
 		self:setStatus("Ready geode crack failed: " .. tostring(errorText))
@@ -6946,7 +8011,7 @@ return AppController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="71">
+          <Item class="ModuleScript" referent="72">
             <Properties>
               <string name="Name">DailyRewardsController</string>
               <string name="Source"><![CDATA[--!strict
@@ -7040,7 +8105,7 @@ return DailyRewardsController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="72">
+          <Item class="ModuleScript" referent="73">
             <Properties>
               <string name="Name">GeodeController</string>
               <string name="Source"><![CDATA[--!strict
@@ -7280,7 +8345,7 @@ return GeodeController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="73">
+          <Item class="ModuleScript" referent="74">
             <Properties>
               <string name="Name">GeodeInteractionController</string>
               <string name="Source"><![CDATA[--!strict
@@ -7697,7 +8762,8 @@ function GeodeInteractionController:start()
 
 		local ok, result = app:requestOpenReadyGeode(resolvedGeodeId)
 		if ok and type(result) == "table" and result.ok == true then
-			playRevealAnimation(geodePart, result.open or result.claim)
+			local openResult = result.open or result.claim
+			playRevealAnimation(geodePart, openResult)
 		end
 	end
 
@@ -7708,7 +8774,7 @@ return GeodeInteractionController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="74">
+          <Item class="ModuleScript" referent="75">
             <Properties>
               <string name="Name">GeodePlacementGhost</string>
               <string name="Source"><![CDATA[--!strict
@@ -7888,7 +8954,7 @@ return GeodePlacementGhost
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="75">
+          <Item class="ModuleScript" referent="76">
             <Properties>
               <string name="Name">HUDController</string>
               <string name="Source"><![CDATA[--!strict
@@ -7999,7 +9065,7 @@ return HUDController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="76">
+          <Item class="ModuleScript" referent="77">
             <Properties>
               <string name="Name">MiningController</string>
               <string name="Source"><![CDATA[--!strict
@@ -8011,6 +9077,7 @@ local TweenService = game:GetService("TweenService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
+local Geodes = require(Shared.Config.Geodes)
 local Pickaxes = require(Shared.Config.Pickaxes)
 local RemoteNames = require(Shared.Net.RemoteNames)
 
@@ -8028,6 +9095,35 @@ local SWING_WINDUP_OFFSET = CFrame.new(0.02, -0.05, 0.04) * CFrame.Angles(math.r
 local SWING_STRIKE_OFFSET = CFrame.new(-0.04, 0.08, -0.1) * CFrame.Angles(math.rad(42), math.rad(10), math.rad(-34))
 
 local activeSwingByTool = setmetatable({}, { __mode = "k" })
+local GEODE_RARITY_BY_ID = {
+	starter_geode = "Common",
+	crystal_cavern_geode = "Uncommon",
+	moonlit_geode = "Rare",
+	ember_glass_geode = "Epic",
+	verdant_rift_geode = "Mythic",
+	aurora_shard_geode = "Legendary",
+	thunder_core_geode = "Storm",
+	fossil_vault_geode = "Ancient",
+	prism_sun_geode = "Prismatic",
+	sovereign_nova_geode = "Sovereign",
+}
+local GEODE_RARITY_ORDER = {
+	"Common",
+	"Uncommon",
+	"Rare",
+	"Epic",
+	"Mythic",
+	"Legendary",
+	"Storm",
+	"Ancient",
+	"Prismatic",
+	"Sovereign",
+}
+
+local GEODE_RARITY_INDEX_BY_NAME = {}
+for index, rarityName in ipairs(GEODE_RARITY_ORDER) do
+	GEODE_RARITY_INDEX_BY_NAME[rarityName] = index
+end
 
 local function getPickaxeDisplayName(tool: Tool): string
 	local pickaxeTypeId = tool:GetAttribute("PickaxeTypeId")
@@ -8043,6 +9139,30 @@ local function getPickaxeDisplayName(tool: Tool): string
 	end
 
 	return tool.Name
+end
+
+local function getGeodeCelebrationInfo(geodeTypeId: string?, geodeDisplayName: string?)
+	local rarityName = if geodeTypeId ~= nil then GEODE_RARITY_BY_ID[geodeTypeId] else nil
+	local geodeDefinition = if geodeTypeId ~= nil then Geodes[geodeTypeId] else nil
+	local displayName
+	if type(geodeDisplayName) == "string" then
+		displayName = geodeDisplayName
+	elseif geodeDefinition ~= nil and geodeDefinition.displayName ~= nil then
+		displayName = geodeDefinition.displayName
+	elseif geodeTypeId ~= nil then
+		displayName = geodeTypeId
+	else
+		displayName = "Geode"
+	end
+	local rarityIndex = if type(rarityName) == "string" then GEODE_RARITY_INDEX_BY_NAME[rarityName] or 1 else 1
+
+	return {
+		geodeTypeId = geodeTypeId,
+		geodeDisplayName = displayName,
+		rarityLabel = rarityName or "Common",
+		rarityIndex = rarityIndex,
+		accentColor = if geodeDefinition ~= nil then geodeDefinition.displayColor else nil,
+	}
 end
 
 local function isMineTarget(target: Instance?): BasePart?
@@ -8202,19 +9322,69 @@ function MiningController:start()
 		local ok, result = app:invokeRemote(MINE_REMOTE_NAME, pickaxeId, mineTarget)
 		if ok and type(result) == "table" and result.ok == true then
 			local rewardText = nil
+			local rewardPopup = nil
 			if type(result.coins) == "number" and result.coins > 0 then
 				rewardText = string.format("Found %d coins in the mine.", math.floor(result.coins + 0.5))
+				rewardPopup = {
+					kind = "coin",
+					headline = "COINS!",
+					primary = rewardText,
+					duration = 0.8,
+					compact = true,
+				}
 			elseif type(result.geodeDisplayName) == "string" then
 				rewardText = string.format("Unearthed %s.", tostring(result.geodeDisplayName))
+				rewardPopup = getGeodeCelebrationInfo(result.geodeTypeId, result.geodeDisplayName)
+				rewardPopup.kind = "geode"
+				rewardPopup.headline = "GEODE!"
+				rewardPopup.primary = rewardPopup.geodeDisplayName
+				if rewardPopup.rarityIndex > 1 then
+					rewardPopup.detail = "The reel is spinning up!"
+					rewardPopup.showSlotMachine = true
+					rewardPopup.reelValues = {
+						rewardPopup.rarityLabel,
+						rewardPopup.geodeDisplayName,
+						"BIG DROP",
+					}
+				else
+					rewardPopup.detail = "A fresh geode clinks in the bag."
+					rewardPopup.showSlotMachine = false
+					rewardPopup.reelValues = {
+						rewardPopup.rarityLabel,
+						rewardPopup.geodeDisplayName,
+						"SMALL WIN",
+					}
+				end
 			elseif type(result.geodeTypeId) == "string" then
 				rewardText = string.format("Unearthed %s.", tostring(result.geodeTypeId))
+				rewardPopup = getGeodeCelebrationInfo(result.geodeTypeId, result.geodeDisplayName)
+				rewardPopup.kind = "geode"
+				rewardPopup.headline = "GEODE!"
+				rewardPopup.primary = rewardPopup.geodeDisplayName
+				if rewardPopup.rarityIndex > 1 then
+					rewardPopup.detail = "The reel is spinning up!"
+					rewardPopup.showSlotMachine = true
+					rewardPopup.reelValues = {
+						rewardPopup.rarityLabel,
+						rewardPopup.geodeDisplayName,
+						"BIG DROP",
+					}
+				else
+					rewardPopup.detail = "A fresh geode clinks in the bag."
+					rewardPopup.showSlotMachine = false
+					rewardPopup.reelValues = {
+						rewardPopup.rarityLabel,
+						rewardPopup.geodeDisplayName,
+						"SMALL WIN",
+					}
+				end
 			elseif type(result.rewardText) == "string" then
 				rewardText = tostring(result.rewardText)
 			end
 
 			app:setStatus(rewardText or "Mining hit registered.")
 			if screen ~= nil and screen.showMiningPopup ~= nil then
-				screen:showMiningPopup(rewardText or "Mining hit registered")
+				screen:showMiningPopup(rewardPopup or rewardText or "Mining hit registered")
 			end
 		else
 			local errorText = type(result) == "table" and result.errorCode or result
@@ -8239,7 +9409,7 @@ return MiningController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="77">
+          <Item class="ModuleScript" referent="78">
             <Properties>
               <string name="Name">NotificationsController</string>
               <string name="Source"><![CDATA[--!strict
@@ -8331,7 +9501,7 @@ return NotificationsController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="78">
+          <Item class="ModuleScript" referent="79">
             <Properties>
               <string name="Name">PlacementController</string>
               <string name="Source"><![CDATA[--!strict
@@ -8398,7 +9568,7 @@ return PlacementController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="79">
+          <Item class="ModuleScript" referent="80">
             <Properties>
               <string name="Name">PlotController</string>
               <string name="Source"><![CDATA[--!strict
@@ -8475,7 +9645,7 @@ return PlotController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="80">
+          <Item class="ModuleScript" referent="81">
             <Properties>
               <string name="Name">ResourcePlacementGhost</string>
               <string name="Source"><![CDATA[--!strict
@@ -8622,7 +9792,7 @@ return ResourcePlacementGhost
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="81">
+          <Item class="ModuleScript" referent="82">
             <Properties>
               <string name="Name">ShopController</string>
               <string name="Source"><![CDATA[--!strict
@@ -8874,7 +10044,7 @@ return ShopController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="82">
+          <Item class="ModuleScript" referent="83">
             <Properties>
               <string name="Name">VaultController</string>
               <string name="Source"><![CDATA[--!strict
@@ -9096,15 +10266,15 @@ return VaultController
             </Properties>
           </Item>
         </Item>
-        <Item class="Folder" referent="83">
+        <Item class="Folder" referent="84">
           <Properties>
             <string name="Name">UI</string>
           </Properties>
-          <Item class="Folder" referent="84">
+          <Item class="Folder" referent="85">
             <Properties>
               <string name="Name">Components</string>
             </Properties>
-            <Item class="ModuleScript" referent="85">
+            <Item class="ModuleScript" referent="86">
               <Properties>
                 <string name="Name">Panel</string>
                 <string name="Source"><![CDATA[--!strict
@@ -9217,18 +10387,25 @@ return Panel
               </Properties>
             </Item>
           </Item>
-          <Item class="Folder" referent="86">
+          <Item class="Folder" referent="87">
             <Properties>
               <string name="Name">Screens</string>
             </Properties>
-            <Item class="ModuleScript" referent="87">
+            <Item class="ModuleScript" referent="88">
               <Properties>
                 <string name="Name">RootScreen</string>
                 <string name="Source"><![CDATA[--!strict
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+
+local Geodes = require(Shared.Config.Geodes)
+local Resources = require(Shared.Config.Resources)
+local Traits = require(Shared.Config.Traits)
+local RewardPresentation = require(Shared.Domain.RewardPresentation)
 local Panel = require(script.Parent.Parent.Components.Panel)
 
 local RootScreen = {}
@@ -9237,6 +10414,221 @@ RootScreen.__index = RootScreen
 local SHOP_BASE_Z_INDEX = 60
 local VAULT_BASE_Z_INDEX = 55
 local POPUP_Z_INDEX = 80
+local POPUP_QUEUE_LIMIT = 6
+local GEODE_RARITY_ORDER = {
+	"Common",
+	"Uncommon",
+	"Rare",
+	"Epic",
+	"Mythic",
+	"Legendary",
+	"Storm",
+	"Ancient",
+	"Prismatic",
+	"Sovereign",
+}
+
+local GEODE_RARITY_BY_ID = {
+	starter_geode = "Common",
+	crystal_cavern_geode = "Uncommon",
+	moonlit_geode = "Rare",
+	ember_glass_geode = "Epic",
+	verdant_rift_geode = "Mythic",
+	aurora_shard_geode = "Legendary",
+	thunder_core_geode = "Storm",
+	fossil_vault_geode = "Ancient",
+	prism_sun_geode = "Prismatic",
+	sovereign_nova_geode = "Sovereign",
+}
+
+local RARITY_TONES = {
+	[1] = {
+		background = Color3.fromRGB(255, 250, 214),
+		accent = Color3.fromRGB(255, 204, 86),
+		highlight = Color3.fromRGB(255, 231, 150),
+		text = Color3.fromRGB(83, 54, 18),
+	},
+	[2] = {
+		background = Color3.fromRGB(224, 247, 255),
+		accent = Color3.fromRGB(109, 230, 255),
+		highlight = Color3.fromRGB(182, 241, 255),
+		text = Color3.fromRGB(30, 62, 84),
+	},
+	[3] = {
+		background = Color3.fromRGB(255, 234, 237),
+		accent = Color3.fromRGB(255, 126, 164),
+		highlight = Color3.fromRGB(255, 202, 219),
+		text = Color3.fromRGB(86, 29, 49),
+	},
+	[4] = {
+		background = Color3.fromRGB(235, 255, 238),
+		accent = Color3.fromRGB(120, 231, 184),
+		highlight = Color3.fromRGB(202, 255, 216),
+		text = Color3.fromRGB(32, 79, 52),
+	},
+	[5] = {
+		background = Color3.fromRGB(239, 244, 255),
+		accent = Color3.fromRGB(166, 194, 255),
+		highlight = Color3.fromRGB(211, 225, 255),
+		text = Color3.fromRGB(44, 53, 90),
+	},
+	[6] = {
+		background = Color3.fromRGB(255, 241, 221),
+		accent = Color3.fromRGB(255, 170, 92),
+		highlight = Color3.fromRGB(255, 220, 183),
+		text = Color3.fromRGB(89, 46, 16),
+	},
+	[7] = {
+		background = Color3.fromRGB(225, 255, 251),
+		accent = Color3.fromRGB(102, 224, 206),
+		highlight = Color3.fromRGB(178, 255, 241),
+		text = Color3.fromRGB(23, 74, 72),
+	},
+	[8] = {
+		background = Color3.fromRGB(241, 255, 226),
+		accent = Color3.fromRGB(166, 220, 102),
+		highlight = Color3.fromRGB(219, 255, 176),
+		text = Color3.fromRGB(49, 76, 25),
+	},
+	[9] = {
+		background = Color3.fromRGB(250, 235, 255),
+		accent = Color3.fromRGB(255, 145, 222),
+		highlight = Color3.fromRGB(255, 205, 238),
+		text = Color3.fromRGB(87, 31, 88),
+	},
+	[10] = {
+		background = Color3.fromRGB(255, 248, 232),
+		accent = Color3.fromRGB(255, 216, 113),
+		highlight = Color3.fromRGB(255, 240, 185),
+		text = Color3.fromRGB(92, 60, 18),
+	},
+}
+
+local TRAIT_TONES = {
+	prismatic = {
+		background = Color3.fromRGB(240, 248, 255),
+		accent = Color3.fromRGB(129, 220, 255),
+		highlight = Color3.fromRGB(255, 170, 228),
+		text = Color3.fromRGB(48, 63, 92),
+	},
+	celestial = {
+		background = Color3.fromRGB(255, 250, 228),
+		accent = Color3.fromRGB(255, 222, 111),
+		highlight = Color3.fromRGB(255, 238, 179),
+		text = Color3.fromRGB(90, 63, 20),
+	},
+	radiant = {
+		background = Color3.fromRGB(232, 255, 250),
+		accent = Color3.fromRGB(114, 237, 215),
+		highlight = Color3.fromRGB(195, 255, 245),
+		text = Color3.fromRGB(20, 84, 75),
+	},
+	void_touched = {
+		background = Color3.fromRGB(236, 241, 255),
+		accent = Color3.fromRGB(109, 171, 255),
+		highlight = Color3.fromRGB(207, 225, 255),
+		text = Color3.fromRGB(39, 53, 92),
+	},
+}
+
+local function makeRarityIndexMap(order)
+	local map = {}
+	for index, name in ipairs(order) do
+		map[name] = index
+	end
+	return map
+end
+
+local RARITY_INDEX_BY_NAME = makeRarityIndexMap(GEODE_RARITY_ORDER)
+
+local function getRarityTone(index: number?, fallbackAccent: Color3?)
+	local tone = if index ~= nil then RARITY_TONES[index] else nil
+	if tone ~= nil then
+		return tone
+	end
+
+	local accent = if fallbackAccent ~= nil then fallbackAccent else Color3.fromRGB(109, 230, 255)
+	return {
+		background = accent:Lerp(Color3.fromRGB(255, 255, 255), 0.72),
+		accent = accent,
+		highlight = accent:Lerp(Color3.fromRGB(255, 255, 255), 0.45),
+		text = Color3.fromRGB(56, 40, 18),
+	}
+end
+
+local function getGeodeRarityIndex(geodeTypeId: string?)
+	if geodeTypeId == nil then
+		return 1
+	end
+
+	local rarityName = GEODE_RARITY_BY_ID[geodeTypeId]
+	return if rarityName ~= nil then RARITY_INDEX_BY_NAME[rarityName] or 1 else 1
+end
+
+local function getResourceRarityIndex(resourceTypeId: string?)
+	if resourceTypeId == nil then
+		return 1
+	end
+
+	local definition = Resources[resourceTypeId]
+	if definition == nil then
+		return 1
+	end
+
+	local rarityName = definition.rarity
+	return if type(rarityName) == "string" then RARITY_INDEX_BY_NAME[rarityName] or 1 else 1
+end
+
+local function getTraitRarityIndex(traitId: string?)
+	if traitId == nil then
+		return 0
+	end
+
+	local traitDefinition = Traits[traitId]
+	return RewardPresentation.getTraitCelebrationTier(traitDefinition)
+end
+
+local function getTraitTone(traitId: string?)
+	if traitId == nil then
+		return nil
+	end
+
+	local staticTone = TRAIT_TONES[traitId]
+	if staticTone ~= nil then
+		return staticTone
+	end
+
+	local traitDefinition = Traits[traitId]
+	if traitDefinition == nil then
+		return nil
+	end
+
+	local accent = traitDefinition.accentColor or Color3.fromRGB(109, 230, 255)
+	local highlight = traitDefinition.glowColor or accent:Lerp(Color3.fromRGB(255, 255, 255), 0.45)
+	return {
+		background = highlight:Lerp(Color3.fromRGB(255, 255, 255), 0.68),
+		accent = accent,
+		highlight = highlight,
+		text = Color3.fromRGB(54, 45, 32),
+	}
+end
+
+local function getTraitReelWords()
+	local words = {}
+	for _, traitDefinition in ipairs(Traits.order or {}) do
+		if traitDefinition ~= nil and traitDefinition.id ~= "none" then
+			table.insert(words, string.upper(tostring(traitDefinition.displayName or traitDefinition.id)))
+		end
+	end
+
+	if #words == 0 then
+		return {
+			"BONUS",
+		}
+	end
+
+	return words
+end
 
 local function applyGuiZIndex(root, zIndex)
 	for _, descendant in ipairs(root:GetDescendants()) do
@@ -9842,13 +11234,13 @@ function RootScreen.new(context)
 	miningPopupContainer.BackgroundTransparency = 1
 	miningPopupContainer.BorderSizePixel = 0
 	miningPopupContainer.Position = UDim2.new(0.5, 0, 0.22, 0)
-	miningPopupContainer.Size = UDim2.new(0, 420, 0, 180)
+	miningPopupContainer.Size = UDim2.new(0, 460, 0, 260)
 	miningPopupContainer.ZIndex = POPUP_Z_INDEX
 	miningPopupContainer.Parent = screenGui
 
 	local miningPopupConstraint = Instance.new("UISizeConstraint")
 	miningPopupConstraint.MinSize = Vector2.new(240, 120)
-	miningPopupConstraint.MaxSize = Vector2.new(520, 220)
+	miningPopupConstraint.MaxSize = Vector2.new(540, 300)
 	miningPopupConstraint.Parent = miningPopupContainer
 
 	local miningPopupLayout = Instance.new("UIListLayout")
@@ -9907,6 +11299,8 @@ function RootScreen.new(context)
 			claimOffline = claimOffline.BackgroundColor3,
 			placeStarterStation = placeStarterStation.BackgroundColor3,
 		},
+		celebrationQueue = {},
+		celebrationPlaying = false,
 		isOpen = true,
 	}, RootScreen)
 
@@ -9941,6 +11335,375 @@ function RootScreen.new(context)
 	self:setOfflineButtonState(false, "Claim Offline Cache")
 	self:setPlaceStarterStationButton(true, "Place Starter Station")
 	return self
+end
+
+local function normalizeCelebrationSpec(inputValue)
+	if type(inputValue) == "string" then
+		return {
+			kind = "basic",
+			headline = inputValue,
+			primary = inputValue,
+			compact = true,
+		}
+	end
+
+	if type(inputValue) ~= "table" then
+		return {
+			kind = "basic",
+			headline = tostring(inputValue),
+			primary = tostring(inputValue),
+			compact = true,
+		}
+	end
+
+	local spec = {
+		kind = tostring(inputValue.kind or inputValue.mode or "basic"),
+		headline = tostring(inputValue.headline or inputValue.title or inputValue.text or "Reward!"),
+		primary = tostring(inputValue.primary or inputValue.itemName or inputValue.resourceName or inputValue.geodeName or inputValue.resourceDisplayName or inputValue.geodeDisplayName or inputValue.headline or inputValue.title or inputValue.text or "Reward!"),
+		detail = inputValue.detail,
+		rarityLabel = inputValue.rarityLabel or inputValue.rarity or nil,
+		rarityIndex = if type(inputValue.rarityIndex) == "number" then inputValue.rarityIndex else nil,
+		traitId = if type(inputValue.traitId) == "string" then inputValue.traitId else nil,
+		resourceTypeId = if type(inputValue.resourceTypeId) == "string" then inputValue.resourceTypeId else nil,
+		geodeTypeId = if type(inputValue.geodeTypeId) == "string" then inputValue.geodeTypeId else nil,
+		accentColor = if typeof(inputValue.accentColor) == "Color3" then inputValue.accentColor else nil,
+		highlightColor = if typeof(inputValue.highlightColor) == "Color3" then inputValue.highlightColor else nil,
+		textColor = if typeof(inputValue.textColor) == "Color3" then inputValue.textColor else nil,
+		duration = if type(inputValue.duration) == "number" then inputValue.duration else nil,
+		reelWords = if type(inputValue.reelWords) == "table" then inputValue.reelWords else nil,
+		reelValues = if type(inputValue.reelValues) == "table" then inputValue.reelValues else nil,
+		showSlotMachine = inputValue.showSlotMachine == true,
+		compact = inputValue.compact == true,
+	}
+
+	if spec.rarityIndex == nil then
+		if spec.kind == "attribute" then
+			spec.rarityIndex = getTraitRarityIndex(spec.traitId)
+		elseif spec.kind == "geode" then
+			spec.rarityIndex = getGeodeRarityIndex(spec.geodeTypeId)
+		elseif spec.kind == "resource" then
+			spec.rarityIndex = getResourceRarityIndex(spec.resourceTypeId)
+		else
+			spec.rarityIndex = 1
+		end
+	end
+
+	if spec.rarityLabel == nil then
+		if spec.kind == "attribute" and spec.traitId ~= nil then
+			local traitDefinition = Traits[spec.traitId]
+			spec.rarityLabel = if traitDefinition ~= nil then traitDefinition.displayName else spec.traitId
+		elseif spec.kind == "geode" and spec.geodeTypeId ~= nil then
+			spec.rarityLabel = GEODE_RARITY_BY_ID[spec.geodeTypeId] or "Common"
+		elseif spec.kind == "resource" and spec.resourceTypeId ~= nil then
+			local resourceDefinition = Resources[spec.resourceTypeId]
+			spec.rarityLabel = if resourceDefinition ~= nil then resourceDefinition.rarity else "Common"
+		else
+			spec.rarityLabel = "Common"
+		end
+	end
+
+	if spec.reelWords == nil then
+		if spec.kind == "attribute" then
+			spec.reelWords = getTraitReelWords()
+		else
+			spec.reelWords = GEODE_RARITY_ORDER
+		end
+	end
+
+	if spec.reelValues == nil then
+		spec.reelValues = {
+			spec.rarityLabel,
+			spec.primary,
+			if spec.detail ~= nil then tostring(spec.detail) else "BONUS",
+		}
+	end
+
+	if spec.showSlotMachine ~= true then
+		spec.showSlotMachine = (spec.kind == "geode" or spec.kind == "resource" or spec.kind == "attribute")
+			and (spec.rarityIndex or 1) > 1
+	end
+
+	if spec.kind == "coin" then
+		spec.compact = true
+	end
+
+	return spec
+end
+
+local function makePopup(parent: Instance, backgroundColor: Color3, strokeColor: Color3, width: number, height: number)
+	local popup = Instance.new("Frame")
+	popup.Name = "CelebrationPopup"
+	popup.AnchorPoint = Vector2.new(0.5, 0)
+	popup.BackgroundColor3 = backgroundColor
+	popup.BorderSizePixel = 0
+	popup.ClipsDescendants = true
+	popup.Position = UDim2.new(0.5, 0, 0, 0)
+	popup.Size = UDim2.new(0, width, 0, height)
+	popup.ZIndex = POPUP_Z_INDEX
+	popup.Parent = parent
+
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 8)
+	corner.Parent = popup
+
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = strokeColor
+	stroke.Thickness = 3
+	stroke.Parent = popup
+
+	local gradient = Instance.new("UIGradient")
+	gradient.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, backgroundColor:Lerp(Color3.fromRGB(255, 255, 255), 0.16)),
+		ColorSequenceKeypoint.new(1, backgroundColor:Lerp(Color3.fromRGB(255, 255, 255), 0.38)),
+	})
+	gradient.Rotation = 20
+	gradient.Parent = popup
+
+	local padding = Instance.new("UIPadding")
+	padding.PaddingTop = UDim.new(0, 10)
+	padding.PaddingBottom = UDim.new(0, 10)
+	padding.PaddingLeft = UDim.new(0, 12)
+	padding.PaddingRight = UDim.new(0, 12)
+	padding.Parent = popup
+
+	return popup
+end
+
+local function createTextLabel(parent: Instance, text: string, fontSize: number, textColor: Color3, height: number)
+	local label = Instance.new("TextLabel")
+	label.BackgroundTransparency = 1
+	label.Size = UDim2.new(1, 0, 0, height)
+	label.Font = Enum.Font.FredokaOne
+	label.Text = text
+	label.TextColor3 = textColor
+	label.TextSize = fontSize
+	label.TextWrapped = true
+	label.TextXAlignment = Enum.TextXAlignment.Center
+	label.TextYAlignment = Enum.TextYAlignment.Center
+	label.ZIndex = POPUP_Z_INDEX + 1
+	label.Parent = parent
+
+	local constraint = Instance.new("UITextSizeConstraint")
+	constraint.MaxTextSize = fontSize
+	constraint.MinTextSize = math.max(12, fontSize - 8)
+	constraint.Parent = label
+
+	return label
+end
+
+local function createReel(parent: Instance, tone, initialText: string)
+	local reel = Instance.new("Frame")
+	reel.BackgroundColor3 = tone.highlight
+	reel.BorderSizePixel = 0
+	reel.Size = UDim2.new(1, 0, 1, 0)
+	reel.ZIndex = POPUP_Z_INDEX + 1
+	reel.Parent = parent
+
+	local reelCorner = Instance.new("UICorner")
+	reelCorner.CornerRadius = UDim.new(0, 8)
+	reelCorner.Parent = reel
+
+	local reelStroke = Instance.new("UIStroke")
+	reelStroke.Color = tone.accent
+	reelStroke.Thickness = 2
+	reelStroke.Parent = reel
+
+	local reelLabel = createTextLabel(reel, initialText, 16, tone.text, 28)
+	reelLabel.Position = UDim2.fromScale(0, 0.08)
+	reelLabel.Size = UDim2.new(1, 0, 1, -2)
+
+	return reel, reelLabel
+end
+
+function RootScreen:_pumpCelebrationQueue()
+	if self.celebrationPlaying or #self.celebrationQueue == 0 then
+		return
+	end
+
+	self.celebrationPlaying = true
+	local spec = table.remove(self.celebrationQueue, 1)
+
+	task.spawn(function()
+		local tone = getRarityTone(spec.rarityIndex, spec.accentColor)
+		if spec.kind == "attribute" and spec.traitId ~= nil then
+			local traitTone = getTraitTone(spec.traitId)
+			if traitTone ~= nil then
+				tone = traitTone
+			end
+		end
+
+		local width = if spec.compact == true then 300 elseif spec.showSlotMachine == true then 420 else 360
+		local height = if spec.compact == true then 68 elseif spec.showSlotMachine == true then 144 else 104
+		if spec.kind == "attribute" then
+			height = 132
+		elseif spec.kind == "resource" then
+			height = if spec.showSlotMachine == true then 146 else 112
+		elseif spec.kind == "geode" then
+			height = if spec.showSlotMachine == true then 150 else 112
+		end
+
+		local popup = makePopup(self.miningPopupContainer, tone.background, tone.accent, width, height)
+		local scale = Instance.new("UIScale")
+		scale.Scale = 0.86
+		scale.Parent = popup
+
+		local layout = Instance.new("UIListLayout")
+		layout.SortOrder = Enum.SortOrder.LayoutOrder
+		layout.Padding = UDim.new(0, 6)
+		layout.VerticalAlignment = Enum.VerticalAlignment.Center
+		layout.Parent = popup
+
+		local titleText = if spec.kind == "coin" then "COINS!" else string.upper(spec.headline)
+		local titleFontSize = if spec.compact == true then 18 else 22
+		local title = createTextLabel(popup, titleText, titleFontSize, spec.textColor or tone.text, if spec.compact == true then 22 else 24)
+		title.LayoutOrder = 1
+
+		local reelRow
+		local primaryLabel
+		local detailLabel
+		local badgeLabel
+
+		if spec.compact ~= true then
+			if spec.showSlotMachine == true then
+				reelRow = Instance.new("Frame")
+				reelRow.BackgroundTransparency = 1
+				reelRow.BorderSizePixel = 0
+				reelRow.LayoutOrder = 2
+				reelRow.Size = UDim2.new(1, 0, 0, 34)
+				reelRow.Parent = popup
+
+				local reelLayout = Instance.new("UIGridLayout")
+				reelLayout.CellPadding = UDim2.new(0, 6, 0, 0)
+				reelLayout.CellSize = UDim2.new(0.33, -4, 1, 0)
+				reelLayout.SortOrder = Enum.SortOrder.LayoutOrder
+				reelLayout.Parent = reelRow
+
+				local reelTexts = spec.reelValues or {}
+				local reelLabels = {}
+				local reelCount = 3
+				for index = 1, reelCount do
+					local reelFrame, reelLabel = createReel(reelRow, tone, "ROLL")
+					reelFrame.LayoutOrder = index
+					table.insert(reelLabels, reelLabel)
+				end
+
+				task.spawn(function()
+					local spinWords = spec.reelWords or GEODE_RARITY_ORDER
+					local totalSteps = math.max(6, 2 + (spec.rarityIndex or 1) * 2)
+					local stepDelay = math.max(0.03, 0.08 - ((spec.rarityIndex or 1) * 0.004))
+					for reelIndex, reelLabel in ipairs(reelLabels) do
+						for spinStep = 1, totalSteps + reelIndex do
+							local wordIndex = ((spinStep + reelIndex - 1) % #spinWords) + 1
+							reelLabel.Text = tostring(spinWords[wordIndex])
+							task.wait(stepDelay)
+						end
+						reelLabel.Text = tostring(reelTexts[reelIndex] or reelTexts[#reelTexts] or spec.primary)
+					end
+				end)
+			end
+
+			primaryLabel = createTextLabel(
+				popup,
+				spec.primary,
+				if spec.showSlotMachine == true then 24 else 28,
+				spec.textColor or tone.text,
+				if spec.showSlotMachine == true then 28 else 34
+			)
+			primaryLabel.LayoutOrder = if spec.showSlotMachine == true then 3 else 2
+
+			if spec.detail ~= nil or spec.rarityLabel ~= nil then
+				local detailText = if spec.detail ~= nil then tostring(spec.detail) else tostring(spec.rarityLabel)
+				detailLabel = createTextLabel(popup, detailText, if spec.showSlotMachine == true then 16 else 18, tone.text, if spec.showSlotMachine == true then 20 else 22)
+				detailLabel.LayoutOrder = if spec.showSlotMachine == true then 4 else 3
+			end
+
+			if spec.rarityLabel ~= nil and spec.compact ~= true then
+				badgeLabel = Instance.new("TextLabel")
+				badgeLabel.BackgroundColor3 = tone.highlight
+				badgeLabel.BorderSizePixel = 0
+				badgeLabel.Size = UDim2.new(0, math.clamp(100 + ((spec.rarityIndex or 1) * 6), 100, 170), 0, 22)
+				badgeLabel.Font = Enum.Font.FredokaOne
+				badgeLabel.Text = tostring(spec.rarityLabel):upper()
+				badgeLabel.TextColor3 = tone.text
+				badgeLabel.TextSize = 14
+				badgeLabel.ZIndex = POPUP_Z_INDEX + 1
+				badgeLabel.LayoutOrder = if spec.showSlotMachine == true then 5 else 4
+				badgeLabel.Parent = popup
+
+				local badgeCorner = Instance.new("UICorner")
+				badgeCorner.CornerRadius = UDim.new(0, 8)
+				badgeCorner.Parent = badgeLabel
+
+				local badgeStroke = Instance.new("UIStroke")
+				badgeStroke.Color = tone.accent
+				badgeStroke.Thickness = 2
+				badgeStroke.Parent = badgeLabel
+			end
+		else
+			if spec.kind == "coin" then
+				primaryLabel = createTextLabel(popup, spec.primary, 20, tone.text, 22)
+				primaryLabel.LayoutOrder = 2
+			elseif spec.kind ~= "basic" or spec.detail ~= nil then
+				primaryLabel = createTextLabel(popup, spec.primary, 20, tone.text, 22)
+				primaryLabel.LayoutOrder = 2
+				detailLabel = createTextLabel(popup, spec.detail ~= nil and tostring(spec.detail) or "Sweet!", 14, tone.text, 16)
+				detailLabel.LayoutOrder = 3
+			end
+		end
+
+		local popIn = TweenService:Create(
+			scale,
+			TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+			{ Scale = 1 }
+		)
+		popIn:Play()
+
+		local holdDuration
+		if spec.duration ~= nil then
+			holdDuration = spec.duration
+		elseif spec.compact == true then
+			holdDuration = 0.92
+		elseif spec.showSlotMachine == true then
+			holdDuration = 1.45 + ((spec.rarityIndex or 1) * 0.12)
+		else
+			holdDuration = 1.08
+		end
+		task.wait(holdDuration)
+
+		local fadeTween = TweenService:Create(
+			popup,
+			TweenInfo.new(0.26, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+			{
+				BackgroundTransparency = 1,
+			}
+		)
+		fadeTween:Play()
+
+		for _, descendant in ipairs(popup:GetDescendants()) do
+			if descendant:IsA("TextLabel") then
+				TweenService:Create(
+					descendant,
+					TweenInfo.new(0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+					{
+						TextTransparency = 1,
+					}
+				):Play()
+			elseif descendant:IsA("UIStroke") then
+				TweenService:Create(
+					descendant,
+					TweenInfo.new(0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+					{
+						Transparency = 1,
+					}
+				):Play()
+			end
+		end
+
+		task.wait(0.24)
+		popup:Destroy()
+		self.celebrationPlaying = false
+		self:_pumpCelebrationQueue()
+	end)
 end
 
 function RootScreen:setStatusText(text)
@@ -10006,49 +11769,16 @@ function RootScreen:setNotificationsText(text)
 end
 
 function RootScreen:showMiningPopup(text)
-	local popup = Instance.new("TextLabel")
-	popup.Name = "MiningPopup"
-	popup.AnchorPoint = Vector2.new(0.5, 0)
-	popup.BackgroundColor3 = Color3.fromRGB(18, 17, 24)
-	popup.BackgroundTransparency = 0.08
-	popup.BorderSizePixel = 0
-	popup.Size = UDim2.new(0.92, 0, 0, 48)
-	popup.Font = Enum.Font.GothamBlack
-	popup.Text = tostring(text)
-	popup.TextColor3 = Color3.fromRGB(255, 246, 196)
-	popup.TextSize = 24
-	popup.TextWrapped = true
-	popup.ZIndex = POPUP_Z_INDEX
-	popup.Parent = self.miningPopupContainer
+	local spec = normalizeCelebrationSpec(text)
+	table.insert(self.celebrationQueue, spec)
+	while #self.celebrationQueue > POPUP_QUEUE_LIMIT do
+		table.remove(self.celebrationQueue, 1)
+	end
+	self:_pumpCelebrationQueue()
+end
 
-	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0, 8)
-	corner.Parent = popup
-
-	local stroke = Instance.new("UIStroke")
-	stroke.Color = Color3.fromRGB(109, 231, 255)
-	stroke.Thickness = 2
-	stroke.Transparency = 0.05
-	stroke.Parent = popup
-
-	task.delay(1.4, function()
-		if popup.Parent == nil then
-			return
-		end
-
-		local tween = TweenService:Create(
-			popup,
-			TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-			{
-				BackgroundTransparency = 1,
-				TextTransparency = 1,
-			}
-		)
-		tween:Play()
-		tween.Completed:Connect(function()
-			popup:Destroy()
-		end)
-	end)
+function RootScreen:showRewardCelebration(data)
+	self:showMiningPopup(data)
 end
 
 function RootScreen:setShopMenuVisible(visible)
@@ -10119,11 +11849,11 @@ return RootScreen
               </Properties>
             </Item>
           </Item>
-          <Item class="Folder" referent="88">
+          <Item class="Folder" referent="89">
             <Properties>
               <string name="Name">Theme</string>
             </Properties>
-            <Item class="ModuleScript" referent="89">
+            <Item class="ModuleScript" referent="90">
               <Properties>
                 <string name="Name">Palette</string>
                 <string name="Source"><![CDATA[--!strict
@@ -10153,13 +11883,13 @@ return Palette
       </Item>
     </Item>
   </Item>
-  <Item class="Workspace" referent="90">
+  <Item class="Workspace" referent="91">
     <Properties>
       <string name="Name">Workspace</string>
       <bool name="FilteringEnabled">true</bool>
       <bool name="NeedsPivotMigration">false</bool>
     </Properties>
-    <Item class="Part" referent="91">
+    <Item class="Part" referent="92">
       <Properties>
         <string name="Name">Baseplate</string>
         <bool name="Anchored">true</bool>

@@ -16,13 +16,18 @@ local GeodeService = {}
 GeodeService.__index = GeodeService
 
 local function getTraitPool()
-	return {
+	return Traits.order or {
 		Traits.none,
-		Traits.flawless,
+		Traits.fiery,
+		Traits.frosted,
+		Traits.verdant,
+		Traits.radiant,
 		Traits.prismatic,
 		Traits.celestial,
-		Traits.radiant,
 		Traits.void_touched,
+		Traits.starlit,
+		Traits.cosmic,
+		Traits.singularity,
 	}
 end
 

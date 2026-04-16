@@ -412,7 +412,8 @@ function GeodeInteractionController:start()
 
 		local ok, result = app:requestOpenReadyGeode(resolvedGeodeId)
 		if ok and type(result) == "table" and result.ok == true then
-			playRevealAnimation(geodePart, result.open or result.claim)
+			local openResult = result.open or result.claim
+			playRevealAnimation(geodePart, openResult)
 		end
 	end
 

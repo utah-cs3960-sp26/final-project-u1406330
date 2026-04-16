@@ -7,6 +7,7 @@ local TweenService = game:GetService("TweenService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
+local Geodes = require(Shared.Config.Geodes)
 local Pickaxes = require(Shared.Config.Pickaxes)
 local RemoteNames = require(Shared.Net.RemoteNames)
 
@@ -24,6 +25,35 @@ local SWING_WINDUP_OFFSET = CFrame.new(0.02, -0.05, 0.04) * CFrame.Angles(math.r
 local SWING_STRIKE_OFFSET = CFrame.new(-0.04, 0.08, -0.1) * CFrame.Angles(math.rad(42), math.rad(10), math.rad(-34))
 
 local activeSwingByTool = setmetatable({}, { __mode = "k" })
+local GEODE_RARITY_BY_ID = {
+	starter_geode = "Common",
+	crystal_cavern_geode = "Uncommon",
+	moonlit_geode = "Rare",
+	ember_glass_geode = "Epic",
+	verdant_rift_geode = "Mythic",
+	aurora_shard_geode = "Legendary",
+	thunder_core_geode = "Storm",
+	fossil_vault_geode = "Ancient",
+	prism_sun_geode = "Prismatic",
+	sovereign_nova_geode = "Sovereign",
+}
+local GEODE_RARITY_ORDER = {
+	"Common",
+	"Uncommon",
+	"Rare",
+	"Epic",
+	"Mythic",
+	"Legendary",
+	"Storm",
+	"Ancient",
+	"Prismatic",
+	"Sovereign",
+}
+
+local GEODE_RARITY_INDEX_BY_NAME = {}
+for index, rarityName in ipairs(GEODE_RARITY_ORDER) do
+	GEODE_RARITY_INDEX_BY_NAME[rarityName] = index
+end
 
 local function getPickaxeDisplayName(tool: Tool): string
 	local pickaxeTypeId = tool:GetAttribute("PickaxeTypeId")
@@ -39,6 +69,30 @@ local function getPickaxeDisplayName(tool: Tool): string
 	end
 
 	return tool.Name
+end
+
+local function getGeodeCelebrationInfo(geodeTypeId: string?, geodeDisplayName: string?)
+	local rarityName = if geodeTypeId ~= nil then GEODE_RARITY_BY_ID[geodeTypeId] else nil
+	local geodeDefinition = if geodeTypeId ~= nil then Geodes[geodeTypeId] else nil
+	local displayName
+	if type(geodeDisplayName) == "string" then
+		displayName = geodeDisplayName
+	elseif geodeDefinition ~= nil and geodeDefinition.displayName ~= nil then
+		displayName = geodeDefinition.displayName
+	elseif geodeTypeId ~= nil then
+		displayName = geodeTypeId
+	else
+		displayName = "Geode"
+	end
+	local rarityIndex = if type(rarityName) == "string" then GEODE_RARITY_INDEX_BY_NAME[rarityName] or 1 else 1
+
+	return {
+		geodeTypeId = geodeTypeId,
+		geodeDisplayName = displayName,
+		rarityLabel = rarityName or "Common",
+		rarityIndex = rarityIndex,
+		accentColor = if geodeDefinition ~= nil then geodeDefinition.displayColor else nil,
+	}
 end
 
 local function isMineTarget(target: Instance?): BasePart?
@@ -198,19 +252,69 @@ function MiningController:start()
 		local ok, result = app:invokeRemote(MINE_REMOTE_NAME, pickaxeId, mineTarget)
 		if ok and type(result) == "table" and result.ok == true then
 			local rewardText = nil
+			local rewardPopup = nil
 			if type(result.coins) == "number" and result.coins > 0 then
 				rewardText = string.format("Found %d coins in the mine.", math.floor(result.coins + 0.5))
+				rewardPopup = {
+					kind = "coin",
+					headline = "COINS!",
+					primary = rewardText,
+					duration = 0.8,
+					compact = true,
+				}
 			elseif type(result.geodeDisplayName) == "string" then
 				rewardText = string.format("Unearthed %s.", tostring(result.geodeDisplayName))
+				rewardPopup = getGeodeCelebrationInfo(result.geodeTypeId, result.geodeDisplayName)
+				rewardPopup.kind = "geode"
+				rewardPopup.headline = "GEODE!"
+				rewardPopup.primary = rewardPopup.geodeDisplayName
+				if rewardPopup.rarityIndex > 1 then
+					rewardPopup.detail = "The reel is spinning up!"
+					rewardPopup.showSlotMachine = true
+					rewardPopup.reelValues = {
+						rewardPopup.rarityLabel,
+						rewardPopup.geodeDisplayName,
+						"BIG DROP",
+					}
+				else
+					rewardPopup.detail = "A fresh geode clinks in the bag."
+					rewardPopup.showSlotMachine = false
+					rewardPopup.reelValues = {
+						rewardPopup.rarityLabel,
+						rewardPopup.geodeDisplayName,
+						"SMALL WIN",
+					}
+				end
 			elseif type(result.geodeTypeId) == "string" then
 				rewardText = string.format("Unearthed %s.", tostring(result.geodeTypeId))
+				rewardPopup = getGeodeCelebrationInfo(result.geodeTypeId, result.geodeDisplayName)
+				rewardPopup.kind = "geode"
+				rewardPopup.headline = "GEODE!"
+				rewardPopup.primary = rewardPopup.geodeDisplayName
+				if rewardPopup.rarityIndex > 1 then
+					rewardPopup.detail = "The reel is spinning up!"
+					rewardPopup.showSlotMachine = true
+					rewardPopup.reelValues = {
+						rewardPopup.rarityLabel,
+						rewardPopup.geodeDisplayName,
+						"BIG DROP",
+					}
+				else
+					rewardPopup.detail = "A fresh geode clinks in the bag."
+					rewardPopup.showSlotMachine = false
+					rewardPopup.reelValues = {
+						rewardPopup.rarityLabel,
+						rewardPopup.geodeDisplayName,
+						"SMALL WIN",
+					}
+				end
 			elseif type(result.rewardText) == "string" then
 				rewardText = tostring(result.rewardText)
 			end
 
 			app:setStatus(rewardText or "Mining hit registered.")
 			if screen ~= nil and screen.showMiningPopup ~= nil then
-				screen:showMiningPopup(rewardText or "Mining hit registered")
+				screen:showMiningPopup(rewardPopup or rewardText or "Mining hit registered")
 			end
 		else
 			local errorText = type(result) == "table" and result.errorCode or result

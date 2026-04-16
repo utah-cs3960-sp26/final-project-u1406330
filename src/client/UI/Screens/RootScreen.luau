@@ -1,8 +1,15 @@
 --!strict
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+
+local Geodes = require(Shared.Config.Geodes)
+local Resources = require(Shared.Config.Resources)
+local Traits = require(Shared.Config.Traits)
+local RewardPresentation = require(Shared.Domain.RewardPresentation)
 local Panel = require(script.Parent.Parent.Components.Panel)
 
 local RootScreen = {}
@@ -11,6 +18,221 @@ RootScreen.__index = RootScreen
 local SHOP_BASE_Z_INDEX = 60
 local VAULT_BASE_Z_INDEX = 55
 local POPUP_Z_INDEX = 80
+local POPUP_QUEUE_LIMIT = 6
+local GEODE_RARITY_ORDER = {
+	"Common",
+	"Uncommon",
+	"Rare",
+	"Epic",
+	"Mythic",
+	"Legendary",
+	"Storm",
+	"Ancient",
+	"Prismatic",
+	"Sovereign",
+}
+
+local GEODE_RARITY_BY_ID = {
+	starter_geode = "Common",
+	crystal_cavern_geode = "Uncommon",
+	moonlit_geode = "Rare",
+	ember_glass_geode = "Epic",
+	verdant_rift_geode = "Mythic",
+	aurora_shard_geode = "Legendary",
+	thunder_core_geode = "Storm",
+	fossil_vault_geode = "Ancient",
+	prism_sun_geode = "Prismatic",
+	sovereign_nova_geode = "Sovereign",
+}
+
+local RARITY_TONES = {
+	[1] = {
+		background = Color3.fromRGB(255, 250, 214),
+		accent = Color3.fromRGB(255, 204, 86),
+		highlight = Color3.fromRGB(255, 231, 150),
+		text = Color3.fromRGB(83, 54, 18),
+	},
+	[2] = {
+		background = Color3.fromRGB(224, 247, 255),
+		accent = Color3.fromRGB(109, 230, 255),
+		highlight = Color3.fromRGB(182, 241, 255),
+		text = Color3.fromRGB(30, 62, 84),
+	},
+	[3] = {
+		background = Color3.fromRGB(255, 234, 237),
+		accent = Color3.fromRGB(255, 126, 164),
+		highlight = Color3.fromRGB(255, 202, 219),
+		text = Color3.fromRGB(86, 29, 49),
+	},
+	[4] = {
+		background = Color3.fromRGB(235, 255, 238),
+		accent = Color3.fromRGB(120, 231, 184),
+		highlight = Color3.fromRGB(202, 255, 216),
+		text = Color3.fromRGB(32, 79, 52),
+	},
+	[5] = {
+		background = Color3.fromRGB(239, 244, 255),
+		accent = Color3.fromRGB(166, 194, 255),
+		highlight = Color3.fromRGB(211, 225, 255),
+		text = Color3.fromRGB(44, 53, 90),
+	},
+	[6] = {
+		background = Color3.fromRGB(255, 241, 221),
+		accent = Color3.fromRGB(255, 170, 92),
+		highlight = Color3.fromRGB(255, 220, 183),
+		text = Color3.fromRGB(89, 46, 16),
+	},
+	[7] = {
+		background = Color3.fromRGB(225, 255, 251),
+		accent = Color3.fromRGB(102, 224, 206),
+		highlight = Color3.fromRGB(178, 255, 241),
+		text = Color3.fromRGB(23, 74, 72),
+	},
+	[8] = {
+		background = Color3.fromRGB(241, 255, 226),
+		accent = Color3.fromRGB(166, 220, 102),
+		highlight = Color3.fromRGB(219, 255, 176),
+		text = Color3.fromRGB(49, 76, 25),
+	},
+	[9] = {
+		background = Color3.fromRGB(250, 235, 255),
+		accent = Color3.fromRGB(255, 145, 222),
+		highlight = Color3.fromRGB(255, 205, 238),
+		text = Color3.fromRGB(87, 31, 88),
+	},
+	[10] = {
+		background = Color3.fromRGB(255, 248, 232),
+		accent = Color3.fromRGB(255, 216, 113),
+		highlight = Color3.fromRGB(255, 240, 185),
+		text = Color3.fromRGB(92, 60, 18),
+	},
+}
+
+local TRAIT_TONES = {
+	prismatic = {
+		background = Color3.fromRGB(240, 248, 255),
+		accent = Color3.fromRGB(129, 220, 255),
+		highlight = Color3.fromRGB(255, 170, 228),
+		text = Color3.fromRGB(48, 63, 92),
+	},
+	celestial = {
+		background = Color3.fromRGB(255, 250, 228),
+		accent = Color3.fromRGB(255, 222, 111),
+		highlight = Color3.fromRGB(255, 238, 179),
+		text = Color3.fromRGB(90, 63, 20),
+	},
+	radiant = {
+		background = Color3.fromRGB(232, 255, 250),
+		accent = Color3.fromRGB(114, 237, 215),
+		highlight = Color3.fromRGB(195, 255, 245),
+		text = Color3.fromRGB(20, 84, 75),
+	},
+	void_touched = {
+		background = Color3.fromRGB(236, 241, 255),
+		accent = Color3.fromRGB(109, 171, 255),
+		highlight = Color3.fromRGB(207, 225, 255),
+		text = Color3.fromRGB(39, 53, 92),
+	},
+}
+
+local function makeRarityIndexMap(order)
+	local map = {}
+	for index, name in ipairs(order) do
+		map[name] = index
+	end
+	return map
+end
+
+local RARITY_INDEX_BY_NAME = makeRarityIndexMap(GEODE_RARITY_ORDER)
+
+local function getRarityTone(index: number?, fallbackAccent: Color3?)
+	local tone = if index ~= nil then RARITY_TONES[index] else nil
+	if tone ~= nil then
+		return tone
+	end
+
+	local accent = if fallbackAccent ~= nil then fallbackAccent else Color3.fromRGB(109, 230, 255)
+	return {
+		background = accent:Lerp(Color3.fromRGB(255, 255, 255), 0.72),
+		accent = accent,
+		highlight = accent:Lerp(Color3.fromRGB(255, 255, 255), 0.45),
+		text = Color3.fromRGB(56, 40, 18),
+	}
+end
+
+local function getGeodeRarityIndex(geodeTypeId: string?)
+	if geodeTypeId == nil then
+		return 1
+	end
+
+	local rarityName = GEODE_RARITY_BY_ID[geodeTypeId]
+	return if rarityName ~= nil then RARITY_INDEX_BY_NAME[rarityName] or 1 else 1
+end
+
+local function getResourceRarityIndex(resourceTypeId: string?)
+	if resourceTypeId == nil then
+		return 1
+	end
+
+	local definition = Resources[resourceTypeId]
+	if definition == nil then
+		return 1
+	end
+
+	local rarityName = definition.rarity
+	return if type(rarityName) == "string" then RARITY_INDEX_BY_NAME[rarityName] or 1 else 1
+end
+
+local function getTraitRarityIndex(traitId: string?)
+	if traitId == nil then
+		return 0
+	end
+
+	local traitDefinition = Traits[traitId]
+	return RewardPresentation.getTraitCelebrationTier(traitDefinition)
+end
+
+local function getTraitTone(traitId: string?)
+	if traitId == nil then
+		return nil
+	end
+
+	local staticTone = TRAIT_TONES[traitId]
+	if staticTone ~= nil then
+		return staticTone
+	end
+
+	local traitDefinition = Traits[traitId]
+	if traitDefinition == nil then
+		return nil
+	end
+
+	local accent = traitDefinition.accentColor or Color3.fromRGB(109, 230, 255)
+	local highlight = traitDefinition.glowColor or accent:Lerp(Color3.fromRGB(255, 255, 255), 0.45)
+	return {
+		background = highlight:Lerp(Color3.fromRGB(255, 255, 255), 0.68),
+		accent = accent,
+		highlight = highlight,
+		text = Color3.fromRGB(54, 45, 32),
+	}
+end
+
+local function getTraitReelWords()
+	local words = {}
+	for _, traitDefinition in ipairs(Traits.order or {}) do
+		if traitDefinition ~= nil and traitDefinition.id ~= "none" then
+			table.insert(words, string.upper(tostring(traitDefinition.displayName or traitDefinition.id)))
+		end
+	end
+
+	if #words == 0 then
+		return {
+			"BONUS",
+		}
+	end
+
+	return words
+end
 
 local function applyGuiZIndex(root, zIndex)
 	for _, descendant in ipairs(root:GetDescendants()) do
@@ -616,13 +838,13 @@ function RootScreen.new(context)
 	miningPopupContainer.BackgroundTransparency = 1
 	miningPopupContainer.BorderSizePixel = 0
 	miningPopupContainer.Position = UDim2.new(0.5, 0, 0.22, 0)
-	miningPopupContainer.Size = UDim2.new(0, 420, 0, 180)
+	miningPopupContainer.Size = UDim2.new(0, 460, 0, 260)
 	miningPopupContainer.ZIndex = POPUP_Z_INDEX
 	miningPopupContainer.Parent = screenGui
 
 	local miningPopupConstraint = Instance.new("UISizeConstraint")
 	miningPopupConstraint.MinSize = Vector2.new(240, 120)
-	miningPopupConstraint.MaxSize = Vector2.new(520, 220)
+	miningPopupConstraint.MaxSize = Vector2.new(540, 300)
 	miningPopupConstraint.Parent = miningPopupContainer
 
 	local miningPopupLayout = Instance.new("UIListLayout")
@@ -681,6 +903,8 @@ function RootScreen.new(context)
 			claimOffline = claimOffline.BackgroundColor3,
 			placeStarterStation = placeStarterStation.BackgroundColor3,
 		},
+		celebrationQueue = {},
+		celebrationPlaying = false,
 		isOpen = true,
 	}, RootScreen)
 
@@ -715,6 +939,375 @@ function RootScreen.new(context)
 	self:setOfflineButtonState(false, "Claim Offline Cache")
 	self:setPlaceStarterStationButton(true, "Place Starter Station")
 	return self
+end
+
+local function normalizeCelebrationSpec(inputValue)
+	if type(inputValue) == "string" then
+		return {
+			kind = "basic",
+			headline = inputValue,
+			primary = inputValue,
+			compact = true,
+		}
+	end
+
+	if type(inputValue) ~= "table" then
+		return {
+			kind = "basic",
+			headline = tostring(inputValue),
+			primary = tostring(inputValue),
+			compact = true,
+		}
+	end
+
+	local spec = {
+		kind = tostring(inputValue.kind or inputValue.mode or "basic"),
+		headline = tostring(inputValue.headline or inputValue.title or inputValue.text or "Reward!"),
+		primary = tostring(inputValue.primary or inputValue.itemName or inputValue.resourceName or inputValue.geodeName or inputValue.resourceDisplayName or inputValue.geodeDisplayName or inputValue.headline or inputValue.title or inputValue.text or "Reward!"),
+		detail = inputValue.detail,
+		rarityLabel = inputValue.rarityLabel or inputValue.rarity or nil,
+		rarityIndex = if type(inputValue.rarityIndex) == "number" then inputValue.rarityIndex else nil,
+		traitId = if type(inputValue.traitId) == "string" then inputValue.traitId else nil,
+		resourceTypeId = if type(inputValue.resourceTypeId) == "string" then inputValue.resourceTypeId else nil,
+		geodeTypeId = if type(inputValue.geodeTypeId) == "string" then inputValue.geodeTypeId else nil,
+		accentColor = if typeof(inputValue.accentColor) == "Color3" then inputValue.accentColor else nil,
+		highlightColor = if typeof(inputValue.highlightColor) == "Color3" then inputValue.highlightColor else nil,
+		textColor = if typeof(inputValue.textColor) == "Color3" then inputValue.textColor else nil,
+		duration = if type(inputValue.duration) == "number" then inputValue.duration else nil,
+		reelWords = if type(inputValue.reelWords) == "table" then inputValue.reelWords else nil,
+		reelValues = if type(inputValue.reelValues) == "table" then inputValue.reelValues else nil,
+		showSlotMachine = inputValue.showSlotMachine == true,
+		compact = inputValue.compact == true,
+	}
+
+	if spec.rarityIndex == nil then
+		if spec.kind == "attribute" then
+			spec.rarityIndex = getTraitRarityIndex(spec.traitId)
+		elseif spec.kind == "geode" then
+			spec.rarityIndex = getGeodeRarityIndex(spec.geodeTypeId)
+		elseif spec.kind == "resource" then
+			spec.rarityIndex = getResourceRarityIndex(spec.resourceTypeId)
+		else
+			spec.rarityIndex = 1
+		end
+	end
+
+	if spec.rarityLabel == nil then
+		if spec.kind == "attribute" and spec.traitId ~= nil then
+			local traitDefinition = Traits[spec.traitId]
+			spec.rarityLabel = if traitDefinition ~= nil then traitDefinition.displayName else spec.traitId
+		elseif spec.kind == "geode" and spec.geodeTypeId ~= nil then
+			spec.rarityLabel = GEODE_RARITY_BY_ID[spec.geodeTypeId] or "Common"
+		elseif spec.kind == "resource" and spec.resourceTypeId ~= nil then
+			local resourceDefinition = Resources[spec.resourceTypeId]
+			spec.rarityLabel = if resourceDefinition ~= nil then resourceDefinition.rarity else "Common"
+		else
+			spec.rarityLabel = "Common"
+		end
+	end
+
+	if spec.reelWords == nil then
+		if spec.kind == "attribute" then
+			spec.reelWords = getTraitReelWords()
+		else
+			spec.reelWords = GEODE_RARITY_ORDER
+		end
+	end
+
+	if spec.reelValues == nil then
+		spec.reelValues = {
+			spec.rarityLabel,
+			spec.primary,
+			if spec.detail ~= nil then tostring(spec.detail) else "BONUS",
+		}
+	end
+
+	if spec.showSlotMachine ~= true then
+		spec.showSlotMachine = (spec.kind == "geode" or spec.kind == "resource" or spec.kind == "attribute")
+			and (spec.rarityIndex or 1) > 1
+	end
+
+	if spec.kind == "coin" then
+		spec.compact = true
+	end
+
+	return spec
+end
+
+local function makePopup(parent: Instance, backgroundColor: Color3, strokeColor: Color3, width: number, height: number)
+	local popup = Instance.new("Frame")
+	popup.Name = "CelebrationPopup"
+	popup.AnchorPoint = Vector2.new(0.5, 0)
+	popup.BackgroundColor3 = backgroundColor
+	popup.BorderSizePixel = 0
+	popup.ClipsDescendants = true
+	popup.Position = UDim2.new(0.5, 0, 0, 0)
+	popup.Size = UDim2.new(0, width, 0, height)
+	popup.ZIndex = POPUP_Z_INDEX
+	popup.Parent = parent
+
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 8)
+	corner.Parent = popup
+
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = strokeColor
+	stroke.Thickness = 3
+	stroke.Parent = popup
+
+	local gradient = Instance.new("UIGradient")
+	gradient.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, backgroundColor:Lerp(Color3.fromRGB(255, 255, 255), 0.16)),
+		ColorSequenceKeypoint.new(1, backgroundColor:Lerp(Color3.fromRGB(255, 255, 255), 0.38)),
+	})
+	gradient.Rotation = 20
+	gradient.Parent = popup
+
+	local padding = Instance.new("UIPadding")
+	padding.PaddingTop = UDim.new(0, 10)
+	padding.PaddingBottom = UDim.new(0, 10)
+	padding.PaddingLeft = UDim.new(0, 12)
+	padding.PaddingRight = UDim.new(0, 12)
+	padding.Parent = popup
+
+	return popup
+end
+
+local function createTextLabel(parent: Instance, text: string, fontSize: number, textColor: Color3, height: number)
+	local label = Instance.new("TextLabel")
+	label.BackgroundTransparency = 1
+	label.Size = UDim2.new(1, 0, 0, height)
+	label.Font = Enum.Font.FredokaOne
+	label.Text = text
+	label.TextColor3 = textColor
+	label.TextSize = fontSize
+	label.TextWrapped = true
+	label.TextXAlignment = Enum.TextXAlignment.Center
+	label.TextYAlignment = Enum.TextYAlignment.Center
+	label.ZIndex = POPUP_Z_INDEX + 1
+	label.Parent = parent
+
+	local constraint = Instance.new("UITextSizeConstraint")
+	constraint.MaxTextSize = fontSize
+	constraint.MinTextSize = math.max(12, fontSize - 8)
+	constraint.Parent = label
+
+	return label
+end
+
+local function createReel(parent: Instance, tone, initialText: string)
+	local reel = Instance.new("Frame")
+	reel.BackgroundColor3 = tone.highlight
+	reel.BorderSizePixel = 0
+	reel.Size = UDim2.new(1, 0, 1, 0)
+	reel.ZIndex = POPUP_Z_INDEX + 1
+	reel.Parent = parent
+
+	local reelCorner = Instance.new("UICorner")
+	reelCorner.CornerRadius = UDim.new(0, 8)
+	reelCorner.Parent = reel
+
+	local reelStroke = Instance.new("UIStroke")
+	reelStroke.Color = tone.accent
+	reelStroke.Thickness = 2
+	reelStroke.Parent = reel
+
+	local reelLabel = createTextLabel(reel, initialText, 16, tone.text, 28)
+	reelLabel.Position = UDim2.fromScale(0, 0.08)
+	reelLabel.Size = UDim2.new(1, 0, 1, -2)
+
+	return reel, reelLabel
+end
+
+function RootScreen:_pumpCelebrationQueue()
+	if self.celebrationPlaying or #self.celebrationQueue == 0 then
+		return
+	end
+
+	self.celebrationPlaying = true
+	local spec = table.remove(self.celebrationQueue, 1)
+
+	task.spawn(function()
+		local tone = getRarityTone(spec.rarityIndex, spec.accentColor)
+		if spec.kind == "attribute" and spec.traitId ~= nil then
+			local traitTone = getTraitTone(spec.traitId)
+			if traitTone ~= nil then
+				tone = traitTone
+			end
+		end
+
+		local width = if spec.compact == true then 300 elseif spec.showSlotMachine == true then 420 else 360
+		local height = if spec.compact == true then 68 elseif spec.showSlotMachine == true then 144 else 104
+		if spec.kind == "attribute" then
+			height = 132
+		elseif spec.kind == "resource" then
+			height = if spec.showSlotMachine == true then 146 else 112
+		elseif spec.kind == "geode" then
+			height = if spec.showSlotMachine == true then 150 else 112
+		end
+
+		local popup = makePopup(self.miningPopupContainer, tone.background, tone.accent, width, height)
+		local scale = Instance.new("UIScale")
+		scale.Scale = 0.86
+		scale.Parent = popup
+
+		local layout = Instance.new("UIListLayout")
+		layout.SortOrder = Enum.SortOrder.LayoutOrder
+		layout.Padding = UDim.new(0, 6)
+		layout.VerticalAlignment = Enum.VerticalAlignment.Center
+		layout.Parent = popup
+
+		local titleText = if spec.kind == "coin" then "COINS!" else string.upper(spec.headline)
+		local titleFontSize = if spec.compact == true then 18 else 22
+		local title = createTextLabel(popup, titleText, titleFontSize, spec.textColor or tone.text, if spec.compact == true then 22 else 24)
+		title.LayoutOrder = 1
+
+		local reelRow
+		local primaryLabel
+		local detailLabel
+		local badgeLabel
+
+		if spec.compact ~= true then
+			if spec.showSlotMachine == true then
+				reelRow = Instance.new("Frame")
+				reelRow.BackgroundTransparency = 1
+				reelRow.BorderSizePixel = 0
+				reelRow.LayoutOrder = 2
+				reelRow.Size = UDim2.new(1, 0, 0, 34)
+				reelRow.Parent = popup
+
+				local reelLayout = Instance.new("UIGridLayout")
+				reelLayout.CellPadding = UDim2.new(0, 6, 0, 0)
+				reelLayout.CellSize = UDim2.new(0.33, -4, 1, 0)
+				reelLayout.SortOrder = Enum.SortOrder.LayoutOrder
+				reelLayout.Parent = reelRow
+
+				local reelTexts = spec.reelValues or {}
+				local reelLabels = {}
+				local reelCount = 3
+				for index = 1, reelCount do
+					local reelFrame, reelLabel = createReel(reelRow, tone, "ROLL")
+					reelFrame.LayoutOrder = index
+					table.insert(reelLabels, reelLabel)
+				end
+
+				task.spawn(function()
+					local spinWords = spec.reelWords or GEODE_RARITY_ORDER
+					local totalSteps = math.max(6, 2 + (spec.rarityIndex or 1) * 2)
+					local stepDelay = math.max(0.03, 0.08 - ((spec.rarityIndex or 1) * 0.004))
+					for reelIndex, reelLabel in ipairs(reelLabels) do
+						for spinStep = 1, totalSteps + reelIndex do
+							local wordIndex = ((spinStep + reelIndex - 1) % #spinWords) + 1
+							reelLabel.Text = tostring(spinWords[wordIndex])
+							task.wait(stepDelay)
+						end
+						reelLabel.Text = tostring(reelTexts[reelIndex] or reelTexts[#reelTexts] or spec.primary)
+					end
+				end)
+			end
+
+			primaryLabel = createTextLabel(
+				popup,
+				spec.primary,
+				if spec.showSlotMachine == true then 24 else 28,
+				spec.textColor or tone.text,
+				if spec.showSlotMachine == true then 28 else 34
+			)
+			primaryLabel.LayoutOrder = if spec.showSlotMachine == true then 3 else 2
+
+			if spec.detail ~= nil or spec.rarityLabel ~= nil then
+				local detailText = if spec.detail ~= nil then tostring(spec.detail) else tostring(spec.rarityLabel)
+				detailLabel = createTextLabel(popup, detailText, if spec.showSlotMachine == true then 16 else 18, tone.text, if spec.showSlotMachine == true then 20 else 22)
+				detailLabel.LayoutOrder = if spec.showSlotMachine == true then 4 else 3
+			end
+
+			if spec.rarityLabel ~= nil and spec.compact ~= true then
+				badgeLabel = Instance.new("TextLabel")
+				badgeLabel.BackgroundColor3 = tone.highlight
+				badgeLabel.BorderSizePixel = 0
+				badgeLabel.Size = UDim2.new(0, math.clamp(100 + ((spec.rarityIndex or 1) * 6), 100, 170), 0, 22)
+				badgeLabel.Font = Enum.Font.FredokaOne
+				badgeLabel.Text = tostring(spec.rarityLabel):upper()
+				badgeLabel.TextColor3 = tone.text
+				badgeLabel.TextSize = 14
+				badgeLabel.ZIndex = POPUP_Z_INDEX + 1
+				badgeLabel.LayoutOrder = if spec.showSlotMachine == true then 5 else 4
+				badgeLabel.Parent = popup
+
+				local badgeCorner = Instance.new("UICorner")
+				badgeCorner.CornerRadius = UDim.new(0, 8)
+				badgeCorner.Parent = badgeLabel
+
+				local badgeStroke = Instance.new("UIStroke")
+				badgeStroke.Color = tone.accent
+				badgeStroke.Thickness = 2
+				badgeStroke.Parent = badgeLabel
+			end
+		else
+			if spec.kind == "coin" then
+				primaryLabel = createTextLabel(popup, spec.primary, 20, tone.text, 22)
+				primaryLabel.LayoutOrder = 2
+			elseif spec.kind ~= "basic" or spec.detail ~= nil then
+				primaryLabel = createTextLabel(popup, spec.primary, 20, tone.text, 22)
+				primaryLabel.LayoutOrder = 2
+				detailLabel = createTextLabel(popup, spec.detail ~= nil and tostring(spec.detail) or "Sweet!", 14, tone.text, 16)
+				detailLabel.LayoutOrder = 3
+			end
+		end
+
+		local popIn = TweenService:Create(
+			scale,
+			TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+			{ Scale = 1 }
+		)
+		popIn:Play()
+
+		local holdDuration
+		if spec.duration ~= nil then
+			holdDuration = spec.duration
+		elseif spec.compact == true then
+			holdDuration = 0.92
+		elseif spec.showSlotMachine == true then
+			holdDuration = 1.45 + ((spec.rarityIndex or 1) * 0.12)
+		else
+			holdDuration = 1.08
+		end
+		task.wait(holdDuration)
+
+		local fadeTween = TweenService:Create(
+			popup,
+			TweenInfo.new(0.26, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+			{
+				BackgroundTransparency = 1,
+			}
+		)
+		fadeTween:Play()
+
+		for _, descendant in ipairs(popup:GetDescendants()) do
+			if descendant:IsA("TextLabel") then
+				TweenService:Create(
+					descendant,
+					TweenInfo.new(0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+					{
+						TextTransparency = 1,
+					}
+				):Play()
+			elseif descendant:IsA("UIStroke") then
+				TweenService:Create(
+					descendant,
+					TweenInfo.new(0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+					{
+						Transparency = 1,
+					}
+				):Play()
+			end
+		end
+
+		task.wait(0.24)
+		popup:Destroy()
+		self.celebrationPlaying = false
+		self:_pumpCelebrationQueue()
+	end)
 end
 
 function RootScreen:setStatusText(text)
@@ -780,49 +1373,16 @@ function RootScreen:setNotificationsText(text)
 end
 
 function RootScreen:showMiningPopup(text)
-	local popup = Instance.new("TextLabel")
-	popup.Name = "MiningPopup"
-	popup.AnchorPoint = Vector2.new(0.5, 0)
-	popup.BackgroundColor3 = Color3.fromRGB(18, 17, 24)
-	popup.BackgroundTransparency = 0.08
-	popup.BorderSizePixel = 0
-	popup.Size = UDim2.new(0.92, 0, 0, 48)
-	popup.Font = Enum.Font.GothamBlack
-	popup.Text = tostring(text)
-	popup.TextColor3 = Color3.fromRGB(255, 246, 196)
-	popup.TextSize = 24
-	popup.TextWrapped = true
-	popup.ZIndex = POPUP_Z_INDEX
-	popup.Parent = self.miningPopupContainer
+	local spec = normalizeCelebrationSpec(text)
+	table.insert(self.celebrationQueue, spec)
+	while #self.celebrationQueue > POPUP_QUEUE_LIMIT do
+		table.remove(self.celebrationQueue, 1)
+	end
+	self:_pumpCelebrationQueue()
+end
 
-	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0, 8)
-	corner.Parent = popup
-
-	local stroke = Instance.new("UIStroke")
-	stroke.Color = Color3.fromRGB(109, 231, 255)
-	stroke.Thickness = 2
-	stroke.Transparency = 0.05
-	stroke.Parent = popup
-
-	task.delay(1.4, function()
-		if popup.Parent == nil then
-			return
-		end
-
-		local tween = TweenService:Create(
-			popup,
-			TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-			{
-				BackgroundTransparency = 1,
-				TextTransparency = 1,
-			}
-		)
-		tween:Play()
-		tween.Completed:Connect(function()
-			popup:Destroy()
-		end)
-	end)
+function RootScreen:showRewardCelebration(data)
+	self:showMiningPopup(data)
 end
 
 function RootScreen:setShopMenuVisible(visible)

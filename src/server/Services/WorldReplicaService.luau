@@ -7,6 +7,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 
 local Geodes = require(Shared.Config.Geodes)
 local Resources = require(Shared.Config.Resources)
+local Traits = require(Shared.Config.Traits)
 local Stations = require(Shared.Config.Stations)
 local World = require(Shared.Config.World)
 
@@ -134,6 +135,723 @@ local function getGeodeTint(geodeTypeId: string?, readyState: string)
 	end
 
 	return readyState == "ready" and Color3.fromRGB(174, 191, 212) or Color3.fromRGB(92, 96, 104)
+end
+
+local function normalizeVisualKey(value)
+	if value == nil then
+		return ""
+	end
+
+	local text = string.lower(tostring(value))
+	text = text:gsub("[%s%-]+", "_")
+	text = text:gsub("[^%w_]", "")
+	return text
+end
+
+local function titleCaseLabel(value)
+	local source = tostring(value or "")
+	source = source:gsub("_", " ")
+	source = source:gsub("%-", " ")
+
+	local words = {}
+	for word in source:gmatch("%S+") do
+		local firstLetter = word:sub(1, 1)
+		local rest = word:sub(2)
+		table.insert(words, string.upper(firstLetter) .. string.lower(rest))
+	end
+
+	return table.concat(words, " ")
+end
+
+local function getStringHash(value)
+	local hash = 0
+	local text = tostring(value or "")
+
+	for index = 1, #text do
+		hash = (hash * 33 + string.byte(text, index)) % 2147483647
+	end
+
+	return hash
+end
+
+local function blendColor(baseColor, targetColor, alpha)
+	return baseColor:Lerp(targetColor, alpha)
+end
+
+local RESOURCE_RARITY_ORDER = {
+	Common = 1,
+	Uncommon = 2,
+	Rare = 3,
+	Epic = 4,
+	Legendary = 5,
+}
+
+local RESOURCE_RARITY_ACCENTS = {
+	Common = Color3.fromRGB(244, 249, 255),
+	Uncommon = Color3.fromRGB(188, 145, 255),
+	Rare = Color3.fromRGB(108, 228, 193),
+	Epic = Color3.fromRGB(118, 213, 255),
+	Legendary = Color3.fromRGB(255, 224, 117),
+}
+
+local RESOURCE_TYPE_VARIANTS = {
+	quartz = "gemstone",
+	amethyst = "gemstone",
+	emerald_cluster = "cluster",
+	diamond_core = "artifact",
+	star_shard = "artifact",
+}
+
+local TRAIT_EFFECT_PRESETS = {
+	{
+		keywords = { "fiery", "fire", "ember", "blaze", "burn" },
+		accent = Color3.fromRGB(255, 123, 56),
+		accent2 = Color3.fromRGB(255, 214, 92),
+		particleTexture = "rbxasset://textures/particles/fire_main.dds",
+		beam = false,
+		lightBoost = 1.1,
+	},
+	{
+		keywords = { "icy", "frost", "freeze", "glacial", "snow" },
+		accent = Color3.fromRGB(138, 226, 255),
+		accent2 = Color3.fromRGB(236, 250, 255),
+		particleTexture = "rbxasset://textures/particles/sparkles_main.dds",
+		beam = false,
+		lightBoost = 0.95,
+	},
+	{
+		keywords = { "prismatic", "prism", "rainbow" },
+		accent = Color3.fromRGB(255, 126, 180),
+		accent2 = Color3.fromRGB(120, 220, 255),
+		particleTexture = "rbxasset://textures/particles/sparkles_main.dds",
+		beam = true,
+		lightBoost = 1.15,
+	},
+	{
+		keywords = { "celestial", "star", "lunar", "astral" },
+		accent = Color3.fromRGB(255, 236, 160),
+		accent2 = Color3.fromRGB(174, 220, 255),
+		particleTexture = "rbxasset://textures/particles/sparkles_main.dds",
+		beam = true,
+		lightBoost = 1.2,
+	},
+	{
+		keywords = { "radiant", "glow", "sun", "luminous" },
+		accent = Color3.fromRGB(255, 221, 118),
+		accent2 = Color3.fromRGB(255, 248, 216),
+		particleTexture = "rbxasset://textures/particles/sparkles_main.dds",
+		beam = true,
+		lightBoost = 1.15,
+	},
+	{
+		keywords = { "void", "abyss", "shadow", "night" },
+		accent = Color3.fromRGB(104, 92, 188),
+		accent2 = Color3.fromRGB(58, 54, 88),
+		particleTexture = "rbxasset://textures/particles/smoke_main.dds",
+		beam = true,
+		lightBoost = 0.75,
+	},
+	{
+		keywords = { "verdant", "nature", "leaf", "growth" },
+		accent = Color3.fromRGB(128, 231, 146),
+		accent2 = Color3.fromRGB(218, 255, 188),
+		particleTexture = "rbxasset://textures/particles/sparkles_main.dds",
+		beam = false,
+		lightBoost = 1.0,
+	},
+	{
+		keywords = { "storm", "thunder", "electric", "arcane" },
+		accent = Color3.fromRGB(108, 194, 255),
+		accent2 = Color3.fromRGB(255, 255, 255),
+		particleTexture = "rbxasset://textures/particles/sparkles_main.dds",
+		beam = true,
+		lightBoost = 1.05,
+	},
+}
+
+local function getRarityRank(rarity)
+	return RESOURCE_RARITY_ORDER[rarity or "Common"] or 1
+end
+
+local function getResourceRarityScale(rarity)
+	local rarityRank = getRarityRank(rarity)
+	return 0.92 + ((rarityRank - 1) * 0.14)
+end
+
+local function getResourceRarityAccent(rarity, baseColor)
+	local rarityAccent = RESOURCE_RARITY_ACCENTS[rarity or "Common"] or baseColor
+	return baseColor:Lerp(rarityAccent, math.clamp(0.15 + (getRarityRank(rarity) * 0.12), 0, 0.65))
+end
+
+local function resolveTraitDisplayName(traitId)
+	if traitId == nil or traitId == "none" then
+		return nil
+	end
+
+	local traitDefinition = Traits[traitId]
+	if traitDefinition ~= nil and traitDefinition.displayName ~= nil then
+		return traitDefinition.displayName
+	end
+
+	return titleCaseLabel(traitId)
+end
+
+local function resolveTraitPreset(traitId)
+	local normalizedTraitId = normalizeVisualKey(traitId)
+	if normalizedTraitId == "" or normalizedTraitId == "none" then
+		return nil
+	end
+
+	for _, preset in ipairs(TRAIT_EFFECT_PRESETS) do
+		for _, keyword in ipairs(preset.keywords) do
+			if string.find(normalizedTraitId, keyword, 1, true) ~= nil then
+				return preset
+			end
+		end
+	end
+
+	return nil
+end
+
+local getResourceVariantShape
+
+local function resolveResourceVisualProfile(resourceTypeId, resourceDefinition)
+	local rarity = if resourceDefinition ~= nil and resourceDefinition.rarity ~= nil then resourceDefinition.rarity else "Common"
+	local variantId = getResourceVariantShape(resourceTypeId, resourceDefinition)
+	local rarityRank = getRarityRank(rarity)
+
+	local baseColor = if resourceDefinition ~= nil and resourceDefinition.color ~= nil
+		then resourceDefinition.color
+		else RESOURCE_RARITY_ACCENTS[rarity] or Color3.fromRGB(240, 240, 255)
+	local accentColor = getResourceRarityAccent(rarity, baseColor)
+	local glowColor = blendColor(accentColor, Color3.fromRGB(255, 255, 255), 0.25)
+
+	return {
+		baseColor = baseColor,
+		accentColor = accentColor,
+		glowColor = glowColor,
+		displayName = if resourceDefinition ~= nil and resourceDefinition.displayName ~= nil then resourceDefinition.displayName else "Resource",
+		rarity = rarity,
+		rarityRank = rarityRank,
+		scale = getResourceRarityScale(rarity),
+		variantId = variantId,
+	}
+end
+
+local function createVisualBasePart(parent, className, name, size, position, color, material)
+	local part = Instance.new(className)
+	part.Name = name
+	part.Anchored = true
+	part.CanCollide = false
+	part.CanQuery = false
+	part.CanTouch = false
+	part.Size = size
+	part.Position = position
+	part.Color = color
+	part.Material = material
+	part.Parent = parent
+	return part
+end
+
+local function orientPart(part, yawRadians, pitchRadians, rollRadians)
+	part.CFrame = CFrame.new(part.Position) * CFrame.Angles(pitchRadians or 0, yawRadians or 0, rollRadians or 0)
+end
+
+local function createColoredLight(parent, color, brightness, range)
+	local light = Instance.new("PointLight")
+	light.Color = color
+	light.Brightness = brightness
+	light.Range = range
+	light.Shadows = false
+	light.Parent = parent
+	return light
+end
+
+local function createSparkEmitter(parent, texture, colorA, colorB, rate, lifetimeMin, lifetimeMax, speedMin, speedMax, sizeStart, sizeEnd)
+	local emitter = Instance.new("ParticleEmitter")
+	emitter.Texture = texture
+	emitter.Color = ColorSequence.new(colorA, colorB)
+	emitter.LightEmission = 1
+	emitter.Rate = rate
+	emitter.Lifetime = NumberRange.new(lifetimeMin, lifetimeMax)
+	emitter.Speed = NumberRange.new(speedMin, speedMax)
+	emitter.SpreadAngle = Vector2.new(180, 180)
+	emitter.Size = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, sizeStart),
+		NumberSequenceKeypoint.new(1, sizeEnd),
+	})
+	emitter.Transparency = NumberSequence.new(0.05, 1)
+	emitter.EmissionDirection = Enum.NormalId.Top
+	emitter.Drag = 1
+	emitter.Parent = parent
+	return emitter
+end
+
+local function createResourceBillboard(parentPart, titleText, subtitleText, accentColor, rarityRank)
+	local billboard = Instance.new("BillboardGui")
+	billboard.Name = parentPart.Name .. "_Marker"
+	billboard.Size = UDim2.fromOffset(188 + (rarityRank * 4), 54 + (rarityRank > 3 and 6 or 0))
+	billboard.StudsOffset = Vector3.new(0, 2.8 + (rarityRank * 0.08), 0)
+	billboard.AlwaysOnTop = true
+	billboard.Parent = parentPart
+
+	local frame = Instance.new("Frame")
+	frame.BackgroundColor3 = Color3.fromRGB(30, 26, 40)
+	frame.BackgroundTransparency = 0.12
+	frame.Size = UDim2.fromScale(1, 1)
+	frame.Parent = billboard
+
+	local frameCorner = Instance.new("UICorner")
+	frameCorner.CornerRadius = UDim.new(0, 8)
+	frameCorner.Parent = frame
+
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = accentColor
+	stroke.Thickness = 2
+	stroke.Transparency = 0.05
+	stroke.Parent = frame
+
+	local padding = Instance.new("UIPadding")
+	padding.PaddingTop = UDim.new(0, 4)
+	padding.PaddingBottom = UDim.new(0, 4)
+	padding.PaddingLeft = UDim.new(0, 8)
+	padding.PaddingRight = UDim.new(0, 8)
+	padding.Parent = frame
+
+	local layout = Instance.new("UIListLayout")
+	layout.FillDirection = Enum.FillDirection.Vertical
+	layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	layout.VerticalAlignment = Enum.VerticalAlignment.Center
+	layout.SortOrder = Enum.SortOrder.LayoutOrder
+	layout.Padding = UDim.new(0, 0)
+	layout.Parent = frame
+
+	local titleLabel = Instance.new("TextLabel")
+	titleLabel.LayoutOrder = 1
+	titleLabel.BackgroundTransparency = 1
+	titleLabel.Size = UDim2.new(1, 0, 0, 26)
+	titleLabel.Font = Enum.Font.FredokaOne
+	titleLabel.Text = titleText
+	titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	titleLabel.TextStrokeColor3 = Color3.fromRGB(22, 18, 30)
+	titleLabel.TextStrokeTransparency = 0.55
+	titleLabel.TextScaled = true
+	titleLabel.TextWrapped = true
+	titleLabel.Parent = frame
+
+	local subtitleLabel = Instance.new("TextLabel")
+	subtitleLabel.LayoutOrder = 2
+	subtitleLabel.BackgroundTransparency = 1
+	subtitleLabel.Size = UDim2.new(1, 0, 0, 16)
+	subtitleLabel.Font = Enum.Font.FredokaOne
+	subtitleLabel.Text = subtitleText
+	subtitleLabel.TextColor3 = accentColor
+	subtitleLabel.TextStrokeColor3 = Color3.fromRGB(22, 18, 30)
+	subtitleLabel.TextStrokeTransparency = 0.7
+	subtitleLabel.TextScaled = true
+	subtitleLabel.TextWrapped = true
+	subtitleLabel.Parent = frame
+
+	return billboard
+end
+
+local function createRarityEffects(parentPart, profile, visualVariantId)
+	if profile.rarityRank <= 1 then
+		return
+	end
+
+	local glowAttachment = Instance.new("Attachment")
+	glowAttachment.Name = "RarityGlowAttachment"
+	glowAttachment.Position = Vector3.new(0, parentPart.Size.Y * 0.35, 0)
+	glowAttachment.Parent = parentPart
+
+	createColoredLight(
+		parentPart,
+		profile.glowColor,
+		0.55 + (profile.rarityRank * 0.18),
+		5.5 + (profile.rarityRank * 1.4)
+	)
+
+	local sparkleRate = 2 + (profile.rarityRank * 3)
+	if visualVariantId == "artifact" then
+		sparkleRate += 2
+	end
+
+	createSparkEmitter(
+		glowAttachment,
+		"rbxasset://textures/particles/sparkles_main.dds",
+		profile.accentColor,
+		profile.glowColor,
+		sparkleRate,
+		0.75,
+		1.35,
+		0.4,
+		1.0 + (profile.rarityRank * 0.18),
+		0.22,
+		0
+	)
+
+	if profile.rarityRank >= 3 then
+		local leftAttachment = Instance.new("Attachment")
+		leftAttachment.Name = "RarityBeamLeft"
+		leftAttachment.Position = Vector3.new(parentPart.Size.X * 0.45, 0, 0)
+		leftAttachment.Parent = parentPart
+
+		local rightAttachment = Instance.new("Attachment")
+		rightAttachment.Name = "RarityBeamRight"
+		rightAttachment.Position = Vector3.new(-parentPart.Size.X * 0.45, 0, 0)
+		rightAttachment.Parent = parentPart
+
+		local beam = Instance.new("Beam")
+		beam.Attachment0 = leftAttachment
+		beam.Attachment1 = rightAttachment
+		beam.Color = ColorSequence.new(profile.accentColor, profile.glowColor)
+		beam.FaceCamera = true
+		beam.LightEmission = 1
+		beam.Width0 = 0.08 + (profile.rarityRank * 0.02)
+		beam.Width1 = 0.12 + (profile.rarityRank * 0.02)
+		beam.Transparency = NumberSequence.new(0.15, 0.9)
+		beam.Parent = parentPart
+	end
+end
+
+local function applyTraitEffects(parentPart, profile, traitId)
+	local preset = resolveTraitPreset(traitId)
+	if preset == nil then
+		return resolveTraitDisplayName(traitId)
+	end
+
+	local traitDisplayName = resolveTraitDisplayName(traitId)
+	local effectAttachment = Instance.new("Attachment")
+	effectAttachment.Name = "TraitEffectAttachment"
+	effectAttachment.Position = Vector3.new(0, parentPart.Size.Y * 0.18, 0)
+	effectAttachment.Parent = parentPart
+
+	local lightBoost = preset.lightBoost or 1
+	createColoredLight(
+		parentPart,
+		preset.accent2,
+		0.45 + (profile.rarityRank * 0.12 * lightBoost),
+		4.5 + (profile.rarityRank * 1.1)
+	)
+
+	createSparkEmitter(
+		effectAttachment,
+		preset.particleTexture,
+		preset.accent,
+		preset.accent2,
+		3 + (profile.rarityRank * 2),
+		0.7,
+		1.1,
+		0.25,
+		0.9 + (profile.rarityRank * 0.14),
+		0.18,
+		0
+	)
+
+	if normalizeVisualKey(traitId):find("fiery", 1, true) ~= nil or normalizeVisualKey(traitId):find("fire", 1, true) ~= nil then
+		createSparkEmitter(
+			effectAttachment,
+			"rbxasset://textures/particles/fire_main.dds",
+			Color3.fromRGB(255, 160, 72),
+			Color3.fromRGB(255, 230, 120),
+			5 + profile.rarityRank,
+			0.45,
+			0.9,
+			0.35,
+			1.15,
+			0.2,
+			0
+		)
+	end
+
+	if preset.beam then
+		local forwardAttachment = Instance.new("Attachment")
+		forwardAttachment.Name = "TraitBeamForward"
+		forwardAttachment.Position = Vector3.new(0, 0, parentPart.Size.Z * 0.42)
+		forwardAttachment.Parent = parentPart
+
+		local backwardAttachment = Instance.new("Attachment")
+		backwardAttachment.Name = "TraitBeamBackward"
+		backwardAttachment.Position = Vector3.new(0, 0, -parentPart.Size.Z * 0.42)
+		backwardAttachment.Parent = parentPart
+
+		local beam = Instance.new("Beam")
+		beam.Attachment0 = forwardAttachment
+		beam.Attachment1 = backwardAttachment
+		beam.Color = ColorSequence.new(preset.accent, preset.accent2)
+		beam.FaceCamera = true
+		beam.LightEmission = 1
+		beam.Width0 = 0.08 + (profile.rarityRank * 0.01)
+		beam.Width1 = 0.02 + (profile.rarityRank * 0.01)
+		beam.Transparency = NumberSequence.new(0.2, 1)
+		beam.Parent = parentPart
+	end
+
+	return traitDisplayName
+end
+
+getResourceVariantShape = function(resourceTypeId, resourceDefinition)
+	local resourceKey = normalizeVisualKey(resourceTypeId)
+	local rarity = if resourceDefinition ~= nil and resourceDefinition.rarity ~= nil then resourceDefinition.rarity else "Common"
+	local rarityRank = getRarityRank(rarity)
+	local variantId = RESOURCE_TYPE_VARIANTS[resourceKey] or "gemstone"
+
+	if variantId == "gemstone" then
+		if resourceKey:find("cluster", 1, true) ~= nil or rarityRank == 3 then
+			variantId = "cluster"
+		end
+
+		if resourceKey:find("core", 1, true) ~= nil
+			or resourceKey:find("shard", 1, true) ~= nil
+			or rarityRank >= 4
+		then
+			variantId = "artifact"
+		end
+	end
+
+	return variantId
+end
+
+local function buildPolishedGemstone(resourcePart, profile, rootYaw)
+	local scale = profile.scale
+	local baseColor = profile.baseColor
+	local accentColor = profile.accentColor
+	local glowColor = profile.glowColor
+	local centerSize = Vector3.new(1.65, 2.2, 1.65) * scale
+
+	resourcePart.Size = centerSize
+	resourcePart.Color = blendColor(baseColor, Color3.fromRGB(255, 255, 255), 0.1)
+	resourcePart.Material = Enum.Material.Glass
+	resourcePart.Transparency = 0.12
+	resourcePart.Reflectance = 0.16
+	orientPart(resourcePart, rootYaw, math.rad(0), math.rad(34))
+
+	local topTip = createVisualBasePart(
+		resourcePart,
+		"Part",
+		"GemTopTip",
+		Vector3.new(centerSize.X * 0.72, centerSize.Y * 0.34, centerSize.Z * 0.72),
+		resourcePart.Position + Vector3.new(0, centerSize.Y * 0.48, 0),
+		accentColor,
+		Enum.Material.Neon
+	)
+	orientPart(topTip, rootYaw, math.rad(-8), math.rad(45))
+	topTip.Transparency = 0.08
+
+	local bottomTip = createVisualBasePart(
+		resourcePart,
+		"Part",
+		"GemBottomTip",
+		Vector3.new(centerSize.X * 0.72, centerSize.Y * 0.34, centerSize.Z * 0.72),
+		resourcePart.Position + Vector3.new(0, -centerSize.Y * 0.48, 0),
+		blendColor(baseColor, Color3.fromRGB(10, 10, 16), 0.2),
+		Enum.Material.SmoothPlastic
+	)
+	orientPart(bottomTip, rootYaw, math.rad(8), math.rad(225))
+	bottomTip.Transparency = 0.18
+
+	local sideBand = createVisualBasePart(
+		resourcePart,
+		"Part",
+		"GemBand",
+		Vector3.new(centerSize.X * 1.08, centerSize.Y * 0.16, centerSize.Z * 1.08),
+		resourcePart.Position + Vector3.new(0, 0, 0),
+		blendColor(baseColor, Color3.fromRGB(18, 15, 26), 0.22),
+		Enum.Material.SmoothPlastic
+	)
+	orientPart(sideBand, rootYaw, 0, math.rad(45))
+	sideBand.Transparency = 0.08
+
+	for index, yOffset in ipairs({ 0.2, -0.12, 0.05, -0.26 }) do
+		local accentShard = createVisualBasePart(
+			resourcePart,
+			"Part",
+			string.format("GemFacet_%d", index),
+			Vector3.new(centerSize.X * 0.2, centerSize.Y * 0.7, centerSize.Z * 0.12),
+			resourcePart.Position
+				+ Vector3.new(
+					math.cos(rootYaw + (math.rad(90) * (index - 1))) * centerSize.X * 0.42,
+					yOffset,
+					math.sin(rootYaw + (math.rad(90) * (index - 1))) * centerSize.Z * 0.42
+				),
+			glowColor,
+			Enum.Material.Neon
+		)
+		orientPart(accentShard, rootYaw + math.rad((index - 1) * 45), math.rad(10), math.rad(12))
+		accentShard.Transparency = 0.2
+	end
+end
+
+local function buildCrystalCluster(resourcePart, profile, rootYaw)
+	local scale = profile.scale
+	local baseColor = profile.baseColor
+	local accentColor = profile.accentColor
+	local glowColor = profile.glowColor
+	local coreSize = Vector3.new(1.25, 2.45, 1.25) * scale
+
+	resourcePart.Size = coreSize
+	resourcePart.Color = blendColor(baseColor, Color3.fromRGB(255, 255, 255), 0.08)
+	resourcePart.Material = Enum.Material.Crystal
+	resourcePart.Transparency = 0.08
+	resourcePart.Reflectance = 0.12
+	orientPart(resourcePart, rootYaw, math.rad(-5), math.rad(22))
+
+	local baseRock = createVisualBasePart(
+		resourcePart,
+		"Part",
+		"ClusterBase",
+		Vector3.new(coreSize.X * 1.55, coreSize.Y * 0.28, coreSize.Z * 1.55),
+		resourcePart.Position + Vector3.new(0, -coreSize.Y * 0.5, 0),
+		blendColor(baseColor, Color3.fromRGB(20, 18, 28), 0.42),
+		Enum.Material.Slate
+	)
+	orientPart(baseRock, rootYaw, 0, math.rad(4))
+	baseRock.Transparency = 0.1
+
+	local shardOffsets = {
+		{ x = -0.46, y = 0.22, z = -0.08, yaw = 12, roll = 10 },
+		{ x = 0.34, y = 0.38, z = 0.12, yaw = -16, roll = -8 },
+		{ x = 0.08, y = -0.02, z = -0.42, yaw = 24, roll = 14 },
+		{ x = -0.1, y = 0.58, z = 0.34, yaw = 38, roll = 18 },
+	}
+
+	for index, shard in ipairs(shardOffsets) do
+		local shardPart = createVisualBasePart(
+			resourcePart,
+			"Part",
+			string.format("ClusterShard_%d", index),
+			Vector3.new(coreSize.X * (0.35 + (index * 0.05)), coreSize.Y * (0.55 + (index * 0.08)), coreSize.Z * 0.22),
+			resourcePart.Position
+				+ Vector3.new(
+					shard.x * coreSize.X,
+					shard.y * coreSize.Y,
+					shard.z * coreSize.Z
+				),
+			if index % 2 == 0 then accentColor else glowColor,
+			Enum.Material.Neon
+		)
+		orientPart(shardPart, rootYaw + math.rad(shard.yaw), math.rad(4 + (index * 3)), math.rad(shard.roll))
+		shardPart.Transparency = 0.12 + (index * 0.03)
+	end
+end
+
+local function buildArtifactCore(resourcePart, profile, rootYaw)
+	local scale = profile.scale
+	local baseColor = profile.baseColor
+	local accentColor = profile.accentColor
+	local glowColor = profile.glowColor
+	local coreSize = Vector3.new(1.55, 2.0, 1.55) * scale
+
+	resourcePart.Size = coreSize
+	resourcePart.Color = blendColor(baseColor, Color3.fromRGB(255, 255, 255), 0.18)
+	resourcePart.Material = Enum.Material.Neon
+	resourcePart.Transparency = 0.09
+	resourcePart.Reflectance = 0.05
+	orientPart(resourcePart, rootYaw, math.rad(0), math.rad(45))
+
+	local crown = createVisualBasePart(
+		resourcePart,
+		"Part",
+		"ArtifactCrown",
+		Vector3.new(coreSize.X * 0.72, coreSize.Y * 0.42, coreSize.Z * 0.72),
+		resourcePart.Position + Vector3.new(0, coreSize.Y * 0.42, 0),
+		accentColor,
+		Enum.Material.ForceField
+	)
+	orientPart(crown, rootYaw + math.rad(22), math.rad(-10), math.rad(34))
+	crown.Transparency = 0.16
+
+	local coreCap = createVisualBasePart(
+		resourcePart,
+		"Part",
+		"ArtifactCoreCap",
+		Vector3.new(coreSize.X * 0.88, coreSize.Y * 0.18, coreSize.Z * 0.88),
+		resourcePart.Position,
+		blendColor(baseColor, Color3.fromRGB(22, 18, 34), 0.15),
+		Enum.Material.SmoothPlastic
+	)
+	orientPart(coreCap, rootYaw, 0, math.rad(45))
+	coreCap.Transparency = 0.12
+
+	local haloBars = {
+		{ name = "ArtifactHaloEast", size = Vector3.new(coreSize.X * 1.35, 0.14, 0.14), offset = Vector3.new(coreSize.X * 0.1, 0, 0), yaw = 0 },
+		{ name = "ArtifactHaloNorth", size = Vector3.new(0.14, 0.14, coreSize.Z * 1.35), offset = Vector3.new(0, 0, coreSize.Z * 0.1), yaw = 0 },
+		{ name = "ArtifactHaloSlashOne", size = Vector3.new(coreSize.X * 1.28, 0.12, 0.12), offset = Vector3.new(0, 0, 0), yaw = 45 },
+		{ name = "ArtifactHaloSlashTwo", size = Vector3.new(coreSize.X * 1.28, 0.12, 0.12), offset = Vector3.new(0, 0, 0), yaw = -45 },
+	}
+
+	for index, halo in ipairs(haloBars) do
+		local haloBar = createVisualBasePart(
+			resourcePart,
+			"Part",
+			halo.name,
+			halo.size,
+			resourcePart.Position + halo.offset,
+			if index % 2 == 0 then glowColor else accentColor,
+			Enum.Material.Neon
+		)
+		orientPart(haloBar, rootYaw + math.rad(halo.yaw), 0, 0)
+		haloBar.Transparency = 0.2
+	end
+
+	local shardOffsets = {
+		{ x = 0.34, y = 0.44, z = -0.1, yaw = 0, roll = 18 },
+		{ x = -0.3, y = -0.34, z = 0.14, yaw = 140, roll = -16 },
+		{ x = 0.02, y = 0.1, z = 0.42, yaw = 70, roll = 4 },
+	}
+
+	for index, shard in ipairs(shardOffsets) do
+		local shardPart = createVisualBasePart(
+			resourcePart,
+			"Part",
+			string.format("ArtifactShard_%d", index),
+			Vector3.new(coreSize.X * 0.25, coreSize.Y * (0.62 + (index * 0.06)), coreSize.Z * 0.14),
+			resourcePart.Position
+				+ Vector3.new(
+					shard.x * coreSize.X,
+					shard.y * coreSize.Y,
+					shard.z * coreSize.Z
+				),
+			if index == 1 then glowColor else accentColor,
+			Enum.Material.Neon
+		)
+		orientPart(shardPart, rootYaw + math.rad(shard.yaw), math.rad(8), math.rad(shard.roll))
+		shardPart.Transparency = 0.16
+	end
+end
+
+local function buildResourceVisual(resourcePart, resourceTypeId, traitId)
+	local resourceDefinition = if resourceTypeId ~= nil then Resources[resourceTypeId] else nil
+	local profile = resolveResourceVisualProfile(resourceTypeId, resourceDefinition)
+	local rootYaw = math.rad((getStringHash(resourcePart.Name) % 360) - 180)
+
+	resourcePart:SetAttribute("ResourceVisualVariant", profile.variantId)
+	resourcePart:SetAttribute("ResourceRarity", profile.rarity)
+	resourcePart:SetAttribute("ResourceRarityRank", profile.rarityRank)
+	resourcePart:SetAttribute("TraitDisplayName", resolveTraitDisplayName(traitId) or "None")
+
+	if profile.variantId == "artifact" then
+		buildArtifactCore(resourcePart, profile, rootYaw)
+	elseif profile.variantId == "cluster" then
+		buildCrystalCluster(resourcePart, profile, rootYaw)
+	else
+		buildPolishedGemstone(resourcePart, profile, rootYaw)
+	end
+
+	createRarityEffects(resourcePart, profile, profile.variantId)
+	local traitDisplayName = applyTraitEffects(resourcePart, profile, traitId)
+	if traitDisplayName == nil then
+		traitDisplayName = "None"
+	end
+
+	createResourceBillboard(
+		resourcePart,
+		if traitDisplayName ~= "None" then string.format("%s %s", traitDisplayName, profile.displayName) else profile.displayName,
+		if traitDisplayName ~= "None" then string.format("%s - %s", profile.rarity, traitDisplayName) else profile.rarity,
+		profile.accentColor,
+		profile.rarityRank
+	)
 end
 
 local function collectPlacedGeodes(profile, plotId, nowUnix)
@@ -725,35 +1443,18 @@ local function addGeodes(parent, plot, profile, nowUnix)
 end
 
 local function createResourcePart(parent, resourceName, resourceTypeId, traitId, position)
-	local resourceDefinition = if resourceTypeId ~= nil then Resources[resourceTypeId] else nil
 	local resourcePart = createDecorPart(
 		parent,
 		resourceName,
 		Vector3.new(3, 3, 3),
 		position,
-		resourceDefinition and resourceDefinition.color or Color3.fromRGB(240, 240, 255),
+		Color3.fromRGB(240, 240, 255),
 		Enum.Material.Neon
 	)
-	resourcePart.Shape = Enum.PartType.Ball
 	resourcePart:SetAttribute("ResourceId", resourceName)
 	resourcePart:SetAttribute("ResourceTypeId", resourceTypeId)
 	resourcePart:SetAttribute("TraitId", traitId or "none")
-
-	local marker = Instance.new("BillboardGui")
-	marker.Name = resourceName .. "_Marker"
-	marker.Size = UDim2.fromOffset(140, 28)
-	marker.StudsOffset = Vector3.new(0, 2.6, 0)
-	marker.AlwaysOnTop = true
-	marker.Parent = resourcePart
-
-	local label = Instance.new("TextLabel")
-	label.BackgroundTransparency = 1
-	label.Size = UDim2.fromScale(1, 1)
-	label.Font = Enum.Font.GothamBold
-	label.Text = resourceDefinition and resourceDefinition.displayName or "Resource"
-	label.TextColor3 = Color3.fromRGB(248, 248, 255)
-	label.TextScaled = true
-	label.Parent = marker
+	buildResourceVisual(resourcePart, resourceTypeId, traitId)
 end
 
 local function addResources(parent, plot, profile)

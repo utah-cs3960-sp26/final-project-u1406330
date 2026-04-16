@@ -33,14 +33,16 @@ The project is still a prototype. The backend gameplay slice is more complete th
 - Placed geodes render in the world and progress toward ready state.
 - Ready geodes can be clicked in the world to crack open.
 - Cracking a geode grants a resource into the Vault and removes the geode from placed state.
+- Revealed resources can now roll independent collectible attributes such as Fiery, Frosted, Radiant, Void-Touched, Cosmic, and the ultra-rare Singularity. Attributes are stored on the resource instance through `traitId` and increase resource sell value through deterministic multiplier math.
 - Placed resources render directly on the player's plot.
+- Placed resources now use procedural visual families instead of a single neon ball: polished gemstone, crystal cluster, and artifact-style core/shard variants, with rarity glow and attribute effects layered on top.
 - Starter station placement works, including deterministic first-fit placement when coordinates are not provided.
 - Station assignment and passive income systems still exist, but geode cracking now puts revealed resources in the Vault first instead of immediately auto-slotting them.
 - Passive income accrues online.
 - Offline reward summaries work.
 - Offline geode progress preserves finished geodes as ready to open instead of auto-opening them.
 - World replica renders plots, stations, displayed resources, placed resources, geodes, the mine, and the pickaxe shop.
-- A lightweight local geode reveal effect exists.
+- A lightweight local geode reveal effect exists, with bubbly slot-machine style reward popups for uncommon-or-better mining geode drops, uncommon-or-better resource reveals, and non-none resource attributes.
 - Daily rewards, pickaxe shop rotation data, and rare reveal announcements are represented in the current slice.
 - `rojo build default.project.json -o build-check.rbxlx` has succeeded locally.
 
@@ -61,15 +63,16 @@ The project is still a prototype. The backend gameplay slice is more complete th
 - Geodes: Starter Geode, Crystal Cavern Geode, Moonlit Geode, Ember Glass Geode, Verdant Rift Geode, Aurora Shard Geode, Thunder Core Geode, Fossil Vault Geode, Prism Sun Geode, Sovereign Nova Geode.
 - Pickaxes: Stone Pickaxe, Copper Pickaxe, Iron Pickaxe, Steel Pickaxe, Gold Pickaxe, Platinum Pickaxe, Emerald Pickaxe, Obsidian Pickaxe, Lunar Pickaxe, Crown Pickaxe.
 - Resources: Quartz, Amethyst, Emerald Cluster, Diamond Core, Star Shard.
+- Resource attributes: None, Fiery, Frosted, Verdant, Radiant, Prismatic, Celestial, Void-Touched, Starlit, Cosmic, Singularity.
 - Stations: Crystal Display, Resonance Pedestal.
 - Core progression: coins, mining, pickaxe buying, Vault storage, item selling, geode/resource placement, cracking, station assignment, passive income, offline rewards.
 
 ## In Progress
 
 - More Studio playtesting is needed for mining, pickaxe purchases, placement, cracking, reconnect, and offline edge cases.
-- Mining click feedback now includes bold center-screen action popups for rewards and important mining prompts.
+- Mining click feedback now includes bubbly Fredoka-style center-screen action popups for rewards and important mining prompts, with slot-machine reel treatment that scales above Common.
 - Placement UX uses transparent geode and resource ghost previews, but item art and interaction polish still need playtesting.
-- The reveal effect is client-side and lightweight, not a fuller replicated presentation.
+- The reveal effect is client-side and lightweight, while placed-resource visuals are replicated through the server world projection.
 - Specs exist under `tests/`, but a terminal-integrated automated Luau test runner is not wired in yet.
 - World visuals are readable for debugging but still need stronger cave/factory art direction.
 - Move and upgrade flows are present in the remote plan but not fully built out as complete player-facing systems.
@@ -90,6 +93,7 @@ The project is still a prototype. The backend gameplay slice is more complete th
 ## Architecture Notes
 
 - `src/shared` holds deterministic rules, configs, types, remote names, and utility modules.
+- Resource attribute odds, multipliers, and presentation metadata live in `src/shared/Config/Traits.luau`; deterministic reveal classification helpers live in `src/shared/Domain/RewardPresentation.luau`.
 - `src/server` owns profile mutation, mining rolls, pickaxe purchases, economy, placement validation, plot assignment, offline progress, and world replication.
 - `src/client` owns HUD construction, input controllers, local presentation, and action requests.
 - Workspace objects are a projection of authoritative state, not the source of truth.
@@ -101,5 +105,5 @@ The project is still a prototype. The backend gameplay slice is more complete th
 ## Verification Notes
 
 - Run `rojo build default.project.json -o build-check.rbxlx` after structural changes.
-- Useful specs currently live in `tests/`, including coverage for Vault sell math and Vault service placement/sell behavior.
+- Useful specs currently live in `tests/`, including coverage for Vault sell math, resource attribute rolling, reward presentation classification, and Vault service placement/sell behavior.
 - The repo does not yet have a terminal test command, so new deterministic logic should either add specs for future runner use or be accompanied by a small reproducible validation path.

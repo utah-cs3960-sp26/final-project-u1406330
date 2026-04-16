@@ -14,7 +14,7 @@ The main emotional hooks are:
 
 1. Owning and improving a personal cave-factory.
 2. Anticipating a geode reveal.
-3. Chasing rare resources and traits.
+3. Chasing rare resources and collectible attributes.
 4. Watching the plot fill with placed geodes, resources, and stations.
 5. Returning to timers, restocks, and offline rewards.
 
@@ -69,6 +69,8 @@ Implemented pickaxes:
 
 Resources are revealed from geodes and stored in the Vault. Players can place them on their own plot or sell them for coins. Station assignment remains the route for passive income when a station flow claims a resource.
 
+Resources can also roll an independent attribute. Attributes create distinct collectible finds such as Fiery Quartz or Singularity Star Shard, add a visible effect, and currently increase sell value through a multiplier. Attribute rarity is independent from base resource rarity so even common resources can occasionally become special.
+
 Implemented resources:
 
 1. Quartz.
@@ -76,6 +78,20 @@ Implemented resources:
 3. Emerald Cluster.
 4. Diamond Core.
 5. Star Shard.
+
+Implemented resource attributes:
+
+1. None.
+2. Fiery.
+3. Frosted.
+4. Verdant.
+5. Radiant.
+6. Prismatic.
+7. Celestial.
+8. Void-Touched.
+9. Starlit.
+10. Cosmic.
+11. Singularity.
 
 ### Stations
 
@@ -102,7 +118,7 @@ Players should feel progress continuing while they are not actively playing. Off
 
 ### Variable Rewards
 
-Geode rewards should use weighted pools. Trait rolls should make ordinary resources occasionally feel special.
+Geode rewards should use weighted pools. Attribute rolls should make ordinary resources occasionally feel special, and reward presentation should clearly communicate when a player found something above Common.
 
 ### Timed Scarcity
 
@@ -110,7 +126,7 @@ Hourly rotations, daily rewards, and future event geodes should give players rea
 
 ### Visible Growth
 
-The cave should physically improve as the player gains better geodes, resources, stations, and production capacity. Placed Vault resources should make progress visible even before deeper station flows are polished.
+The cave should physically improve as the player gains better geodes, resources, attributes, stations, and production capacity. Placed Vault resources should make progress visible even before deeper station flows are polished, using distinct visual models and effects for different resource and attribute rarities.
 
 ### Server Authority
 
@@ -121,7 +137,7 @@ The server owns purchases, reward rolls, placement validation, profile mutation,
 The following systems are design targets, not all current implementation:
 
 - More geode categories such as biome, premium, event, and achievement geodes.
-- More resources, traits, and rarity tiers.
+- More resources, attributes, and rarity tiers.
 - Station upgrades and specialized station roles.
 - Refinement or duplicate-combining systems.
 - Cave zone unlocks.
