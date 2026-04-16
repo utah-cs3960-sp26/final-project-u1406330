@@ -15,6 +15,12 @@ WorldReplicaService.__index = WorldReplicaService
 
 local SHARED_FLOOR_NAME = "SharedFloor"
 local PLOT_MARKER_FOLDER_NAME = "PlotMarkers"
+local SHOP_FRONT_NAME = "PickaxeShop"
+local MINE_NAME = "GeodeMine"
+local SHOP_PROMPT_ATTRIBUTE = "GemFactoryShopPrompt"
+local MINE_TARGET_ATTRIBUTE = "GemFactoryMineTarget"
+local MINE_ZONE_ATTRIBUTE = "GemFactoryMineZone"
+local STATIC_WORLD_LAYOUT_VERSION = 3
 
 local ROCK_VARIANTS = {
 	{
@@ -235,6 +241,14 @@ local function createDecorPart(parent, name, size, position, color, material)
 	return part
 end
 
+local function pivotStaticModel(model, sourceBaseCFrame, targetBaseCFrame)
+	for _, descendant in ipairs(model:GetDescendants()) do
+		if descendant:IsA("BasePart") then
+			descendant.CFrame = targetBaseCFrame * sourceBaseCFrame:ToObjectSpace(descendant.CFrame)
+		end
+	end
+end
+
 local function buildSharedFloor(worldFolder)
 	local width, height, depth = getSharedFloorSize()
 	local floor = worldFolder:FindFirstChild(SHARED_FLOOR_NAME)
@@ -319,6 +333,254 @@ local function ensureStaticWorld(worldFolder, plots)
 	for _, plot in ipairs(plots) do
 		addPlotMarker(markerFolder, plot)
 	end
+end
+
+local function buildPickaxeShop(worldFolder)
+	local shopFolder = worldFolder:FindFirstChild(SHOP_FRONT_NAME)
+	if shopFolder ~= nil then
+		if shopFolder:GetAttribute("StaticLayoutVersion") == STATIC_WORLD_LAYOUT_VERSION then
+			return shopFolder
+		end
+		shopFolder:Destroy()
+	end
+
+	shopFolder = Instance.new("Model")
+	shopFolder.Name = SHOP_FRONT_NAME
+	shopFolder:SetAttribute("StaticLayoutVersion", STATIC_WORLD_LAYOUT_VERSION)
+	shopFolder.Parent = worldFolder
+
+	local width = getSharedFloorSize()
+	local edgeX = World.plotOrigin.x + (width / 2) - 18
+	local basePosition = Vector3.new(edgeX, World.plotOrigin.y + 1, World.plotOrigin.z)
+
+	local stallBase = createPart(
+		shopFolder,
+		"StallBase",
+		Vector3.new(20, 2, 36),
+		basePosition,
+		Color3.fromRGB(38, 34, 48),
+		Enum.Material.Slate
+	)
+	stallBase.TopSurface = Enum.SurfaceType.Smooth
+
+	local backWall = createPart(
+		shopFolder,
+		"ShopBackWall",
+		Vector3.new(1.2, 8, 28),
+		basePosition + Vector3.new(7.4, 5, 0),
+		Color3.fromRGB(68, 53, 96),
+		Enum.Material.WoodPlanks
+	)
+	backWall.CanCollide = false
+
+	local sign = createDecorPart(
+		shopFolder,
+		"ShopSign",
+		Vector3.new(0.8, 4, 18),
+		basePosition + Vector3.new(6.7, 7.2, 0),
+		Color3.fromRGB(103, 83, 127),
+		Enum.Material.Wood
+	)
+
+	local signGui = Instance.new("SurfaceGui")
+	signGui.Face = Enum.NormalId.Left
+	signGui.AlwaysOnTop = true
+	signGui.Parent = sign
+
+	local signLabel = Instance.new("TextLabel")
+	signLabel.BackgroundTransparency = 1
+	signLabel.Size = UDim2.fromScale(1, 1)
+	signLabel.Font = Enum.Font.GothamBold
+	signLabel.Text = "Pickaxe Shop"
+	signLabel.TextColor3 = Color3.fromRGB(248, 248, 255)
+	signLabel.TextScaled = true
+	signLabel.Parent = signGui
+
+	local shopCallout = Instance.new("BillboardGui")
+	shopCallout.Name = "ShopCallout"
+	shopCallout.AlwaysOnTop = true
+	shopCallout.Size = UDim2.fromOffset(180, 44)
+	shopCallout.StudsOffset = Vector3.new(0, 4, 0)
+	shopCallout.Parent = sign
+
+	local calloutLabel = Instance.new("TextLabel")
+	calloutLabel.BackgroundTransparency = 1
+	calloutLabel.Size = UDim2.fromScale(1, 1)
+	calloutLabel.Font = Enum.Font.GothamBold
+	calloutLabel.Text = "Pickaxes tuned here."
+	calloutLabel.TextColor3 = Color3.fromRGB(248, 248, 255)
+	calloutLabel.TextScaled = true
+	calloutLabel.Parent = shopCallout
+
+	local shelf = createDecorPart(
+		shopFolder,
+		"PickaxeShelf",
+		Vector3.new(1, 1, 24),
+		basePosition + Vector3.new(6.1, 4.8, 0),
+		Color3.fromRGB(45, 38, 63),
+		Enum.Material.Wood
+	)
+
+	for index, tint in ipairs({
+		Color3.fromRGB(126, 126, 129),
+		Color3.fromRGB(184, 121, 74),
+		Color3.fromRGB(155, 164, 176),
+		Color3.fromRGB(224, 183, 74),
+		Color3.fromRGB(90, 195, 130),
+	}) do
+		local zOffset = -10 + ((index - 1) * 5)
+		local handle = createDecorPart(
+			shopFolder,
+			string.format("DisplayPickaxeHandle_%d", index),
+			Vector3.new(0.35, 3.4, 0.35),
+			basePosition + Vector3.new(5.5, 5.5, zOffset),
+			Color3.fromRGB(60, 45, 38),
+			Enum.Material.Wood
+		)
+		handle.CFrame = CFrame.new(handle.Position) * CFrame.Angles(0, 0, math.rad(22))
+
+		local head = createDecorPart(
+			shopFolder,
+			string.format("DisplayPickaxeHead_%d", index),
+			Vector3.new(0.45, 0.45, 2.6),
+			basePosition + Vector3.new(5.1, 6.85, zOffset),
+			tint,
+			Enum.Material.Metal
+		)
+		head.CFrame = CFrame.new(head.Position) * CFrame.Angles(0, math.rad(90), math.rad(22))
+	end
+	shelf.Transparency = 0.05
+
+	local promptAnchor = createDecorPart(
+		shopFolder,
+		"ShopPromptAnchor",
+		Vector3.new(2, 5, 24),
+		basePosition + Vector3.new(-5.5, 4, 0),
+		Color3.fromRGB(92, 180, 170),
+		Enum.Material.ForceField
+	)
+	promptAnchor.Transparency = 1
+	promptAnchor.CanQuery = false
+	promptAnchor.CanTouch = false
+
+	local prompt = Instance.new("ProximityPrompt")
+	prompt.Name = "ShopPrompt"
+	prompt.ActionText = "Browse Pickaxes"
+	prompt.ObjectText = "Pickaxe Smith"
+	prompt.KeyboardKeyCode = Enum.KeyCode.E
+	prompt.HoldDuration = 0
+	prompt.MaxActivationDistance = 10
+	prompt.RequiresLineOfSight = false
+	prompt:SetAttribute(SHOP_PROMPT_ATTRIBUTE, true)
+	prompt.Parent = promptAnchor
+
+	return shopFolder
+end
+
+local function buildMine(worldFolder)
+	local mine = worldFolder:FindFirstChild(MINE_NAME)
+	if mine ~= nil then
+		if mine:GetAttribute("StaticLayoutVersion") == STATIC_WORLD_LAYOUT_VERSION then
+			return mine
+		end
+		mine:Destroy()
+	end
+
+	mine = Instance.new("Model")
+	mine.Name = MINE_NAME
+	mine:SetAttribute("GemFactoryMine", true)
+	mine:SetAttribute("StaticLayoutVersion", STATIC_WORLD_LAYOUT_VERSION)
+	mine.Parent = worldFolder
+
+	local width = getSharedFloorSize()
+	local sourceBaseCFrame = CFrame.new(World.plotOrigin.x, World.plotOrigin.y + 1, World.plotOrigin.z)
+	local basePosition = sourceBaseCFrame.Position
+
+	local platform = createPart(
+		mine,
+		"MinePlatform",
+		Vector3.new(44, 2, 26),
+		basePosition,
+		Color3.fromRGB(35, 33, 43),
+		Enum.Material.Slate
+	)
+	platform.TopSurface = Enum.SurfaceType.Smooth
+
+	local zone = createDecorPart(
+		mine,
+		"MineStandingZone",
+		Vector3.new(40, 16, 24),
+		basePosition + Vector3.new(0, 8, 0),
+		Color3.fromRGB(92, 180, 170),
+		Enum.Material.ForceField
+	)
+	zone.Transparency = 1
+	zone.CanQuery = true
+	zone:SetAttribute(MINE_ZONE_ATTRIBUTE, true)
+
+	local mouth = createPart(
+		mine,
+		"MineFace",
+		Vector3.new(34, 22, 4),
+		basePosition + Vector3.new(0, 12, -9),
+		Color3.fromRGB(30, 28, 36),
+		Enum.Material.Rock
+	)
+	mouth:SetAttribute(MINE_TARGET_ATTRIBUTE, true)
+	mouth:SetAttribute("GemFactoryMine", true)
+
+	local target = createPart(
+		mine,
+		"MineTarget",
+		Vector3.new(24, 14, 1),
+		basePosition + Vector3.new(0, 10, -6.6),
+		Color3.fromRGB(58, 53, 72),
+		Enum.Material.Slate
+	)
+	target:SetAttribute(MINE_TARGET_ATTRIBUTE, true)
+	target:SetAttribute("GemFactoryMine", true)
+
+	for index = 1, 7 do
+		local xOffset = -15 + ((index - 1) * 5)
+		local crystal = createDecorPart(
+			mine,
+			string.format("MineCrystal_%d", index),
+			Vector3.new(1.5, 4 + (index % 3), 1.5),
+			basePosition + Vector3.new(xOffset, 4 + (index % 3), -6),
+			Color3.fromRGB(92 + (index * 12), 160, 190 + (index * 4)),
+			Enum.Material.Neon
+		)
+		crystal.CFrame = CFrame.new(crystal.Position) * CFrame.Angles(math.rad(8), math.rad(index * 17), math.rad(12))
+	end
+
+	local sign = createDecorPart(
+		mine,
+		"MineSign",
+		Vector3.new(18, 4, 0.6),
+		basePosition + Vector3.new(0, 17.5, -6.65),
+		Color3.fromRGB(76, 64, 91),
+		Enum.Material.Wood
+	)
+
+	local signGui = Instance.new("SurfaceGui")
+	signGui.Face = Enum.NormalId.Back
+	signGui.AlwaysOnTop = true
+	signGui.Parent = sign
+
+	local signLabel = Instance.new("TextLabel")
+	signLabel.BackgroundTransparency = 1
+	signLabel.Size = UDim2.fromScale(1, 1)
+	signLabel.Font = Enum.Font.GothamBold
+	signLabel.Text = "Geode Mine"
+	signLabel.TextColor3 = Color3.fromRGB(248, 248, 255)
+	signLabel.TextScaled = true
+	signLabel.Parent = signGui
+
+	local edgeX = World.plotOrigin.x - (width / 2) + 24
+	local targetBaseCFrame = CFrame.new(edgeX, basePosition.Y, World.plotOrigin.z) * CFrame.Angles(0, math.rad(90), 0)
+	pivotStaticModel(mine, sourceBaseCFrame, targetBaseCFrame)
+
+	return mine
 end
 
 local function addRockSpikes(parent, plot)
@@ -557,6 +819,8 @@ function WorldReplicaService:syncAll()
 	local worldFolder = ensureWorldFolder()
 	local plots = plotService:getAllPlots()
 	ensureStaticWorld(worldFolder, plots)
+	buildMine(worldFolder)
+	buildPickaxeShop(worldFolder)
 
 	for _, plot in ipairs(plots) do
 		if plot.userId ~= nil then

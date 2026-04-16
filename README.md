@@ -1,8 +1,8 @@
 # Gem Factory
 
-Gem Factory is a Roblox idle progression prototype built with Rojo and Luau. The current game loop is about buying geodes, placing them on a player plot, waiting for them to finish, cracking them open, feeding the revealed resources into stations, and earning passive income.
+Gem Factory is a Roblox idle progression prototype built with Rojo and Luau. The current game loop is about mining for coins and geodes, upgrading permanent pickaxes, placing owned geodes on a player plot, waiting for them to finish, cracking them open, feeding the revealed resources into stations, and earning passive income.
 
-The project is intentionally small and testable right now. Server services own the authoritative gameplay state, shared modules hold deterministic rules and config, and client controllers handle HUD, placement input, and world presentation.
+The project is intentionally small and testable right now. Server services own the authoritative gameplay state, shared modules hold deterministic rules and config, and client controllers handle HUD, placement input, mining input, and world presentation.
 
 ## Start Here
 
@@ -11,29 +11,31 @@ For the fastest context, read these in order:
 1. [docs/README.md](docs/README.md) - documentation map and what each doc is for.
 2. [docs/current_state.md](docs/current_state.md) - what works now, what is partial, and what should happen next.
 3. [docs/gem_factory_design.md](docs/gem_factory_design.md) - current product direction and design principles.
-4. [docs/agents.md](docs/agents.md) - collaboration rules for agent-assisted implementation.
+4. [agents.md](agents.md) - collaboration rules for agent-assisted implementation.
 
 Historical planning notes live in [docs/archive](docs/archive). They are useful for understanding where the project came from, but they should not be treated as the source of truth for the current implementation.
 
 ## Current MVP Loop
 
-1. Buy a starter geode from the HUD.
-2. Place the geode onto your assigned plot.
-3. Wait for the geode timer to complete.
-4. Click the ready geode in the world to crack it open.
-5. Place a starter station on the plot.
-6. Let revealed resources auto-slot into available station capacity.
-7. Earn passive income online and collect offline rewards later.
+1. Equip a pickaxe from the Roblox backpack.
+2. Stand inside the mine and click the mine target to earn coins or geodes.
+3. Buy permanent pickaxe upgrades from the pickaxe shop with coins.
+4. Equip a geode tool and place it onto your assigned plot.
+5. Wait for the geode timer to complete.
+6. Click the ready geode in the world to crack it open.
+7. Place a starter station on the plot.
+8. Let revealed resources auto-slot into available station capacity.
+9. Earn passive income online and collect offline rewards later.
 
 ## Repo Layout
 
 ```text
 src/
-  client/   Client bootstrap, controllers, HUD, placement input, and presentation.
-  server/   Server bootstrap, services, persistence, economy, plots, and world replica.
+  client/   Client bootstrap, controllers, HUD, mining input, placement input, and presentation.
+  server/   Server bootstrap, services, persistence, economy, mining, plots, and world replica.
   shared/   Config, deterministic domain modules, remote names, types, and utilities.
 
-tests/      Deterministic Luau specs for shared gameplay rules.
+tests/      Deterministic Luau specs for shared gameplay rules and server service behavior.
 docs/       Current docs plus archived historical planning notes.
 ```
 
@@ -47,15 +49,22 @@ Important entry points:
 ## Current Systems
 
 - Shared 8-player cavern map with assigned plots.
+- Mine on a no-plot side of the world plate.
+- Pickaxe shop on the opposite end of the world plate.
 - Mock persistence with profile reconciliation.
-- Geode shop purchasing and owned geode inventory.
+- Permanent one-time pickaxe purchases, all currently coin-priced.
+- Server-owned pickaxe Tools in Roblox `Backpack` and `StarterGear`.
+- Server-authoritative mining rewards through `RequestMine`.
+- Mining requires the player to stand inside the mine zone.
+- Mining rewards grant either coins or owned geode instances.
+- Server-owned geode Tools for unplaced geodes, one Tool per geode instance.
 - Grid placement for geodes and starter stations.
 - Timed geode lifecycle with ready-to-crack world interaction.
 - Weighted geode reward rolls and trait-aware resource instances.
 - Station assignment for revealed resources.
 - Online passive income and offline reward summaries.
-- Daily rewards, hourly shop rotation, HUD panels, and rare reveal announcements.
-- Workspace replica for plots, geodes, stations, and displayed resources.
+- Daily rewards, pickaxe shop rotation data, HUD panels, and rare reveal announcements.
+- Workspace replica for plots, geodes, stations, displayed resources, the mine, and the pickaxe shop.
 
 ## Build And Verification
 
@@ -65,7 +74,7 @@ Build the Roblox place file with Rojo:
 rojo build default.project.json -o build-check.rbxlx
 ```
 
-The repo contains Luau specs under `tests/`, including coverage for economy math, geode lifecycle, placement rules, station assignment, offline math, shop rotation, and remote names. A terminal-integrated test runner is not wired into this repo yet, so the specs are currently intended for Studio-side execution or a future runner setup.
+The repo contains Luau specs under `tests/`, including coverage for economy math, geode lifecycle, placement rules, station assignment, offline math, shop rotation, mining rewards, mining service behavior, geode tool sync, shop catalog data, and remote names. A terminal-integrated test runner is not wired into this repo yet, so the specs are currently intended for Studio-side execution or a future runner setup.
 
 ## Working Notes
 

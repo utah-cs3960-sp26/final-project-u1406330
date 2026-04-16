@@ -2,6 +2,8 @@
 
 This is an earlier phase-based plan kept for historical context. It is not the source of truth for current behavior. For the live implementation snapshot, read [../current_state.md](../current_state.md).
 
+Archive note: the current implementation has since pivoted to mine-based geode acquisition. Geodes are earned by mining while standing inside the mine, and the shop now sells permanent coin-priced pickaxes only. Older references below to direct geode buying or a geode shop are historical.
+
 ## Project Direction
 
 This plan adapts the project into **Gem Factory**, a cave-themed idle progression game built around geodes, resources, stations, and passive growth.

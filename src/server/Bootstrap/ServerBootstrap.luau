@@ -3,6 +3,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Geodes = require(Shared.Config.Geodes)
 local RemoteNames = require(Shared.Net.RemoteNames)
 local Time = require(Shared.Util.Time)
 
@@ -32,6 +33,67 @@ end
 
 local ServerBootstrap = {}
 
+local function isValidMineTarget(instance)
+	if instance == nil or not instance:IsA("BasePart") then
+		return false
+	end
+
+	if instance:GetAttribute("GemFactoryMineTarget") == true then
+		return true
+	end
+
+	local current = instance.Parent
+	while current ~= nil do
+		if current:IsA("Model") and current:GetAttribute("GemFactoryMine") == true then
+			return true
+		end
+		current = current.Parent
+	end
+
+	return false
+end
+
+local function findMineModel(instance)
+	local current = instance
+	while current ~= nil do
+		if current:IsA("Model") and current:GetAttribute("GemFactoryMine") == true then
+			return current
+		end
+		current = current.Parent
+	end
+
+	return nil
+end
+
+local function isPositionInsidePart(position, part)
+	local localPosition = part.CFrame:PointToObjectSpace(position)
+	local halfSize = part.Size / 2
+	return math.abs(localPosition.X) <= halfSize.X
+		and math.abs(localPosition.Y) <= halfSize.Y
+		and math.abs(localPosition.Z) <= halfSize.Z
+end
+
+local function isPlayerInsideMine(player, mineTarget)
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if root == nil or not root:IsA("BasePart") then
+		return false
+	end
+
+	local mineModel = findMineModel(mineTarget)
+	if mineModel == nil then
+		return false
+	end
+
+	for _, descendant in ipairs(mineModel:GetDescendants()) do
+		if descendant:IsA("BasePart") and descendant:GetAttribute("GemFactoryMineZone") == true then
+			return isPositionInsidePart(root.Position, descendant)
+		end
+	end
+
+	return false
+end
+
 local function resolveServices(remotes)
 	local servicesFolder = script.Parent.Parent.Services
 
@@ -43,6 +105,9 @@ local function resolveServices(remotes)
 	local PlacementService = require(servicesFolder.PlacementService)
 	local EconomyService = require(servicesFolder.EconomyService)
 	local GeodeService = require(servicesFolder.GeodeService)
+	local GeodeToolService = require(servicesFolder.GeodeToolService)
+	local MiningService = require(servicesFolder.MiningService)
+	local PickaxeToolService = require(servicesFolder.PickaxeToolService)
 	local GeodeQueueService = require(servicesFolder.GeodeQueueService)
 	local DailyRewardsService = require(servicesFolder.DailyRewardsService)
 	local OfflineProgressService = require(servicesFolder.OfflineProgressService)
@@ -66,6 +131,16 @@ local function resolveServices(remotes)
 		playerData = playerData,
 		shopService = shop,
 		placementService = placement,
+	})
+	local geodeTools = GeodeToolService.new({
+		playerData = playerData,
+	})
+	local pickaxeTools = PickaxeToolService.new({
+		playerData = playerData,
+	})
+	local mining = MiningService.new({
+		playerData = playerData,
+		geodeService = geode,
 	})
 	local geodeQueue = GeodeQueueService.new({
 		playerData = playerData,
@@ -99,6 +174,9 @@ local function resolveServices(remotes)
 		placement = placement,
 		economy = economy,
 		geode = geode,
+		geodeTools = geodeTools,
+		mining = mining,
+		pickaxeTools = pickaxeTools,
 		geodeQueue = geodeQueue,
 		dailyRewards = dailyRewards,
 		offlineProgress = offlineProgress,
@@ -127,7 +205,11 @@ function ServerBootstrap.start()
 		remotes.ShopRotationUpdated:FireAllClients(shopState)
 	end
 
-	services.playerData.onProfileChanged = publishState
+	services.playerData.onProfileChanged = function(userId)
+		publishState(userId)
+		services.geodeTools:syncPlayerByUserId(userId)
+		services.pickaxeTools:syncPlayerByUserId(userId)
+	end
 
 	local function callAction(actionName, action)
 		local ok, result = pcall(action)
@@ -150,8 +232,15 @@ function ServerBootstrap.start()
 	end
 
 	remotes.RequestBuyGeode.OnServerInvoke = function(player, geodeId)
-		return callAction("RequestBuyGeode", function()
-			local result, errorCode = services.geode:buyGeode(player.UserId, geodeId, Time.nowUnix())
+		return {
+			ok = false,
+			errorCode = "geode_shop_removed",
+		}
+	end
+
+	remotes.RequestBuyPickaxe.OnServerInvoke = function(player, pickaxeId)
+		return callAction("RequestBuyPickaxe", function()
+			local result, errorCode = services.mining:buyPickaxe(player.UserId, pickaxeId)
 			if result == nil then
 				return {
 					ok = false,
@@ -162,6 +251,55 @@ function ServerBootstrap.start()
 			return {
 				ok = true,
 				purchase = result,
+			}
+		end)
+	end
+
+	remotes.RequestEquipPickaxe.OnServerInvoke = function(player, pickaxeId)
+		return callAction("RequestEquipPickaxe", function()
+			local result, errorCode = services.mining:equipPickaxe(player.UserId, pickaxeId)
+			if result == nil then
+				return {
+					ok = false,
+					errorCode = errorCode or "equip_failed",
+				}
+			end
+
+			return {
+				ok = true,
+				equip = result,
+			}
+		end)
+	end
+
+	remotes.RequestMine.OnServerInvoke = function(player, pickaxeId, mineTarget)
+		return callAction("RequestMine", function()
+			if not isValidMineTarget(mineTarget) or not isPlayerInsideMine(player, mineTarget) then
+				return {
+					ok = false,
+					errorCode = "not_inside_mine",
+				}
+			end
+
+			local mineResult, errorCode = services.mining:mine(player.UserId, pickaxeId, Time.nowUnix())
+			if mineResult == nil then
+				return {
+					ok = false,
+					errorCode = errorCode or "mine_failed",
+				}
+			end
+
+			local reward = mineResult.reward
+			return {
+				ok = true,
+				reward = reward,
+				rewardType = reward.rewardType,
+				coins = reward.coins,
+				geodeId = reward.geodeId,
+				geodeTypeId = reward.geodeId,
+				geodeDisplayName = reward.geodeId ~= nil and Geodes[reward.geodeId] ~= nil and Geodes[reward.geodeId].displayName or nil,
+				geodeInstance = reward.geodeInstance,
+				pickaxeId = mineResult.pickaxeId,
 			}
 		end)
 	end
@@ -308,6 +446,9 @@ function ServerBootstrap.start()
 		services.placement,
 		services.economy,
 		services.geode,
+		services.geodeTools,
+		services.mining,
+		services.pickaxeTools,
 		services.geodeQueue,
 		services.dailyRewards,
 		services.offlineProgress,

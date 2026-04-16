@@ -8,14 +8,13 @@ local TableUtil = require(Shared.Util.TableUtil)
 local Time = require(Shared.Util.Time)
 local Signal = require(Shared.Util.Signal)
 local PlayerProfile = require(Shared.Types.PlayerProfile)
-local Shops = require(Shared.Config.Shops)
-local ShopRotation = require(Shared.Domain.ShopRotation)
 local RemoteNames = require(Shared.Net.RemoteNames)
 
 local RootScreen = require(script.Parent.Parent.UI.Screens.RootScreen)
 
 local HUDController = require(script.Parent.HUDController)
 local ShopController = require(script.Parent.ShopController)
+local MiningController = require(script.Parent.MiningController)
 local GeodeController = require(script.Parent.GeodeController)
 local PlotController = require(script.Parent.PlotController)
 local GeodeInteractionController = require(script.Parent.GeodeInteractionController)
@@ -27,31 +26,10 @@ local Palette = require(script.Parent.Parent.UI.Theme.Palette)
 local AppController = {}
 AppController.__index = AppController
 
-local function buildHourlyShopState(nowUnix: number)
-	local offers = Shops.hourlyRotation
-	local starterOffer = Shops.starterOffers[1]
-	local offerIndex = 1
-	local currentOffer = nil
-	local secondsRemaining = 0
-
-	if #offers > 0 then
-		offerIndex = ShopRotation.getHourlyIndex(nowUnix, #offers)
-		currentOffer = TableUtil.deepCopy(offers[offerIndex])
-		secondsRemaining = ShopRotation.getSecondsUntilNextRotation(nowUnix)
-	end
-
-	return {
-		currentOffer = currentOffer,
-		offerIndex = offerIndex,
-		secondsRemaining = secondsRemaining,
-		starterOffer = TableUtil.deepCopy(starterOffer),
-	}
-end
-
 local function buildDefaultState(nowUnix: number)
 	return {
 		profile = PlayerProfile.new(nowUnix),
-		shop = buildHourlyShopState(nowUnix),
+		shop = {},
 		announcements = {},
 		connectionMessage = "Loading crystal cavern...",
 	}
@@ -89,6 +67,12 @@ end
 
 local function normalizeShopState(currentShop, payload)
 	local shop = TableUtil.deepCopy(currentShop)
+	local handledKeys = {
+		currentOffer = true,
+		offerIndex = true,
+		secondsRemaining = true,
+		starterOffer = true,
+	}
 
 	if type(payload) ~= "table" then
 		return shop
@@ -110,6 +94,12 @@ local function normalizeShopState(currentShop, payload)
 
 	if payload.starterOffer ~= nil then
 		shop.starterOffer = TableUtil.deepCopy(payload.starterOffer)
+	end
+
+	for key, value in pairs(payload) do
+		if handledKeys[key] ~= true then
+			shop[key] = TableUtil.deepCopy(value)
+		end
 	end
 
 	return shop
@@ -243,6 +233,7 @@ function AppController.new()
 	self.controllers = {
 		HUDController.new(context),
 		ShopController.new(context),
+		MiningController.new(context),
 		GeodeController.new(context),
 		PlotController.new(context),
 		GeodeInteractionController.new(context),
@@ -308,17 +299,6 @@ function AppController:invokeRemote(name, ...)
 	end
 
 	return true, result
-end
-
-function AppController:requestBuyStarterGeode()
-	local ok, result = self:invokeRemote(RemoteNames.RequestBuyGeode, "starter_geode")
-	if ok and type(result) == "table" and result.ok == true then
-		self:setStatus("Starter geode purchased and added to your inventory.")
-	else
-		local errorText = type(result) == "table" and result.errorCode or result
-		self:setStatus("Starter geode purchase failed: " .. tostring(errorText))
-	end
-	return ok, result
 end
 
 function AppController:getPendingGeodePlacementId()

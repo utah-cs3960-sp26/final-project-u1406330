@@ -2,7 +2,7 @@
 
 ## Overview
 
-Gem Factory is a Roblox idle progression game about turning a rough cave plot into a glowing gem operation. Players buy geodes, wait for them to crack, reveal resources, place stations, and reinvest passive income into rarer finds and better production.
+Gem Factory is a Roblox idle progression game about turning a rough cave plot into a glowing gem operation. Players mine for coins and geodes, wait for geodes to crack, reveal resources, place stations, and reinvest passive income into better pickaxes, rarer finds, and better production.
 
 The current implementation is a narrow MVP slice of this design. Anything listed as future direction should be treated as product intent, not current behavior. For current behavior, read [current_state.md](current_state.md).
 
@@ -20,25 +20,50 @@ The main emotional hooks are:
 
 ## Current MVP Loop
 
-1. Buy a starter geode.
-2. Place the owned geode on the player plot.
-3. Wait for its timer to finish.
-4. Crack the ready geode in the world.
-5. Place a station.
-6. Auto-slot revealed resources into available station capacity.
-7. Earn passive income online and collect offline progress later.
+1. Equip a pickaxe.
+2. Mine for coins or geodes.
+3. Place an owned geode on the player plot.
+4. Wait for its timer to finish.
+5. Crack the ready geode in the world.
+6. Place a station.
+7. Auto-slot revealed resources into available station capacity.
+8. Earn passive income online and collect offline progress later.
 
 ## Current MVP Systems
 
 ### Geodes
 
-Geodes are bought through the shop/HUD, stored as owned items, placed on the plot, and opened after their timer completes.
+Geodes are earned through mining, stored as owned items, placed on the plot, and opened after their timer completes. Players must stand inside the mine to mine.
+
+### Pickaxes
+
+Pickaxes are permanent one-time purchases from the pickaxe shop. All current pickaxes cost coins. Better pickaxes improve coin payouts and shift mining geode weights toward rarer geodes.
 
 Implemented geodes:
 
 1. Starter Geode.
 2. Crystal Cavern Geode.
 3. Moonlit Geode.
+4. Ember Glass Geode.
+5. Verdant Rift Geode.
+6. Aurora Shard Geode.
+7. Thunder Core Geode.
+8. Fossil Vault Geode.
+9. Prism Sun Geode.
+10. Sovereign Nova Geode.
+
+Implemented pickaxes:
+
+1. Stone Pickaxe.
+2. Copper Pickaxe.
+3. Iron Pickaxe.
+4. Steel Pickaxe.
+5. Gold Pickaxe.
+6. Platinum Pickaxe.
+7. Emerald Pickaxe.
+8. Obsidian Pickaxe.
+9. Lunar Pickaxe.
+10. Crown Pickaxe.
 
 ### Resources
 
@@ -65,9 +90,9 @@ Implemented stations:
 
 Passive income should continue to matter even when the player is away. The current slice supports online passive income and offline reward summaries. Finished offline geodes remain ready to open instead of being auto-opened.
 
-### Shop And Daily Hooks
+### Mine, Shop, And Daily Hooks
 
-The current project includes shop rotation and daily reward systems. These are meant to create recurring reasons to check in without requiring deep mechanics yet.
+The current project includes a geode mine, pickaxe shop, shop rotation data, and daily reward systems. These are meant to create recurring reasons to check in without requiring deep mechanics yet.
 
 ## Design Principles
 
@@ -109,8 +134,8 @@ The following systems are design targets, not all current implementation:
 
 ### Server Responsibilities
 
-1. Validate purchases and placement.
-2. Roll geode outcomes.
+1. Validate purchases, mining, and placement.
+2. Roll mining rewards and geode outcomes.
 3. Mutate player profiles.
 4. Calculate online and offline rewards.
 5. Maintain plot assignment.

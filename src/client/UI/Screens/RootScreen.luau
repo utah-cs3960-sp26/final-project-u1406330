@@ -1,11 +1,32 @@
 --!strict
 
 local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
 
 local Panel = require(script.Parent.Parent.Components.Panel)
 
 local RootScreen = {}
 RootScreen.__index = RootScreen
+
+local SHOP_BASE_Z_INDEX = 60
+local POPUP_Z_INDEX = 80
+
+local function applyGuiZIndex(root, zIndex)
+	for _, descendant in ipairs(root:GetDescendants()) do
+		if descendant:IsA("GuiObject") then
+			descendant.ZIndex = zIndex
+		end
+	end
+end
+
+local function clearContainer(container)
+	for _, child in ipairs(container:GetChildren()) do
+		if child:IsA("UIListLayout") or child:IsA("UIPadding") or child:IsA("UIGridLayout") or child:IsA("UICorner") or child:IsA("UIStroke") then
+			continue
+		end
+		child:Destroy()
+	end
+end
 
 function RootScreen.new(context)
 	local palette = context.palette
@@ -16,6 +37,7 @@ function RootScreen.new(context)
 	screenGui.IgnoreGuiInset = false
 	screenGui.ResetOnSpawn = false
 	screenGui.DisplayOrder = 50
+	screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
 	screenGui.Parent = playerGui
 
 	local backdrop = Instance.new("Frame")
@@ -28,7 +50,7 @@ function RootScreen.new(context)
 	backdrop.Parent = screenGui
 
 	local backdropCorner = Instance.new("UICorner")
-	backdropCorner.CornerRadius = UDim.new(0, 18)
+	backdropCorner.CornerRadius = UDim.new(0, 8)
 	backdropCorner.Parent = backdrop
 
 	local backdropStroke = Instance.new("UIStroke")
@@ -45,7 +67,7 @@ function RootScreen.new(context)
 	header.Parent = backdrop
 
 	local headerCorner = Instance.new("UICorner")
-	headerCorner.CornerRadius = UDim.new(0, 18)
+	headerCorner.CornerRadius = UDim.new(0, 8)
 	headerCorner.Parent = header
 
 	local headerStroke = Instance.new("UIStroke")
@@ -97,7 +119,7 @@ function RootScreen.new(context)
 	collapseButton.Parent = header
 
 	local collapseCorner = Instance.new("UICorner")
-	collapseCorner.CornerRadius = UDim.new(0, 10)
+	collapseCorner.CornerRadius = UDim.new(0, 8)
 	collapseCorner.Parent = collapseButton
 
 	local scroll = Instance.new("ScrollingFrame")
@@ -123,14 +145,16 @@ function RootScreen.new(context)
 	local overview = Panel.createCard(scroll, "Crystal Cavern Overview", palette, 1)
 	local overviewLabel = Panel.createLabel(overview.body, "Loading crystal cavern statistics...", palette, 1)
 
-	local shop = Panel.createCard(scroll, "Hourly Shop", palette, 2)
-	local shopLabel = Panel.createLabel(shop.body, "Loading shop rotation...", palette, 1)
-	local buyStarter = Panel.createButton(shop.body, "Buy Starter Geode", palette, 2)
+	local shop = Panel.createCard(scroll, "Merchant Stall", palette, 2)
+	local shopLabel = Panel.createLabel(shop.body, "Loading pickaxe stock...", palette, 1)
+	local shopHint = Panel.createLabel(shop.body, "Visit the forge at the far edge to browse pickaxes.", palette, 2)
+	shop.frame.Visible = false
 
 	local geode = Panel.createCard(scroll, "Geode Inventory", palette, 3)
 	local geodeLabel = Panel.createLabel(geode.body, "Waiting for geode data...", palette, 1)
 	local placeGeode = Panel.createButton(geode.body, "Place Next Geode", palette, 2)
 	local openReadyGeodes = Panel.createButton(geode.body, "Open Ready Geode", palette, 3)
+	placeGeode.Visible = false
 
 	local daily = Panel.createCard(scroll, "Daily Rewards", palette, 4)
 	local dailyLabel = Panel.createLabel(daily.body, "Waiting for daily reward data...", palette, 1)
@@ -166,7 +190,7 @@ function RootScreen.new(context)
 	reopenButton.Parent = screenGui
 
 	local reopenCorner = Instance.new("UICorner")
-	reopenCorner.CornerRadius = UDim.new(0, 12)
+	reopenCorner.CornerRadius = UDim.new(0, 8)
 	reopenCorner.Parent = reopenButton
 
 	local reopenStroke = Instance.new("UIStroke")
@@ -175,15 +199,289 @@ function RootScreen.new(context)
 	reopenStroke.Transparency = 0.15
 	reopenStroke.Parent = reopenButton
 
+	local shopOverlay = Instance.new("Frame")
+	shopOverlay.Name = "ShopOverlay"
+	shopOverlay.BackgroundColor3 = Color3.fromRGB(8, 8, 12)
+	shopOverlay.BackgroundTransparency = 0.25
+	shopOverlay.BorderSizePixel = 0
+	shopOverlay.Size = UDim2.fromScale(1, 1)
+	shopOverlay.Visible = false
+	shopOverlay.ZIndex = SHOP_BASE_Z_INDEX
+	shopOverlay.Parent = screenGui
+
+	local shopOverlayStroke = Instance.new("UIStroke")
+	shopOverlayStroke.Color = Color3.fromRGB(0, 0, 0)
+	shopOverlayStroke.Transparency = 1
+	shopOverlayStroke.Parent = shopOverlay
+
+	local shopPanel = Instance.new("Frame")
+	shopPanel.Name = "ShopPanel"
+	shopPanel.AnchorPoint = Vector2.new(0.5, 0.5)
+	shopPanel.BackgroundColor3 = palette.background.panel
+	shopPanel.BorderSizePixel = 0
+	shopPanel.Position = UDim2.fromScale(0.5, 0.5)
+	shopPanel.Size = UDim2.new(0.92, 0, 0.84, 0)
+	shopPanel.ZIndex = SHOP_BASE_Z_INDEX + 1
+	shopPanel.Parent = shopOverlay
+
+	local shopPanelCorner = Instance.new("UICorner")
+	shopPanelCorner.CornerRadius = UDim.new(0, 8)
+	shopPanelCorner.Parent = shopPanel
+
+	local shopPanelStroke = Instance.new("UIStroke")
+	shopPanelStroke.Color = palette.border
+	shopPanelStroke.Thickness = 1
+	shopPanelStroke.Transparency = 0.1
+	shopPanelStroke.Parent = shopPanel
+
+	local shopPanelConstraint = Instance.new("UISizeConstraint")
+	shopPanelConstraint.MinSize = Vector2.new(320, 420)
+	shopPanelConstraint.MaxSize = Vector2.new(560, 680)
+	shopPanelConstraint.Parent = shopPanel
+
+	local shopPadding = Instance.new("UIPadding")
+	shopPadding.PaddingTop = UDim.new(0, 16)
+	shopPadding.PaddingBottom = UDim.new(0, 16)
+	shopPadding.PaddingLeft = UDim.new(0, 16)
+	shopPadding.PaddingRight = UDim.new(0, 16)
+	shopPadding.Parent = shopPanel
+
+	local shopLayout = Instance.new("UIListLayout")
+	shopLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	shopLayout.Padding = UDim.new(0, 12)
+	shopLayout.Parent = shopPanel
+
+	local shopHeader = Instance.new("Frame")
+	shopHeader.Name = "ShopHeader"
+	shopHeader.BackgroundTransparency = 1
+	shopHeader.LayoutOrder = 1
+	shopHeader.Size = UDim2.new(1, 0, 0, 56)
+	shopHeader.Parent = shopPanel
+
+	local shopTitle = Instance.new("TextLabel")
+	shopTitle.BackgroundTransparency = 1
+	shopTitle.Size = UDim2.new(1, -56, 0, 24)
+	shopTitle.Font = Enum.Font.GothamBold
+	shopTitle.Text = "Pickaxe Shop"
+	shopTitle.TextColor3 = palette.text
+	shopTitle.TextSize = 22
+	shopTitle.TextXAlignment = Enum.TextXAlignment.Left
+	shopTitle.Parent = shopHeader
+
+	local shopSubtitle = Instance.new("TextLabel")
+	shopSubtitle.BackgroundTransparency = 1
+	shopSubtitle.Position = UDim2.new(0, 0, 0, 28)
+	shopSubtitle.Size = UDim2.new(1, -56, 0, 20)
+	shopSubtitle.Font = Enum.Font.Gotham
+	shopSubtitle.Text = "Press E at the forge to open the shop."
+	shopSubtitle.TextColor3 = palette.muted
+	shopSubtitle.TextSize = 14
+	shopSubtitle.TextXAlignment = Enum.TextXAlignment.Left
+	shopSubtitle.TextWrapped = true
+	shopSubtitle.Parent = shopHeader
+
+	local shopClose = Instance.new("TextButton")
+	shopClose.Name = "CloseShopButton"
+	shopClose.AnchorPoint = Vector2.new(1, 0)
+	shopClose.AutoButtonColor = true
+	shopClose.BackgroundColor3 = palette.accent
+	shopClose.BorderSizePixel = 0
+	shopClose.Position = UDim2.new(1, 0, 0, 0)
+	shopClose.Size = UDim2.new(0, 40, 0, 32)
+	shopClose.Font = Enum.Font.GothamBold
+	shopClose.Text = "X"
+	shopClose.TextColor3 = palette.shadow
+	shopClose.TextSize = 18
+	shopClose.ZIndex = 62
+	shopClose.Parent = shopHeader
+
+	local shopCloseCorner = Instance.new("UICorner")
+	shopCloseCorner.CornerRadius = UDim.new(0, 8)
+	shopCloseCorner.Parent = shopClose
+
+	local shopCloseStroke = Instance.new("UIStroke")
+	shopCloseStroke.Color = palette.border
+	shopCloseStroke.Thickness = 1
+	shopCloseStroke.Transparency = 0.15
+	shopCloseStroke.Parent = shopClose
+
+	local shopInfo = Instance.new("Frame")
+	shopInfo.Name = "ShopInfo"
+	shopInfo.BackgroundColor3 = palette.background.panelAlt
+	shopInfo.BorderSizePixel = 0
+	shopInfo.LayoutOrder = 2
+	shopInfo.Size = UDim2.new(1, 0, 0, 64)
+	shopInfo.Parent = shopPanel
+
+	local shopInfoCorner = Instance.new("UICorner")
+	shopInfoCorner.CornerRadius = UDim.new(0, 8)
+	shopInfoCorner.Parent = shopInfo
+
+	local shopInfoStroke = Instance.new("UIStroke")
+	shopInfoStroke.Color = palette.border
+	shopInfoStroke.Thickness = 1
+	shopInfoStroke.Transparency = 0.18
+	shopInfoStroke.Parent = shopInfo
+
+	local shopInfoPadding = Instance.new("UIPadding")
+	shopInfoPadding.PaddingTop = UDim.new(0, 10)
+	shopInfoPadding.PaddingBottom = UDim.new(0, 10)
+	shopInfoPadding.PaddingLeft = UDim.new(0, 12)
+	shopInfoPadding.PaddingRight = UDim.new(0, 12)
+	shopInfoPadding.Parent = shopInfo
+
+	local shopInfoLabel = Instance.new("TextLabel")
+	shopInfoLabel.BackgroundTransparency = 1
+	shopInfoLabel.Size = UDim2.new(1, 0, 1, 0)
+	shopInfoLabel.Font = Enum.Font.Gotham
+	shopInfoLabel.Text = "Loading pickaxe stock..."
+	shopInfoLabel.TextColor3 = palette.text
+	shopInfoLabel.TextSize = 14
+	shopInfoLabel.TextWrapped = true
+	shopInfoLabel.TextXAlignment = Enum.TextXAlignment.Left
+	shopInfoLabel.TextYAlignment = Enum.TextYAlignment.Top
+	shopInfoLabel.Parent = shopInfo
+
+	local shopOfferScroll = Instance.new("ScrollingFrame")
+	shopOfferScroll.Name = "ShopOffers"
+	shopOfferScroll.BackgroundTransparency = 1
+	shopOfferScroll.BorderSizePixel = 0
+	shopOfferScroll.LayoutOrder = 3
+	shopOfferScroll.ScrollBarThickness = 6
+	shopOfferScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	shopOfferScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+	shopOfferScroll.Size = UDim2.new(1, 0, 0, 214)
+	shopOfferScroll.ZIndex = SHOP_BASE_Z_INDEX + 2
+	shopOfferScroll.Parent = shopPanel
+
+	local shopOfferPadding = Instance.new("UIPadding")
+	shopOfferPadding.PaddingBottom = UDim.new(0, 4)
+	shopOfferPadding.Parent = shopOfferScroll
+
+	local shopOfferLayout = Instance.new("UIListLayout")
+	shopOfferLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	shopOfferLayout.Padding = UDim.new(0, 10)
+	shopOfferLayout.Parent = shopOfferScroll
+
+	local rarityFrame = Instance.new("Frame")
+	rarityFrame.Name = "RarityLadder"
+	rarityFrame.BackgroundTransparency = 1
+	rarityFrame.LayoutOrder = 4
+	rarityFrame.Size = UDim2.new(1, 0, 0, 128)
+	rarityFrame.Parent = shopPanel
+
+	local rarityTitle = Instance.new("TextLabel")
+	rarityTitle.BackgroundTransparency = 1
+	rarityTitle.Size = UDim2.new(1, 0, 0, 20)
+	rarityTitle.Font = Enum.Font.GothamBold
+	rarityTitle.Text = "Pickaxe Tiers"
+	rarityTitle.TextColor3 = palette.accentSoft
+	rarityTitle.TextSize = 16
+	rarityTitle.TextXAlignment = Enum.TextXAlignment.Left
+	rarityTitle.Parent = rarityFrame
+
+	local rarityGrid = Instance.new("Frame")
+	rarityGrid.Name = "RarityGrid"
+	rarityGrid.BackgroundTransparency = 1
+	rarityGrid.Position = UDim2.new(0, 0, 0, 26)
+	rarityGrid.Size = UDim2.new(1, 0, 1, -26)
+	rarityGrid.Parent = rarityFrame
+
+	local rarityLayout = Instance.new("UIGridLayout")
+	rarityLayout.CellPadding = UDim2.new(0, 6, 0, 6)
+	rarityLayout.CellSize = UDim2.new(0.2, -5, 0.5, -3)
+	rarityLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	rarityLayout.Parent = rarityGrid
+
+	local rarityLabels = {}
+	local rarityNames = {
+		"Common",
+		"Uncommon",
+		"Rare",
+		"Epic",
+		"Mythic",
+		"Legendary",
+		"Storm",
+		"Ancient",
+		"Prismatic",
+		"Sovereign",
+	}
+
+	for index, rarityName in ipairs(rarityNames) do
+		local rarityChip = Instance.new("TextLabel")
+		rarityChip.Name = string.format("Rarity%d", index)
+		rarityChip.BackgroundColor3 = palette.background.panelAlt
+		rarityChip.BorderSizePixel = 0
+		rarityChip.Font = Enum.Font.GothamBold
+		rarityChip.LayoutOrder = index
+		rarityChip.Text = rarityName
+		rarityChip.TextColor3 = palette.text
+		rarityChip.TextSize = 13
+		rarityChip.TextWrapped = false
+		rarityChip.ZIndex = SHOP_BASE_Z_INDEX + 2
+		rarityChip.Parent = rarityGrid
+
+		local chipCorner = Instance.new("UICorner")
+		chipCorner.CornerRadius = UDim.new(0, 8)
+		chipCorner.Parent = rarityChip
+
+		local chipStroke = Instance.new("UIStroke")
+		chipStroke.Color = palette.border
+		chipStroke.Thickness = 1
+		chipStroke.Transparency = 0.2
+		chipStroke.Parent = rarityChip
+
+		table.insert(rarityLabels, rarityChip)
+	end
+
+	applyGuiZIndex(shopPanel, SHOP_BASE_Z_INDEX + 2)
+	shopPanel.ZIndex = SHOP_BASE_Z_INDEX + 1
+	shopOverlay.ZIndex = SHOP_BASE_Z_INDEX
+	shopClose.ZIndex = SHOP_BASE_Z_INDEX + 4
+
+	local miningPopupContainer = Instance.new("Frame")
+	miningPopupContainer.Name = "MiningPopups"
+	miningPopupContainer.AnchorPoint = Vector2.new(0.5, 0)
+	miningPopupContainer.BackgroundTransparency = 1
+	miningPopupContainer.BorderSizePixel = 0
+	miningPopupContainer.Position = UDim2.new(0.5, 0, 0.22, 0)
+	miningPopupContainer.Size = UDim2.new(0, 420, 0, 180)
+	miningPopupContainer.ZIndex = POPUP_Z_INDEX
+	miningPopupContainer.Parent = screenGui
+
+	local miningPopupConstraint = Instance.new("UISizeConstraint")
+	miningPopupConstraint.MinSize = Vector2.new(240, 120)
+	miningPopupConstraint.MaxSize = Vector2.new(520, 220)
+	miningPopupConstraint.Parent = miningPopupContainer
+
+	local miningPopupLayout = Instance.new("UIListLayout")
+	miningPopupLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	miningPopupLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	miningPopupLayout.Padding = UDim.new(0, 8)
+	miningPopupLayout.Parent = miningPopupContainer
+
 	local self = setmetatable({
 		gui = screenGui,
 		backdrop = backdrop,
 		scroll = scroll,
 		reopenButton = reopenButton,
+		shop = {
+			overlay = shopOverlay,
+			panel = shopPanel,
+			title = shopTitle,
+			subtitle = shopSubtitle,
+			info = shopInfoLabel,
+			offers = shopOfferScroll,
+			rarity = rarityGrid,
+			rarityLabels = rarityLabels,
+			closeButton = shopClose,
+		},
+		miningPopupContainer = miningPopupContainer,
 		labels = {
 			status = status,
 			overview = overviewLabel,
 			shop = shopLabel,
+			shopHint = shopHint,
 			geode = geodeLabel,
 			daily = dailyLabel,
 			offline = offlineLabel,
@@ -192,7 +490,6 @@ function RootScreen.new(context)
 			notifications = notificationsLabel,
 		},
 		buttons = {
-			buyStarter = buyStarter,
 			placeGeode = placeGeode,
 			openReadyGeodes = openReadyGeodes,
 			claimDaily = claimDaily,
@@ -200,7 +497,6 @@ function RootScreen.new(context)
 			placeStarterStation = placeStarterStation,
 		},
 		buttonColors = {
-			buyStarter = buyStarter.BackgroundColor3,
 			placeGeode = placeGeode.BackgroundColor3,
 			openReadyGeodes = openReadyGeodes.BackgroundColor3,
 			claimDaily = claimDaily.BackgroundColor3,
@@ -224,7 +520,11 @@ function RootScreen.new(context)
 		setOpen(true)
 	end)
 
-	self:setPlaceGeodeButton(false, "Place Next Geode")
+	shopClose.Activated:Connect(function()
+		shopOverlay.Visible = false
+	end)
+
+	self:setShopMenuVisible(false)
 	self:setOpenReadyGeodeButton(false, "Open Ready Geode")
 	self:setOfflineButtonState(false, "Claim Offline Cache")
 	self:setPlaceStarterStationButton(true, "Place Starter Station")
@@ -248,6 +548,7 @@ function RootScreen:setGeodeText(text)
 end
 
 function RootScreen:setPlaceGeodeButton(enabled, text)
+	self.buttons.placeGeode.Visible = false
 	self.buttons.placeGeode.Active = enabled
 	self.buttons.placeGeode.AutoButtonColor = enabled
 	self.buttons.placeGeode.Text = text
@@ -288,11 +589,80 @@ function RootScreen:setNotificationsText(text)
 	self.labels.notifications.Text = text
 end
 
-function RootScreen:setBuyStarterButton(enabled, text)
-	self.buttons.buyStarter.Active = enabled
-	self.buttons.buyStarter.AutoButtonColor = enabled
-	self.buttons.buyStarter.Text = text
-	self.buttons.buyStarter.BackgroundColor3 = if enabled then self.buttonColors.buyStarter else Color3.fromRGB(120, 120, 120)
+function RootScreen:showMiningPopup(text)
+	local popup = Instance.new("TextLabel")
+	popup.Name = "MiningPopup"
+	popup.AnchorPoint = Vector2.new(0.5, 0)
+	popup.BackgroundColor3 = Color3.fromRGB(18, 17, 24)
+	popup.BackgroundTransparency = 0.08
+	popup.BorderSizePixel = 0
+	popup.Size = UDim2.new(0.92, 0, 0, 48)
+	popup.Font = Enum.Font.GothamBlack
+	popup.Text = tostring(text)
+	popup.TextColor3 = Color3.fromRGB(255, 246, 196)
+	popup.TextSize = 24
+	popup.TextWrapped = true
+	popup.ZIndex = POPUP_Z_INDEX
+	popup.Parent = self.miningPopupContainer
+
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 8)
+	corner.Parent = popup
+
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = Color3.fromRGB(109, 231, 255)
+	stroke.Thickness = 2
+	stroke.Transparency = 0.05
+	stroke.Parent = popup
+
+	task.delay(1.4, function()
+		if popup.Parent == nil then
+			return
+		end
+
+		local tween = TweenService:Create(
+			popup,
+			TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+			{
+				BackgroundTransparency = 1,
+				TextTransparency = 1,
+			}
+		)
+		tween:Play()
+		tween.Completed:Connect(function()
+			popup:Destroy()
+		end)
+	end)
+end
+
+function RootScreen:setShopMenuVisible(visible)
+	self.shop.overlay.Visible = visible
+end
+
+function RootScreen:getShopOfferContainer()
+	return self.shop.offers
+end
+
+function RootScreen:getShopRarityContainer()
+	return self.shop.rarity
+end
+
+function RootScreen:setShopMenuSubtitle(text)
+	self.shop.subtitle.Text = text
+end
+
+function RootScreen:setShopMenuInfo(text)
+	self.shop.info.Text = text
+end
+
+function RootScreen:setShopMenuRarities(labels)
+	for index, rarityLabel in ipairs(self.shop.rarityLabels) do
+		rarityLabel.Text = labels[index] or ""
+	end
+end
+
+function RootScreen:clearShopOfferRows()
+	clearContainer(self.shop.offers)
 end
 
 function RootScreen:setDailyButtonState(enabled, text)

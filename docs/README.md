@@ -6,7 +6,7 @@ This folder is split into current project docs and archived planning material.
 
 - [current_state.md](current_state.md) is the live implementation snapshot. Start here when you need to know what currently works, what is partial, and what should be built next.
 - [gem_factory_design.md](gem_factory_design.md) is the current product and systems direction for Gem Factory. It describes the intended fantasy, loop, and design principles.
-- [agents.md](agents.md) documents how agent-assisted work should be done in this repo: clean implementation, useful tests, and documentation updates after changes.
+- [../agents.md](../agents.md) documents how agent-assisted work should be done in this repo: clean implementation, useful tests, and documentation updates after changes.
 
 ## Archived Docs
 
@@ -20,5 +20,5 @@ Archived docs are not the source of truth for current behavior. When archived no
 1. Read this file for the map.
 2. Read [current_state.md](current_state.md) for the implementation snapshot.
 3. Read [gem_factory_design.md](gem_factory_design.md) for design intent.
-4. Read [agents.md](agents.md) before making or reviewing implementation changes.
+4. Read [../agents.md](../agents.md) before making or reviewing implementation changes.
 5. Read [archive](archive) only when you need project history.

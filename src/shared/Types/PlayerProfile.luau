@@ -41,6 +41,7 @@ export type PlayerProfile = {
 	inventory: {
 		geodes: { [string]: number },
 		items: { [string]: number },
+		pickaxes: { [string]: boolean },
 	},
 	geodeQueue: { GeodeQueueEntry },
 	unclaimedOfflineRewards: OfflineRewardSummary?,
@@ -52,6 +53,7 @@ export type PlayerProfile = {
 	progression: {
 		unlockedZones: { string },
 		prestigeCount: number,
+		equippedPickaxeId: string,
 	},
 	plotState: {
 		plotId: string?,
@@ -89,6 +91,9 @@ local function createTemplate(nowUnix: number): PlayerProfile
 		inventory = {
 			geodes = {},
 			items = {},
+			pickaxes = {
+				stone_pickaxe = true,
+			},
 		},
 		geodeQueue = {},
 		unclaimedOfflineRewards = nil,
@@ -100,6 +105,7 @@ local function createTemplate(nowUnix: number): PlayerProfile
 		progression = {
 			unlockedZones = { "crystal_cavern" },
 			prestigeCount = 0,
+			equippedPickaxeId = "stone_pickaxe",
 		},
 		plotState = {
 			plotId = nil,
@@ -127,6 +133,10 @@ end
 function PlayerProfile.reconcile(profile: any, nowUnix: number?): PlayerProfile
 	local timestamp = nowUnix or 0
 	local resolved = TableUtil.reconcile(createTemplate(timestamp), profile)
+	resolved.inventory.pickaxes.stone_pickaxe = true
+	if resolved.progression.equippedPickaxeId == nil or resolved.inventory.pickaxes[resolved.progression.equippedPickaxeId] ~= true then
+		resolved.progression.equippedPickaxeId = "stone_pickaxe"
+	end
 	GeodeState.migrateLegacyQueue(resolved)
 	resolved.geodeQueue = GeodeState.buildQueueEntries(resolved.geodesById, resolved.geodeOrder, timestamp)
 	resolved.meta.schemaVersion = PlayerProfile.SCHEMA_VERSION

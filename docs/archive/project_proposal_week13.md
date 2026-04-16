@@ -2,6 +2,8 @@
 
 This document preserves the older proposal and Week 13 progress narrative that previously lived in the root README. It is kept for project history only. For current behavior, read [../current_state.md](../current_state.md).
 
+Archive note: the current implementation has since pivoted away from buying geodes directly. Players now mine for coins/geodes and buy permanent coin-priced pickaxes from a pickaxe shop. The older "buy a geode" wording below describes the Week 13 state, not the live loop.
+
 ## Original Proposal Summary
 
 The project was proposed as a simple Roblox idle game called Gem Factory, inspired by the design patterns in Grow A Garden. The core idea was to build a very simple loop with strong retention hooks:

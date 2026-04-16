@@ -67,54 +67,161 @@ return Economy
             <string name="Name">Geodes</string>
             <string name="Source"><![CDATA[--!strict
 
+local function makeRoll(resourceId: string, weight: number)
+	return {
+		resourceId = resourceId,
+		weight = weight,
+	}
+end
+
+local function makeGeode(
+	id: string,
+	displayName: string,
+	geodeSeconds: number,
+	displayColor: Color3,
+	rolls: { { resourceId: string, weight: number } }
+)
+	return {
+		id = id,
+		displayName = displayName,
+		geodeSeconds = geodeSeconds,
+		gridSize = {
+			width = 2,
+			height = 2,
+		},
+		displayColor = displayColor,
+		rolls = rolls,
+	}
+end
+
 local Geodes = {
-	starter_geode = {
-		id = "starter_geode",
-		displayName = "Starter Geode",
-		geodeSeconds = 10,
-		gridSize = {
-			width = 2,
-			height = 2,
-		},
-		displayColor = Color3.fromRGB(124, 129, 150),
-		rolls = {
-			{ resourceId = "quartz", weight = 70 },
-			{ resourceId = "amethyst", weight = 25 },
-			{ resourceId = "emerald_cluster", weight = 5 },
-		},
-	},
-	crystal_cavern_geode = {
-		id = "crystal_cavern_geode",
-		displayName = "Crystal Cavern Geode",
-		geodeSeconds = 20,
-		gridSize = {
-			width = 2,
-			height = 2,
-		},
-		displayColor = Color3.fromRGB(92, 112, 150),
-		rolls = {
-			{ resourceId = "quartz", weight = 45 },
-			{ resourceId = "amethyst", weight = 32 },
-			{ resourceId = "emerald_cluster", weight = 17 },
-			{ resourceId = "diamond_core", weight = 6 },
-		},
-	},
-	moonlit_geode = {
-		id = "moonlit_geode",
-		displayName = "Moonlit Geode",
-		geodeSeconds = 30,
-		gridSize = {
-			width = 2,
-			height = 2,
-		},
-		displayColor = Color3.fromRGB(128, 116, 162),
-		rolls = {
-			{ resourceId = "amethyst", weight = 35 },
-			{ resourceId = "emerald_cluster", weight = 40 },
-			{ resourceId = "diamond_core", weight = 22 },
-			{ resourceId = "star_shard", weight = 3 },
-		},
-	},
+	starter_geode = makeGeode(
+		"starter_geode",
+		"Starter Geode",
+		10,
+		Color3.fromRGB(124, 129, 150),
+		{
+			makeRoll("quartz", 70),
+			makeRoll("amethyst", 25),
+			makeRoll("emerald_cluster", 5),
+		}
+	),
+	crystal_cavern_geode = makeGeode(
+		"crystal_cavern_geode",
+		"Crystal Cavern Geode",
+		18,
+		Color3.fromRGB(92, 112, 150),
+		{
+			makeRoll("quartz", 45),
+			makeRoll("amethyst", 30),
+			makeRoll("emerald_cluster", 20),
+			makeRoll("diamond_core", 5),
+		}
+	),
+	moonlit_geode = makeGeode(
+		"moonlit_geode",
+		"Moonlit Geode",
+		24,
+		Color3.fromRGB(168, 176, 204),
+		{
+			makeRoll("quartz", 28),
+			makeRoll("amethyst", 34),
+			makeRoll("emerald_cluster", 26),
+			makeRoll("diamond_core", 10),
+			makeRoll("star_shard", 2),
+		}
+	),
+	ember_glass_geode = makeGeode(
+		"ember_glass_geode",
+		"Ember Glass Geode",
+		30,
+		Color3.fromRGB(214, 116, 72),
+		{
+			makeRoll("quartz", 20),
+			makeRoll("amethyst", 25),
+			makeRoll("emerald_cluster", 30),
+			makeRoll("diamond_core", 18),
+			makeRoll("star_shard", 7),
+		}
+	),
+	verdant_rift_geode = makeGeode(
+		"verdant_rift_geode",
+		"Verdant Rift Geode",
+		36,
+		Color3.fromRGB(88, 170, 112),
+		{
+			makeRoll("quartz", 18),
+			makeRoll("amethyst", 22),
+			makeRoll("emerald_cluster", 34),
+			makeRoll("diamond_core", 16),
+			makeRoll("star_shard", 10),
+		}
+	),
+	aurora_shard_geode = makeGeode(
+		"aurora_shard_geode",
+		"Aurora Shard Geode",
+		42,
+		Color3.fromRGB(90, 199, 214),
+		{
+			makeRoll("quartz", 12),
+			makeRoll("amethyst", 18),
+			makeRoll("emerald_cluster", 28),
+			makeRoll("diamond_core", 24),
+			makeRoll("star_shard", 18),
+		}
+	),
+	thunder_core_geode = makeGeode(
+		"thunder_core_geode",
+		"Thunder Core Geode",
+		50,
+		Color3.fromRGB(80, 96, 128),
+		{
+			makeRoll("quartz", 10),
+			makeRoll("amethyst", 15),
+			makeRoll("emerald_cluster", 25),
+			makeRoll("diamond_core", 25),
+			makeRoll("star_shard", 25),
+		}
+	),
+	fossil_vault_geode = makeGeode(
+		"fossil_vault_geode",
+		"Fossil Vault Geode",
+		60,
+		Color3.fromRGB(168, 149, 120),
+		{
+			makeRoll("quartz", 40),
+			makeRoll("amethyst", 25),
+			makeRoll("emerald_cluster", 18),
+			makeRoll("diamond_core", 10),
+			makeRoll("star_shard", 7),
+		}
+	),
+	prism_sun_geode = makeGeode(
+		"prism_sun_geode",
+		"Prism Sun Geode",
+		72,
+		Color3.fromRGB(244, 204, 96),
+		{
+			makeRoll("quartz", 8),
+			makeRoll("amethyst", 14),
+			makeRoll("emerald_cluster", 22),
+			makeRoll("diamond_core", 26),
+			makeRoll("star_shard", 30),
+		}
+	),
+	sovereign_nova_geode = makeGeode(
+		"sovereign_nova_geode",
+		"Sovereign Nova Geode",
+		90,
+		Color3.fromRGB(235, 230, 214),
+		{
+			makeRoll("quartz", 5),
+			makeRoll("amethyst", 10),
+			makeRoll("emerald_cluster", 15),
+			makeRoll("diamond_core", 25),
+			makeRoll("star_shard", 45),
+		}
+	),
 }
 
 return Geodes
@@ -122,6 +229,216 @@ return Geodes
           </Properties>
         </Item>
         <Item class="ModuleScript" referent="7">
+          <Properties>
+            <string name="Name">Pickaxes</string>
+            <string name="Source"><![CDATA[--!strict
+
+local geodeOrder = {
+	"starter_geode",
+	"crystal_cavern_geode",
+	"moonlit_geode",
+	"ember_glass_geode",
+	"verdant_rift_geode",
+	"aurora_shard_geode",
+	"thunder_core_geode",
+	"fossil_vault_geode",
+	"prism_sun_geode",
+	"sovereign_nova_geode",
+}
+
+local function makeGeodeWeights(weights: { number })
+	local entries = {}
+
+	for index, geodeId in ipairs(geodeOrder) do
+		table.insert(entries, {
+			geodeId = geodeId,
+			weight = weights[index] or 0,
+		})
+	end
+
+	return entries
+end
+
+local function makePickaxe(
+	id: string,
+	displayName: string,
+	rarity: string,
+	price: number,
+	currency: string,
+	cooldownSeconds: number,
+	coinRewardMin: number,
+	coinRewardMax: number,
+	geodeChance: number,
+	geodeWeights: { number },
+	displayColor: Color3
+)
+	return {
+		id = id,
+		displayName = displayName,
+		rarity = rarity,
+		price = price,
+		currency = currency,
+		cooldownSeconds = cooldownSeconds,
+		coinRewardMin = coinRewardMin,
+		coinRewardMax = coinRewardMax,
+		geodeChance = geodeChance,
+		geodeWeights = makeGeodeWeights(geodeWeights),
+		displayColor = displayColor,
+	}
+end
+
+local Pickaxes = {
+	order = {
+		"stone_pickaxe",
+		"copper_pickaxe",
+		"iron_pickaxe",
+		"steel_pickaxe",
+		"gold_pickaxe",
+		"platinum_pickaxe",
+		"emerald_pickaxe",
+		"obsidian_pickaxe",
+		"lunar_pickaxe",
+		"crown_pickaxe",
+	},
+	catalog = {
+		stone_pickaxe = makePickaxe(
+			"stone_pickaxe",
+			"Stone Pickaxe",
+			"Common",
+			75,
+			"coins",
+			0.6,
+			4,
+			8,
+			25,
+			{ 50, 25, 15, 5, 3, 1, 1, 0, 0, 0 },
+			Color3.fromRGB(126, 126, 129)
+		),
+		copper_pickaxe = makePickaxe(
+			"copper_pickaxe",
+			"Copper Pickaxe",
+			"Uncommon",
+			150,
+			"coins",
+			0.55,
+			6,
+			11,
+			28,
+			{ 40, 24, 16, 9, 5, 3, 2, 1, 0, 0 },
+			Color3.fromRGB(184, 121, 74)
+		),
+		iron_pickaxe = makePickaxe(
+			"iron_pickaxe",
+			"Iron Pickaxe",
+			"Rare",
+			260,
+			"coins",
+			0.5,
+			9,
+			16,
+			30,
+			{ 30, 24, 16, 10, 7, 5, 4, 2, 1, 1 },
+			Color3.fromRGB(155, 164, 176)
+		),
+		steel_pickaxe = makePickaxe(
+			"steel_pickaxe",
+			"Steel Pickaxe",
+			"Epic",
+			420,
+			"coins",
+			0.48,
+			12,
+			22,
+			32,
+			{ 22, 20, 16, 12, 9, 7, 5, 4, 3, 2 },
+			Color3.fromRGB(108, 120, 136)
+		),
+		gold_pickaxe = makePickaxe(
+			"gold_pickaxe",
+			"Gold Pickaxe",
+			"Legendary",
+			650,
+			"coins",
+			0.45,
+			16,
+			30,
+			34,
+			{ 15, 16, 15, 13, 11, 10, 7, 5, 4, 4 },
+			Color3.fromRGB(224, 183, 74)
+		),
+		platinum_pickaxe = makePickaxe(
+			"platinum_pickaxe",
+			"Platinum Pickaxe",
+			"Mythic",
+			950,
+			"coins",
+			0.42,
+			22,
+			40,
+			36,
+			{ 10, 12, 13, 14, 13, 12, 9, 7, 5, 5 },
+			Color3.fromRGB(209, 221, 226)
+		),
+		emerald_pickaxe = makePickaxe(
+			"emerald_pickaxe",
+			"Emerald Pickaxe",
+			"Ancient",
+			1400,
+			"coins",
+			0.4,
+			30,
+			52,
+			38,
+			{ 7, 9, 10, 12, 13, 13, 12, 10, 7, 7 },
+			Color3.fromRGB(90, 195, 130)
+		),
+		obsidian_pickaxe = makePickaxe(
+			"obsidian_pickaxe",
+			"Obsidian Pickaxe",
+			"Prismatic",
+			2000,
+			"coins",
+			0.38,
+			40,
+			68,
+			40,
+			{ 5, 6, 8, 10, 12, 14, 14, 11, 10, 10 },
+			Color3.fromRGB(74, 74, 91)
+		),
+		lunar_pickaxe = makePickaxe(
+			"lunar_pickaxe",
+			"Lunar Pickaxe",
+			"Sovereign",
+			2900,
+			"coins",
+			0.35,
+			52,
+			88,
+			42,
+			{ 3, 4, 5, 7, 10, 12, 15, 15, 13, 16 },
+			Color3.fromRGB(171, 182, 214)
+		),
+		crown_pickaxe = makePickaxe(
+			"crown_pickaxe",
+			"Crown Pickaxe",
+			"Apex",
+			4000,
+			"coins",
+			0.3,
+			68,
+			110,
+			45,
+			{ 2, 2, 3, 4, 7, 9, 13, 16, 18, 26 },
+			Color3.fromRGB(245, 231, 167)
+		),
+	},
+}
+
+return Pickaxes
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="8">
           <Properties>
             <string name="Name">Resources</string>
             <string name="Source"><![CDATA[--!strict
@@ -168,19 +485,73 @@ return Resources
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="8">
+        <Item class="ModuleScript" referent="9">
           <Properties>
             <string name="Name">Shops</string>
             <string name="Source"><![CDATA[--!strict
 
+local Pickaxes = require(script.Parent.Pickaxes)
+
+local function makeOffer(pickaxeId: string, spotlightText: string)
+	local pickaxe = Pickaxes.catalog[pickaxeId]
+
+	return {
+		offerId = pickaxeId,
+		pickaxeId = pickaxeId,
+		displayName = pickaxe.displayName,
+		rarity = pickaxe.rarity,
+		price = pickaxe.price,
+		currency = pickaxe.currency,
+		cooldownSeconds = pickaxe.cooldownSeconds,
+		coinRewardMin = pickaxe.coinRewardMin,
+		coinRewardMax = pickaxe.coinRewardMax,
+		geodeChance = pickaxe.geodeChance,
+		geodeWeights = pickaxe.geodeWeights,
+		displayColor = pickaxe.displayColor,
+		spotlightText = spotlightText,
+	}
+end
+
+local catalog = {
+	stone_pickaxe = makeOffer("stone_pickaxe", "Entry line"),
+	copper_pickaxe = makeOffer("copper_pickaxe", "Early upgrade"),
+	iron_pickaxe = makeOffer("iron_pickaxe", "Miner's step"),
+	steel_pickaxe = makeOffer("steel_pickaxe", "Workbench favorite"),
+	gold_pickaxe = makeOffer("gold_pickaxe", "Shiny middle"),
+	platinum_pickaxe = makeOffer("platinum_pickaxe", "Deep haul"),
+	emerald_pickaxe = makeOffer("emerald_pickaxe", "Green edge"),
+	obsidian_pickaxe = makeOffer("obsidian_pickaxe", "Hard reach"),
+	lunar_pickaxe = makeOffer("lunar_pickaxe", "Night shift"),
+	crown_pickaxe = makeOffer("crown_pickaxe", "Top shelf"),
+}
+
+local starterOffers = {
+	catalog.stone_pickaxe,
+	catalog.copper_pickaxe,
+	catalog.iron_pickaxe,
+	catalog.steel_pickaxe,
+	catalog.gold_pickaxe,
+	catalog.platinum_pickaxe,
+	catalog.emerald_pickaxe,
+	catalog.obsidian_pickaxe,
+	catalog.lunar_pickaxe,
+	catalog.crown_pickaxe,
+}
+
 local Shops = {
-	starterOffers = {
-		{ offerId = "starter_geode", price = 50, currency = "coins" },
-	},
+	catalog = catalog,
+	starterOffers = starterOffers,
 	hourlyRotation = {
-		{ offerId = "starter_geode", price = 45, currency = "coins" },
-		{ offerId = "crystal_cavern_geode", price = 120, currency = "coins" },
-		{ offerId = "moonlit_geode", price = 1, currency = "gems" },
+		catalog.stone_pickaxe,
+		catalog.copper_pickaxe,
+		catalog.iron_pickaxe,
+		catalog.steel_pickaxe,
+		catalog.gold_pickaxe,
+		catalog.platinum_pickaxe,
+		catalog.emerald_pickaxe,
+		catalog.obsidian_pickaxe,
+		catalog.lunar_pickaxe,
+		catalog.crown_pickaxe,
 	},
 }
 
@@ -188,7 +559,7 @@ return Shops
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="9">
+        <Item class="ModuleScript" referent="10">
           <Properties>
             <string name="Name">Stations</string>
             <string name="Source"><![CDATA[--!strict
@@ -216,7 +587,7 @@ return Stations
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="10">
+        <Item class="ModuleScript" referent="11">
           <Properties>
             <string name="Name">Traits</string>
             <string name="Source"><![CDATA[--!strict
@@ -264,7 +635,7 @@ return Traits
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="11">
+        <Item class="ModuleScript" referent="12">
           <Properties>
             <string name="Name">World</string>
             <string name="Source"><![CDATA[--!strict
@@ -315,11 +686,11 @@ return World
           </Properties>
         </Item>
       </Item>
-      <Item class="Folder" referent="12">
+      <Item class="Folder" referent="13">
         <Properties>
           <string name="Name">Domain</string>
         </Properties>
-        <Item class="ModuleScript" referent="13">
+        <Item class="ModuleScript" referent="14">
           <Properties>
             <string name="Name">EconomyMath</string>
             <string name="Source"><![CDATA[--!strict
@@ -365,7 +736,7 @@ return EconomyMath
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="14">
+        <Item class="ModuleScript" referent="15">
           <Properties>
             <string name="Name">GeodeRoller</string>
             <string name="Source"><![CDATA[--!strict
@@ -423,7 +794,7 @@ return GeodeRoller
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="15">
+        <Item class="ModuleScript" referent="16">
           <Properties>
             <string name="Name">GeodeState</string>
             <string name="Source"><![CDATA[--!strict
@@ -570,7 +941,150 @@ return GeodeState
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="16">
+        <Item class="ModuleScript" referent="17">
+          <Properties>
+            <string name="Name">MiningRewards</string>
+            <string name="Source"><![CDATA[--!strict
+
+local MiningRewards = {}
+
+local function rollNumber(rng: any): number
+	if rng ~= nil then
+		return rng:NextNumber()
+	end
+
+	return math.random()
+end
+
+local function rollInteger(rng: any, minValue: number, maxValue: number): number
+	if rng ~= nil then
+		return rng:NextInteger(minValue, maxValue)
+	end
+
+	return math.random(minValue, maxValue)
+end
+
+local function getGeodeWeights(pickaxeDefinition: any)
+	if type(pickaxeDefinition) ~= "table" then
+		return nil
+	end
+
+	local geodeWeights = pickaxeDefinition.geodeWeights
+	if type(geodeWeights) ~= "table" then
+		return nil
+	end
+
+	return geodeWeights
+end
+
+local function pickWeightedEntry(entries: { any }, roll: number)
+	local cursor = 0
+
+	for _, entry in ipairs(entries) do
+		local weight = if type(entry.weight) == "number" then entry.weight else 0
+		if weight <= 0 then
+			continue
+		end
+
+		cursor += weight
+		if roll <= cursor then
+			return entry
+		end
+	end
+
+	return nil
+end
+
+function MiningRewards.getTotalGeodeWeight(pickaxeDefinition: any): number
+	local geodeWeights = getGeodeWeights(pickaxeDefinition)
+	if geodeWeights == nil then
+		return 0
+	end
+
+	local totalWeight = 0
+
+	for _, entry in ipairs(geodeWeights) do
+		if type(entry.weight) == "number" and entry.weight > 0 then
+			totalWeight += entry.weight
+		end
+	end
+
+	return totalWeight
+end
+
+function MiningRewards.rollCoins(pickaxeDefinition: any, rng: any)
+	if type(pickaxeDefinition) ~= "table" or type(pickaxeDefinition.id) ~= "string" then
+		return nil, "invalid_pickaxe"
+	end
+
+	local minCoins = pickaxeDefinition.coinRewardMin
+	local maxCoins = pickaxeDefinition.coinRewardMax
+
+	if type(minCoins) ~= "number" or type(maxCoins) ~= "number" or minCoins > maxCoins then
+		return nil, "invalid_pickaxe"
+	end
+
+	local coins = rollInteger(rng, minCoins, maxCoins)
+	return {
+		rewardType = "coins",
+		pickaxeId = pickaxeDefinition.id,
+		displayName = pickaxeDefinition.displayName,
+		rarity = pickaxeDefinition.rarity,
+		coins = coins,
+		geodeId = nil,
+	}
+end
+
+function MiningRewards.rollGeode(pickaxeDefinition: any, rng: any)
+	if type(pickaxeDefinition) ~= "table" or type(pickaxeDefinition.id) ~= "string" then
+		return nil, "invalid_pickaxe"
+	end
+
+	local geodeWeights = getGeodeWeights(pickaxeDefinition)
+	local totalWeight = MiningRewards.getTotalGeodeWeight(pickaxeDefinition)
+
+	if geodeWeights == nil or totalWeight <= 0 then
+		return nil, "invalid_pickaxe"
+	end
+
+	local roll = rollInteger(rng, 1, totalWeight)
+	local entry = pickWeightedEntry(geodeWeights, roll)
+	if entry == nil or type(entry.geodeId) ~= "string" then
+		return nil, "invalid_pickaxe"
+	end
+
+	return {
+		rewardType = "geode",
+		pickaxeId = pickaxeDefinition.id,
+		displayName = pickaxeDefinition.displayName,
+		rarity = pickaxeDefinition.rarity,
+		coins = nil,
+		geodeId = entry.geodeId,
+	}
+end
+
+function MiningRewards.rollReward(pickaxeDefinition: any, rng: any)
+	if type(pickaxeDefinition) ~= "table" or type(pickaxeDefinition.id) ~= "string" then
+		return nil, "unknown_pickaxe"
+	end
+
+	if type(pickaxeDefinition.geodeChance) ~= "number" then
+		return nil, "invalid_pickaxe"
+	end
+
+	local chanceRoll = rollNumber(rng)
+	if chanceRoll <= (pickaxeDefinition.geodeChance / 100) then
+		return MiningRewards.rollGeode(pickaxeDefinition, rng)
+	end
+
+	return MiningRewards.rollCoins(pickaxeDefinition, rng)
+end
+
+return MiningRewards
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="18">
           <Properties>
             <string name="Name">OfflineMath</string>
             <string name="Source"><![CDATA[--!strict
@@ -603,7 +1117,7 @@ return OfflineMath
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="17">
+        <Item class="ModuleScript" referent="19">
           <Properties>
             <string name="Name">PlacementRules</string>
             <string name="Source"><![CDATA[--!strict
@@ -687,7 +1201,7 @@ return PlacementRules
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="18">
+        <Item class="ModuleScript" referent="20">
           <Properties>
             <string name="Name">ShopRotation</string>
             <string name="Source"><![CDATA[--!strict
@@ -719,7 +1233,7 @@ return ShopRotation
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="19">
+        <Item class="ModuleScript" referent="21">
           <Properties>
             <string name="Name">StationAssignment</string>
             <string name="Source"><![CDATA[--!strict
@@ -851,7 +1365,7 @@ return StationAssignment
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="20">
+        <Item class="ModuleScript" referent="22">
           <Properties>
             <string name="Name">TraitRoller</string>
             <string name="Source"><![CDATA[--!strict
@@ -909,17 +1423,20 @@ return TraitRoller
           </Properties>
         </Item>
       </Item>
-      <Item class="Folder" referent="21">
+      <Item class="Folder" referent="23">
         <Properties>
           <string name="Name">Net</string>
         </Properties>
-        <Item class="ModuleScript" referent="22">
+        <Item class="ModuleScript" referent="24">
           <Properties>
             <string name="Name">RemoteNames</string>
             <string name="Source"><![CDATA[--!strict
 
 local RemoteNames = {
 	RequestBuyGeode = "RequestBuyGeode",
+	RequestMine = "RequestMine",
+	RequestBuyPickaxe = "RequestBuyPickaxe",
+	RequestEquipPickaxe = "RequestEquipPickaxe",
 	RequestPlaceGeode = "RequestPlaceGeode",
 	RequestCrackGeode = "RequestCrackGeode",
 	RequestOpenGeode = "RequestCrackGeode",
@@ -941,7 +1458,7 @@ return RemoteNames
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="23">
+        <Item class="ModuleScript" referent="25">
           <Properties>
             <string name="Name">Remotes</string>
             <string name="Source"><![CDATA[--!strict
@@ -951,6 +1468,9 @@ local RemoteNames = require(script.Parent.RemoteNames)
 local Remotes = {
 	definitions = {
 		[RemoteNames.RequestBuyGeode] = "RemoteFunction",
+		[RemoteNames.RequestMine] = "RemoteFunction",
+		[RemoteNames.RequestBuyPickaxe] = "RemoteFunction",
+		[RemoteNames.RequestEquipPickaxe] = "RemoteFunction",
 		[RemoteNames.RequestPlaceGeode] = "RemoteFunction",
 		[RemoteNames.RequestCrackGeode] = "RemoteFunction",
 		[RemoteNames.RequestClaimFinishedGeode] = "RemoteFunction",
@@ -972,11 +1492,11 @@ return Remotes
           </Properties>
         </Item>
       </Item>
-      <Item class="Folder" referent="24">
+      <Item class="Folder" referent="26">
         <Properties>
           <string name="Name">Types</string>
         </Properties>
-        <Item class="ModuleScript" referent="25">
+        <Item class="ModuleScript" referent="27">
           <Properties>
             <string name="Name">GeodeTypes</string>
             <string name="Source"><![CDATA[--!strict
@@ -1003,7 +1523,7 @@ return {}
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="26">
+        <Item class="ModuleScript" referent="28">
           <Properties>
             <string name="Name">PlayerProfile</string>
             <string name="Source"><![CDATA[--!strict
@@ -1049,6 +1569,7 @@ export type PlayerProfile = {
 	inventory: {
 		geodes: { [string]: number },
 		items: { [string]: number },
+		pickaxes: { [string]: boolean },
 	},
 	geodeQueue: { GeodeQueueEntry },
 	unclaimedOfflineRewards: OfflineRewardSummary?,
@@ -1060,6 +1581,7 @@ export type PlayerProfile = {
 	progression: {
 		unlockedZones: { string },
 		prestigeCount: number,
+		equippedPickaxeId: string,
 	},
 	plotState: {
 		plotId: string?,
@@ -1097,6 +1619,9 @@ local function createTemplate(nowUnix: number): PlayerProfile
 		inventory = {
 			geodes = {},
 			items = {},
+			pickaxes = {
+				stone_pickaxe = true,
+			},
 		},
 		geodeQueue = {},
 		unclaimedOfflineRewards = nil,
@@ -1108,6 +1633,7 @@ local function createTemplate(nowUnix: number): PlayerProfile
 		progression = {
 			unlockedZones = { "crystal_cavern" },
 			prestigeCount = 0,
+			equippedPickaxeId = "stone_pickaxe",
 		},
 		plotState = {
 			plotId = nil,
@@ -1135,6 +1661,10 @@ end
 function PlayerProfile.reconcile(profile: any, nowUnix: number?): PlayerProfile
 	local timestamp = nowUnix or 0
 	local resolved = TableUtil.reconcile(createTemplate(timestamp), profile)
+	resolved.inventory.pickaxes.stone_pickaxe = true
+	if resolved.progression.equippedPickaxeId == nil or resolved.inventory.pickaxes[resolved.progression.equippedPickaxeId] ~= true then
+		resolved.progression.equippedPickaxeId = "stone_pickaxe"
+	end
 	GeodeState.migrateLegacyQueue(resolved)
 	resolved.geodeQueue = GeodeState.buildQueueEntries(resolved.geodesById, resolved.geodeOrder, timestamp)
 	resolved.meta.schemaVersion = PlayerProfile.SCHEMA_VERSION
@@ -1146,7 +1676,7 @@ return PlayerProfile
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="27">
+        <Item class="ModuleScript" referent="29">
           <Properties>
             <string name="Name">ResourceTypes</string>
             <string name="Source"><![CDATA[--!strict
@@ -1164,7 +1694,7 @@ return {}
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="28">
+        <Item class="ModuleScript" referent="30">
           <Properties>
             <string name="Name">StationTypes</string>
             <string name="Source"><![CDATA[--!strict
@@ -1202,11 +1732,11 @@ return {}
           </Properties>
         </Item>
       </Item>
-      <Item class="Folder" referent="29">
+      <Item class="Folder" referent="31">
         <Properties>
           <string name="Name">Util</string>
         </Properties>
-        <Item class="ModuleScript" referent="30">
+        <Item class="ModuleScript" referent="32">
           <Properties>
             <string name="Name">Id</string>
             <string name="Source"><![CDATA[--!strict
@@ -1228,7 +1758,7 @@ return Id
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="31">
+        <Item class="ModuleScript" referent="33">
           <Properties>
             <string name="Name">Result</string>
             <string name="Source"><![CDATA[--!strict
@@ -1265,7 +1795,7 @@ return Result
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="32">
+        <Item class="ModuleScript" referent="34">
           <Properties>
             <string name="Name">Signal</string>
             <string name="Source"><![CDATA[--!strict
@@ -1312,7 +1842,7 @@ return Signal
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="33">
+        <Item class="ModuleScript" referent="35">
           <Properties>
             <string name="Name">TableUtil</string>
             <string name="Source"><![CDATA[--!strict
@@ -1376,7 +1906,7 @@ return TableUtil
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="34">
+        <Item class="ModuleScript" referent="36">
           <Properties>
             <string name="Name">Time</string>
             <string name="Source"><![CDATA[--!strict
@@ -1403,11 +1933,11 @@ return Time
       </Item>
     </Item>
   </Item>
-  <Item class="ServerScriptService" referent="35">
+  <Item class="ServerScriptService" referent="37">
     <Properties>
       <string name="Name">ServerScriptService</string>
     </Properties>
-    <Item class="Script" referent="36">
+    <Item class="Script" referent="38">
       <Properties>
         <string name="Name">Server</string>
         <token name="RunContext">0</token>
@@ -1416,11 +1946,11 @@ return Time
 ServerBootstrap.start()
 ]]></string>
       </Properties>
-      <Item class="Folder" referent="37">
+      <Item class="Folder" referent="39">
         <Properties>
           <string name="Name">Bootstrap</string>
         </Properties>
-        <Item class="ModuleScript" referent="38">
+        <Item class="ModuleScript" referent="40">
           <Properties>
             <string name="Name">ServerBootstrap</string>
             <string name="Source"><![CDATA[--!strict
@@ -1428,6 +1958,7 @@ ServerBootstrap.start()
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Geodes = require(Shared.Config.Geodes)
 local RemoteNames = require(Shared.Net.RemoteNames)
 local Time = require(Shared.Util.Time)
 
@@ -1457,6 +1988,67 @@ end
 
 local ServerBootstrap = {}
 
+local function isValidMineTarget(instance)
+	if instance == nil or not instance:IsA("BasePart") then
+		return false
+	end
+
+	if instance:GetAttribute("GemFactoryMineTarget") == true then
+		return true
+	end
+
+	local current = instance.Parent
+	while current ~= nil do
+		if current:IsA("Model") and current:GetAttribute("GemFactoryMine") == true then
+			return true
+		end
+		current = current.Parent
+	end
+
+	return false
+end
+
+local function findMineModel(instance)
+	local current = instance
+	while current ~= nil do
+		if current:IsA("Model") and current:GetAttribute("GemFactoryMine") == true then
+			return current
+		end
+		current = current.Parent
+	end
+
+	return nil
+end
+
+local function isPositionInsidePart(position, part)
+	local localPosition = part.CFrame:PointToObjectSpace(position)
+	local halfSize = part.Size / 2
+	return math.abs(localPosition.X) <= halfSize.X
+		and math.abs(localPosition.Y) <= halfSize.Y
+		and math.abs(localPosition.Z) <= halfSize.Z
+end
+
+local function isPlayerInsideMine(player, mineTarget)
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if root == nil or not root:IsA("BasePart") then
+		return false
+	end
+
+	local mineModel = findMineModel(mineTarget)
+	if mineModel == nil then
+		return false
+	end
+
+	for _, descendant in ipairs(mineModel:GetDescendants()) do
+		if descendant:IsA("BasePart") and descendant:GetAttribute("GemFactoryMineZone") == true then
+			return isPositionInsidePart(root.Position, descendant)
+		end
+	end
+
+	return false
+end
+
 local function resolveServices(remotes)
 	local servicesFolder = script.Parent.Parent.Services
 
@@ -1468,6 +2060,9 @@ local function resolveServices(remotes)
 	local PlacementService = require(servicesFolder.PlacementService)
 	local EconomyService = require(servicesFolder.EconomyService)
 	local GeodeService = require(servicesFolder.GeodeService)
+	local GeodeToolService = require(servicesFolder.GeodeToolService)
+	local MiningService = require(servicesFolder.MiningService)
+	local PickaxeToolService = require(servicesFolder.PickaxeToolService)
 	local GeodeQueueService = require(servicesFolder.GeodeQueueService)
 	local DailyRewardsService = require(servicesFolder.DailyRewardsService)
 	local OfflineProgressService = require(servicesFolder.OfflineProgressService)
@@ -1491,6 +2086,16 @@ local function resolveServices(remotes)
 		playerData = playerData,
 		shopService = shop,
 		placementService = placement,
+	})
+	local geodeTools = GeodeToolService.new({
+		playerData = playerData,
+	})
+	local pickaxeTools = PickaxeToolService.new({
+		playerData = playerData,
+	})
+	local mining = MiningService.new({
+		playerData = playerData,
+		geodeService = geode,
 	})
 	local geodeQueue = GeodeQueueService.new({
 		playerData = playerData,
@@ -1524,6 +2129,9 @@ local function resolveServices(remotes)
 		placement = placement,
 		economy = economy,
 		geode = geode,
+		geodeTools = geodeTools,
+		mining = mining,
+		pickaxeTools = pickaxeTools,
 		geodeQueue = geodeQueue,
 		dailyRewards = dailyRewards,
 		offlineProgress = offlineProgress,
@@ -1552,7 +2160,11 @@ function ServerBootstrap.start()
 		remotes.ShopRotationUpdated:FireAllClients(shopState)
 	end
 
-	services.playerData.onProfileChanged = publishState
+	services.playerData.onProfileChanged = function(userId)
+		publishState(userId)
+		services.geodeTools:syncPlayerByUserId(userId)
+		services.pickaxeTools:syncPlayerByUserId(userId)
+	end
 
 	local function callAction(actionName, action)
 		local ok, result = pcall(action)
@@ -1575,8 +2187,15 @@ function ServerBootstrap.start()
 	end
 
 	remotes.RequestBuyGeode.OnServerInvoke = function(player, geodeId)
-		return callAction("RequestBuyGeode", function()
-			local result, errorCode = services.geode:buyGeode(player.UserId, geodeId, Time.nowUnix())
+		return {
+			ok = false,
+			errorCode = "geode_shop_removed",
+		}
+	end
+
+	remotes.RequestBuyPickaxe.OnServerInvoke = function(player, pickaxeId)
+		return callAction("RequestBuyPickaxe", function()
+			local result, errorCode = services.mining:buyPickaxe(player.UserId, pickaxeId)
 			if result == nil then
 				return {
 					ok = false,
@@ -1587,6 +2206,55 @@ function ServerBootstrap.start()
 			return {
 				ok = true,
 				purchase = result,
+			}
+		end)
+	end
+
+	remotes.RequestEquipPickaxe.OnServerInvoke = function(player, pickaxeId)
+		return callAction("RequestEquipPickaxe", function()
+			local result, errorCode = services.mining:equipPickaxe(player.UserId, pickaxeId)
+			if result == nil then
+				return {
+					ok = false,
+					errorCode = errorCode or "equip_failed",
+				}
+			end
+
+			return {
+				ok = true,
+				equip = result,
+			}
+		end)
+	end
+
+	remotes.RequestMine.OnServerInvoke = function(player, pickaxeId, mineTarget)
+		return callAction("RequestMine", function()
+			if not isValidMineTarget(mineTarget) or not isPlayerInsideMine(player, mineTarget) then
+				return {
+					ok = false,
+					errorCode = "not_inside_mine",
+				}
+			end
+
+			local mineResult, errorCode = services.mining:mine(player.UserId, pickaxeId, Time.nowUnix())
+			if mineResult == nil then
+				return {
+					ok = false,
+					errorCode = errorCode or "mine_failed",
+				}
+			end
+
+			local reward = mineResult.reward
+			return {
+				ok = true,
+				reward = reward,
+				rewardType = reward.rewardType,
+				coins = reward.coins,
+				geodeId = reward.geodeId,
+				geodeTypeId = reward.geodeId,
+				geodeDisplayName = reward.geodeId ~= nil and Geodes[reward.geodeId] ~= nil and Geodes[reward.geodeId].displayName or nil,
+				geodeInstance = reward.geodeInstance,
+				pickaxeId = mineResult.pickaxeId,
 			}
 		end)
 	end
@@ -1733,6 +2401,9 @@ function ServerBootstrap.start()
 		services.placement,
 		services.economy,
 		services.geode,
+		services.geodeTools,
+		services.mining,
+		services.pickaxeTools,
 		services.geodeQueue,
 		services.dailyRewards,
 		services.offlineProgress,
@@ -1757,11 +2428,11 @@ return ServerBootstrap
           </Properties>
         </Item>
       </Item>
-      <Item class="Folder" referent="39">
+      <Item class="Folder" referent="41">
         <Properties>
           <string name="Name">Services</string>
         </Properties>
-        <Item class="ModuleScript" referent="40">
+        <Item class="ModuleScript" referent="42">
           <Properties>
             <string name="Name">DailyRewardsService</string>
             <string name="Source"><![CDATA[--!strict
@@ -1900,7 +2571,7 @@ return DailyRewardsService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="41">
+        <Item class="ModuleScript" referent="43">
           <Properties>
             <string name="Name">EconomyService</string>
             <string name="Source"><![CDATA[--!strict
@@ -2040,7 +2711,7 @@ return EconomyService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="42">
+        <Item class="ModuleScript" referent="44">
           <Properties>
             <string name="Name">GeodeQueueService</string>
             <string name="Source"><![CDATA[--!strict
@@ -2223,7 +2894,7 @@ return GeodeQueueService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="43">
+        <Item class="ModuleScript" referent="45">
           <Properties>
             <string name="Name">GeodeService</string>
             <string name="Source"><![CDATA[--!strict
@@ -2511,7 +3182,477 @@ return GeodeService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="44">
+        <Item class="ModuleScript" referent="46">
+          <Properties>
+            <string name="Name">GeodeToolService</string>
+            <string name="Source"><![CDATA[--!strict
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+
+local Geodes = require(Shared.Config.Geodes)
+
+local GeodeToolService = {}
+GeodeToolService.__index = GeodeToolService
+
+local function getGeodeInstanceId(tool: Instance): string?
+	if not tool:IsA("Tool") then
+		return nil
+	end
+
+	local geodeInstanceId = tool:GetAttribute("GeodeInstanceId")
+	if typeof(geodeInstanceId) ~= "string" or geodeInstanceId == "" then
+		return nil
+	end
+
+	return geodeInstanceId
+end
+
+local function getContainer(player, containerName: string)
+	local container = player[containerName]
+	if container ~= nil then
+		return container
+	end
+
+	local waitForChild = player.WaitForChild
+	if type(waitForChild) == "function" then
+		return player:WaitForChild(containerName)
+	end
+
+	return nil
+end
+
+local function buildDesiredGeodes(profile)
+	local desiredGeodes = {}
+	local desiredById = {}
+
+	for _, geodeInstanceId in ipairs(profile.geodeOrder) do
+		local geodeInstance = profile.geodesById[geodeInstanceId]
+		if geodeInstance ~= nil and geodeInstance.placement == nil then
+			desiredById[geodeInstance.id] = geodeInstance
+			table.insert(desiredGeodes, geodeInstance)
+		end
+	end
+
+	return desiredGeodes, desiredById
+end
+
+function GeodeToolService.new(dependencies)
+	return setmetatable({
+		dependencies = dependencies or {},
+		playerConnections = {},
+		syncInProgress = {},
+		syncQueued = {},
+	}, GeodeToolService)
+end
+
+function GeodeToolService:createGeodeTool(geodeInstance)
+	local geodeDefinition = Geodes[geodeInstance.geodeTypeId]
+	local tool = Instance.new("Tool")
+	tool.Name = if geodeDefinition ~= nil then geodeDefinition.displayName else geodeInstance.geodeTypeId
+	tool.RequiresHandle = false
+	tool.CanBeDropped = false
+	tool.ToolTip = tool.Name
+	tool:SetAttribute("GemFactoryGeodeTool", true)
+	tool:SetAttribute("GeodeInstanceId", geodeInstance.id)
+	tool:SetAttribute("GeodeTypeId", geodeInstance.geodeTypeId)
+	return tool
+end
+
+function GeodeToolService:syncPlayerTools(player)
+	local playerData = self.dependencies.playerData
+	if playerData == nil then
+		return
+	end
+
+	local profile = playerData:getProfile(player.UserId)
+	if profile == nil then
+		return
+	end
+
+	local backpack = getContainer(player, "Backpack")
+	local starterGear = getContainer(player, "StarterGear")
+	local character = player.Character
+	if backpack == nil or starterGear == nil then
+		return
+	end
+
+	local desiredGeodes, desiredById = buildDesiredGeodes(profile)
+
+	local equippedById = {}
+	if character ~= nil then
+		for _, child in ipairs(character:GetChildren()) do
+			local geodeInstanceId = getGeodeInstanceId(child)
+			if geodeInstanceId ~= nil then
+				if desiredById[geodeInstanceId] == nil then
+					child:Destroy()
+				elseif equippedById[geodeInstanceId] then
+					child:Destroy()
+				else
+					equippedById[geodeInstanceId] = true
+				end
+			end
+		end
+	end
+
+	for _, child in ipairs(starterGear:GetChildren()) do
+		local geodeInstanceId = getGeodeInstanceId(child)
+		if geodeInstanceId ~= nil then
+			child:Destroy()
+		end
+	end
+
+	for _, geodeInstance in ipairs(desiredGeodes) do
+		local tool = self:createGeodeTool(geodeInstance)
+		tool.Parent = starterGear
+	end
+
+	for _, child in ipairs(backpack:GetChildren()) do
+		local geodeInstanceId = getGeodeInstanceId(child)
+		if geodeInstanceId ~= nil then
+			child:Destroy()
+		end
+	end
+
+	for _, geodeInstance in ipairs(desiredGeodes) do
+		if equippedById[geodeInstance.id] ~= true then
+			local tool = self:createGeodeTool(geodeInstance)
+			tool.Parent = backpack
+		end
+	end
+end
+
+function GeodeToolService:queuePlayerSync(player)
+	local userId = player.UserId
+	if self.syncInProgress[userId] then
+		self.syncQueued[userId] = true
+		return
+	end
+
+	self.syncInProgress[userId] = true
+	task.spawn(function()
+		local ok, errorMessage = pcall(function()
+			self:syncPlayerTools(player)
+		end)
+
+		if not ok then
+			warn("[GemFactory] GeodeToolService sync failed:", errorMessage)
+		end
+
+		self.syncInProgress[userId] = nil
+		if self.syncQueued[userId] then
+			self.syncQueued[userId] = nil
+			local refreshedPlayer = Players:GetPlayerByUserId(userId)
+			if refreshedPlayer ~= nil then
+				self:queuePlayerSync(refreshedPlayer)
+			end
+		end
+	end)
+end
+
+function GeodeToolService:syncPlayerByUserId(userId)
+	local player = Players:GetPlayerByUserId(userId)
+	if player ~= nil then
+		self:queuePlayerSync(player)
+	end
+end
+
+function GeodeToolService:onPlayerAdded(player)
+	local userId = player.UserId
+	local existingConnection = self.playerConnections[userId]
+	if existingConnection ~= nil then
+		existingConnection:Disconnect()
+	end
+
+	self.playerConnections[userId] = player.CharacterAdded:Connect(function()
+		self:queuePlayerSync(player)
+	end)
+
+	self:queuePlayerSync(player)
+end
+
+function GeodeToolService:onPlayerRemoving(player)
+	local userId = player.UserId
+	local connection = self.playerConnections[userId]
+	if connection ~= nil then
+		connection:Disconnect()
+		self.playerConnections[userId] = nil
+	end
+
+	self.syncInProgress[userId] = nil
+	self.syncQueued[userId] = nil
+end
+
+function GeodeToolService:start()
+	Players.PlayerAdded:Connect(function(player)
+		self:onPlayerAdded(player)
+	end)
+
+	Players.PlayerRemoving:Connect(function(player)
+		self:onPlayerRemoving(player)
+	end)
+
+	for _, player in ipairs(Players:GetPlayers()) do
+		self:onPlayerAdded(player)
+	end
+
+	print("[GemFactory] GeodeToolService ready")
+end
+
+return GeodeToolService
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="47">
+          <Properties>
+            <string name="Name">MiningService</string>
+            <string name="Source"><![CDATA[--!strict
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+
+local MiningRewards = require(Shared.Domain.MiningRewards)
+local Pickaxes = require(Shared.Config.Pickaxes)
+
+local MiningService = {}
+MiningService.__index = MiningService
+
+local function getCurrencyAmount(profile, currency)
+	if currency == "coins" then
+		return profile.currencies.coins
+	elseif currency == "gems" then
+		return profile.currencies.gems
+	elseif currency == "eventTokens" then
+		return profile.currencies.eventTokens
+	end
+
+	return nil
+end
+
+local function spendCurrency(profile, currency, amount)
+	if amount <= 0 then
+		return true
+	end
+
+	if currency == "coins" then
+		if profile.currencies.coins < amount then
+			return false, "insufficient_coins"
+		end
+		profile.currencies.coins -= amount
+		return true
+	elseif currency == "gems" then
+		if profile.currencies.gems < amount then
+			return false, "insufficient_gems"
+		end
+		profile.currencies.gems -= amount
+		return true
+	elseif currency == "eventTokens" then
+		if profile.currencies.eventTokens < amount then
+			return false, "insufficient_tokens"
+		end
+		profile.currencies.eventTokens -= amount
+		return true
+	end
+
+	return false, "unsupported_currency"
+end
+
+local function ensurePickaxeState(profile)
+	profile.inventory.pickaxes = profile.inventory.pickaxes or {}
+	profile.inventory.pickaxes.stone_pickaxe = true
+	if profile.progression.equippedPickaxeId == nil or profile.inventory.pickaxes[profile.progression.equippedPickaxeId] ~= true then
+		profile.progression.equippedPickaxeId = "stone_pickaxe"
+	end
+end
+
+function MiningService.new(dependencies)
+	return setmetatable({
+		dependencies = dependencies or {},
+		lastMineAtByUserId = {},
+	}, MiningService)
+end
+
+function MiningService:getPickaxeDefinition(pickaxeId: string?)
+	if pickaxeId == nil then
+		return nil
+	end
+
+	return Pickaxes.catalog[pickaxeId]
+end
+
+function MiningService:buyPickaxe(userId, pickaxeId)
+	local playerData = self.dependencies.playerData
+	local profile = playerData:getOrLoadProfile(userId)
+	if profile == nil then
+		return nil, "profile_not_loaded"
+	end
+
+	local pickaxeDefinition = self:getPickaxeDefinition(pickaxeId)
+	if pickaxeDefinition == nil then
+		return nil, "unknown_pickaxe"
+	end
+
+	local balance = getCurrencyAmount(profile, pickaxeDefinition.currency)
+	if balance == nil then
+		return nil, "unsupported_currency"
+	end
+
+	if balance < pickaxeDefinition.price then
+		return nil, "insufficient_funds"
+	end
+
+	local result
+	local _, mutateError = playerData:mutateProfile(userId, function(currentProfile)
+		ensurePickaxeState(currentProfile)
+		if currentProfile.inventory.pickaxes[pickaxeId] == true then
+			return nil, "pickaxe_already_owned"
+		end
+
+		local spent, spendError = spendCurrency(currentProfile, pickaxeDefinition.currency, pickaxeDefinition.price)
+		if not spent then
+			return nil, spendError
+		end
+
+		currentProfile.inventory.pickaxes[pickaxeId] = true
+		currentProfile.progression.equippedPickaxeId = pickaxeId
+
+		result = {
+			pickaxeId = pickaxeId,
+			pickaxe = pickaxeDefinition,
+			ownedPickaxes = currentProfile.inventory.pickaxes,
+			equippedPickaxeId = pickaxeId,
+		}
+
+		return result
+	end)
+
+	if result ~= nil then
+		playerData:notifyProfileChanged(userId)
+	end
+
+	if result == nil and mutateError ~= nil then
+		return nil, mutateError
+	end
+
+	return result
+end
+
+function MiningService:equipPickaxe(userId, pickaxeId)
+	local playerData = self.dependencies.playerData
+	local result
+	local _, mutateError = playerData:mutateProfile(userId, function(currentProfile)
+		ensurePickaxeState(currentProfile)
+		if Pickaxes.catalog[pickaxeId] == nil then
+			return nil, "unknown_pickaxe"
+		end
+		if currentProfile.inventory.pickaxes[pickaxeId] ~= true then
+			return nil, "pickaxe_not_owned"
+		end
+
+		currentProfile.progression.equippedPickaxeId = pickaxeId
+		result = {
+			pickaxeId = pickaxeId,
+			pickaxe = Pickaxes.catalog[pickaxeId],
+		}
+		return result
+	end)
+
+	if result ~= nil then
+		playerData:notifyProfileChanged(userId)
+	end
+
+	if result == nil and mutateError ~= nil then
+		return nil, mutateError
+	end
+
+	return result
+end
+
+function MiningService:mine(userId, requestedPickaxeId, nowUnix, rng)
+	local playerData = self.dependencies.playerData
+	local geodeService = self.dependencies.geodeService
+	local profile = playerData:getOrLoadProfile(userId)
+	if profile == nil then
+		return nil, "profile_not_loaded"
+	end
+
+	ensurePickaxeState(profile)
+
+	local pickaxeId = requestedPickaxeId or profile.progression.equippedPickaxeId or "stone_pickaxe"
+	local pickaxeDefinition = self:getPickaxeDefinition(pickaxeId)
+	if pickaxeDefinition == nil then
+		return nil, "unknown_pickaxe"
+	end
+
+	if profile.inventory.pickaxes[pickaxeId] ~= true then
+		return nil, "pickaxe_not_owned"
+	end
+
+	local nowClock = os.clock()
+	local lastMineAt = self.lastMineAtByUserId[userId]
+	if lastMineAt ~= nil and nowClock - lastMineAt < pickaxeDefinition.cooldownSeconds then
+		return nil, "mine_cooldown"
+	end
+
+	local result
+	local _, mutateError = playerData:mutateProfile(userId, function(currentProfile)
+		ensurePickaxeState(currentProfile)
+		if currentProfile.inventory.pickaxes[pickaxeId] ~= true then
+			return nil, "pickaxe_not_owned"
+		end
+
+		currentProfile.progression.equippedPickaxeId = pickaxeId
+		local reward, rewardError = MiningRewards.rollReward(pickaxeDefinition, rng)
+		if reward == nil then
+			return nil, rewardError or "mine_roll_failed"
+		end
+
+		if reward.rewardType == "coins" then
+			currentProfile.currencies.coins += reward.coins or 0
+		elseif reward.rewardType == "geode" then
+			if geodeService == nil then
+				return nil, "geode_service_unavailable"
+			end
+
+			local geodeInstance, geodeError = geodeService:createGeodeInstance(currentProfile, reward.geodeId, nowUnix)
+			if geodeInstance == nil then
+				return nil, geodeError or "geode_create_failed"
+			end
+			reward.geodeInstance = geodeInstance
+		else
+			return nil, "unknown_reward"
+		end
+
+		result = {
+			reward = reward,
+			pickaxe = pickaxeDefinition,
+			pickaxeId = pickaxeId,
+		}
+		return result
+	end)
+
+	if result ~= nil then
+		self.lastMineAtByUserId[userId] = nowClock
+		playerData:notifyProfileChanged(userId)
+	end
+
+	if result == nil and mutateError ~= nil then
+		return nil, mutateError
+	end
+
+	return result
+end
+
+function MiningService:start()
+	print("[GemFactory] MiningService ready")
+end
+
+return MiningService
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="48">
           <Properties>
             <string name="Name">MockPersistenceService</string>
             <string name="Source"><![CDATA[--!strict
@@ -2568,7 +3709,7 @@ return MockPersistenceService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="45">
+        <Item class="ModuleScript" referent="49">
           <Properties>
             <string name="Name">OfflineProgressService</string>
             <string name="Source"><![CDATA[--!strict
@@ -2663,7 +3804,220 @@ return OfflineProgressService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="46">
+        <Item class="ModuleScript" referent="50">
+          <Properties>
+            <string name="Name">PickaxeToolService</string>
+            <string name="Source"><![CDATA[--!strict
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+
+local Pickaxes = require(Shared.Config.Pickaxes)
+
+local PickaxeToolService = {}
+PickaxeToolService.__index = PickaxeToolService
+
+local function getPickaxeId(tool: Instance): string?
+	if not tool:IsA("Tool") then
+		return nil
+	end
+
+	local pickaxeId = tool:GetAttribute("PickaxeId") or tool:GetAttribute("PickaxeTypeId")
+	if typeof(pickaxeId) ~= "string" or pickaxeId == "" then
+		return nil
+	end
+
+	return pickaxeId
+end
+
+local function getContainer(player, containerName: string)
+	local container = player[containerName]
+	if container ~= nil then
+		return container
+	end
+
+	local waitForChild = player.WaitForChild
+	if type(waitForChild) == "function" then
+		return player:WaitForChild(containerName)
+	end
+
+	return nil
+end
+
+local function collectOwnedPickaxes(profile)
+	local owned = {}
+	local ownedMap = {}
+	local inventory = profile.inventory or {}
+	local pickaxes = inventory.pickaxes or {}
+
+	for _, pickaxeId in ipairs(Pickaxes.order) do
+		if pickaxes[pickaxeId] == true then
+			table.insert(owned, pickaxeId)
+			ownedMap[pickaxeId] = true
+		end
+	end
+
+	return owned, ownedMap
+end
+
+function PickaxeToolService.new(dependencies)
+	return setmetatable({
+		dependencies = dependencies or {},
+		playerConnections = {},
+		syncInProgress = {},
+		syncQueued = {},
+	}, PickaxeToolService)
+end
+
+function PickaxeToolService:createPickaxeTool(pickaxeId: string)
+	local definition = Pickaxes.catalog[pickaxeId]
+	local tool = Instance.new("Tool")
+	tool.Name = if definition ~= nil then definition.displayName else pickaxeId
+	tool.RequiresHandle = false
+	tool.CanBeDropped = false
+	tool.ToolTip = tool.Name
+	tool:SetAttribute("GemFactoryPickaxeTool", true)
+	tool:SetAttribute("PickaxeId", pickaxeId)
+	tool:SetAttribute("PickaxeTypeId", pickaxeId)
+	if definition ~= nil then
+		tool:SetAttribute("PickaxeRarity", definition.rarity)
+	end
+	return tool
+end
+
+function PickaxeToolService:syncPlayerTools(player)
+	local playerData = self.dependencies.playerData
+	if playerData == nil then
+		return
+	end
+
+	local profile = playerData:getProfile(player.UserId)
+	if profile == nil then
+		return
+	end
+
+	local backpack = getContainer(player, "Backpack")
+	local starterGear = getContainer(player, "StarterGear")
+	local character = player.Character
+	if backpack == nil or starterGear == nil then
+		return
+	end
+
+	local ownedPickaxes, ownedMap = collectOwnedPickaxes(profile)
+	local equippedById = {}
+
+	if character ~= nil then
+		for _, child in ipairs(character:GetChildren()) do
+			local pickaxeId = getPickaxeId(child)
+			if pickaxeId ~= nil then
+				if ownedMap[pickaxeId] ~= true or equippedById[pickaxeId] == true then
+					child:Destroy()
+				else
+					equippedById[pickaxeId] = true
+				end
+			end
+		end
+	end
+
+	for _, container in ipairs({ starterGear, backpack }) do
+		for _, child in ipairs(container:GetChildren()) do
+			if getPickaxeId(child) ~= nil then
+				child:Destroy()
+			end
+		end
+	end
+
+	for _, pickaxeId in ipairs(ownedPickaxes) do
+		self:createPickaxeTool(pickaxeId).Parent = starterGear
+		if equippedById[pickaxeId] ~= true then
+			self:createPickaxeTool(pickaxeId).Parent = backpack
+		end
+	end
+end
+
+function PickaxeToolService:queuePlayerSync(player)
+	local userId = player.UserId
+	if self.syncInProgress[userId] then
+		self.syncQueued[userId] = true
+		return
+	end
+
+	self.syncInProgress[userId] = true
+	task.spawn(function()
+		local ok, errorMessage = pcall(function()
+			self:syncPlayerTools(player)
+		end)
+
+		if not ok then
+			warn("[GemFactory] PickaxeToolService sync failed:", errorMessage)
+		end
+
+		self.syncInProgress[userId] = nil
+		if self.syncQueued[userId] then
+			self.syncQueued[userId] = nil
+			local refreshedPlayer = Players:GetPlayerByUserId(userId)
+			if refreshedPlayer ~= nil then
+				self:queuePlayerSync(refreshedPlayer)
+			end
+		end
+	end)
+end
+
+function PickaxeToolService:syncPlayerByUserId(userId)
+	local player = Players:GetPlayerByUserId(userId)
+	if player ~= nil then
+		self:queuePlayerSync(player)
+	end
+end
+
+function PickaxeToolService:onPlayerAdded(player)
+	local userId = player.UserId
+	local existingConnection = self.playerConnections[userId]
+	if existingConnection ~= nil then
+		existingConnection:Disconnect()
+	end
+
+	self.playerConnections[userId] = player.CharacterAdded:Connect(function()
+		self:queuePlayerSync(player)
+	end)
+
+	self:queuePlayerSync(player)
+end
+
+function PickaxeToolService:onPlayerRemoving(player)
+	local userId = player.UserId
+	local connection = self.playerConnections[userId]
+	if connection ~= nil then
+		connection:Disconnect()
+		self.playerConnections[userId] = nil
+	end
+
+	self.syncInProgress[userId] = nil
+	self.syncQueued[userId] = nil
+end
+
+function PickaxeToolService:start()
+	Players.PlayerAdded:Connect(function(player)
+		self:onPlayerAdded(player)
+	end)
+
+	Players.PlayerRemoving:Connect(function(player)
+		self:onPlayerRemoving(player)
+	end)
+
+	for _, player in ipairs(Players:GetPlayers()) do
+		self:onPlayerAdded(player)
+	end
+
+	print("[GemFactory] PickaxeToolService ready")
+end
+
+return PickaxeToolService
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="51">
           <Properties>
             <string name="Name">PlacementService</string>
             <string name="Source"><![CDATA[--!strict
@@ -2938,7 +4292,7 @@ return PlacementService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="47">
+        <Item class="ModuleScript" referent="52">
           <Properties>
             <string name="Name">PlayerDataService</string>
             <string name="Source"><![CDATA[--!strict
@@ -3153,7 +4507,7 @@ return PlayerDataService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="48">
+        <Item class="ModuleScript" referent="53">
           <Properties>
             <string name="Name">PlotService</string>
             <string name="Source"><![CDATA[--!strict
@@ -3292,7 +4646,7 @@ return PlotService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="49">
+        <Item class="ModuleScript" referent="54">
           <Properties>
             <string name="Name">ShopService</string>
             <string name="Source"><![CDATA[--!strict
@@ -3367,7 +4721,7 @@ return ShopService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="50">
+        <Item class="ModuleScript" referent="55">
           <Properties>
             <string name="Name">StationService</string>
             <string name="Source"><![CDATA[--!strict
@@ -3463,7 +4817,7 @@ return StationService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="51">
+        <Item class="ModuleScript" referent="56">
           <Properties>
             <string name="Name">WorldReplicaService</string>
             <string name="Source"><![CDATA[--!strict
@@ -3483,6 +4837,12 @@ WorldReplicaService.__index = WorldReplicaService
 
 local SHARED_FLOOR_NAME = "SharedFloor"
 local PLOT_MARKER_FOLDER_NAME = "PlotMarkers"
+local SHOP_FRONT_NAME = "PickaxeShop"
+local MINE_NAME = "GeodeMine"
+local SHOP_PROMPT_ATTRIBUTE = "GemFactoryShopPrompt"
+local MINE_TARGET_ATTRIBUTE = "GemFactoryMineTarget"
+local MINE_ZONE_ATTRIBUTE = "GemFactoryMineZone"
+local STATIC_WORLD_LAYOUT_VERSION = 3
 
 local ROCK_VARIANTS = {
 	{
@@ -3703,6 +5063,14 @@ local function createDecorPart(parent, name, size, position, color, material)
 	return part
 end
 
+local function pivotStaticModel(model, sourceBaseCFrame, targetBaseCFrame)
+	for _, descendant in ipairs(model:GetDescendants()) do
+		if descendant:IsA("BasePart") then
+			descendant.CFrame = targetBaseCFrame * sourceBaseCFrame:ToObjectSpace(descendant.CFrame)
+		end
+	end
+end
+
 local function buildSharedFloor(worldFolder)
 	local width, height, depth = getSharedFloorSize()
 	local floor = worldFolder:FindFirstChild(SHARED_FLOOR_NAME)
@@ -3787,6 +5155,254 @@ local function ensureStaticWorld(worldFolder, plots)
 	for _, plot in ipairs(plots) do
 		addPlotMarker(markerFolder, plot)
 	end
+end
+
+local function buildPickaxeShop(worldFolder)
+	local shopFolder = worldFolder:FindFirstChild(SHOP_FRONT_NAME)
+	if shopFolder ~= nil then
+		if shopFolder:GetAttribute("StaticLayoutVersion") == STATIC_WORLD_LAYOUT_VERSION then
+			return shopFolder
+		end
+		shopFolder:Destroy()
+	end
+
+	shopFolder = Instance.new("Model")
+	shopFolder.Name = SHOP_FRONT_NAME
+	shopFolder:SetAttribute("StaticLayoutVersion", STATIC_WORLD_LAYOUT_VERSION)
+	shopFolder.Parent = worldFolder
+
+	local width = getSharedFloorSize()
+	local edgeX = World.plotOrigin.x + (width / 2) - 18
+	local basePosition = Vector3.new(edgeX, World.plotOrigin.y + 1, World.plotOrigin.z)
+
+	local stallBase = createPart(
+		shopFolder,
+		"StallBase",
+		Vector3.new(20, 2, 36),
+		basePosition,
+		Color3.fromRGB(38, 34, 48),
+		Enum.Material.Slate
+	)
+	stallBase.TopSurface = Enum.SurfaceType.Smooth
+
+	local backWall = createPart(
+		shopFolder,
+		"ShopBackWall",
+		Vector3.new(1.2, 8, 28),
+		basePosition + Vector3.new(7.4, 5, 0),
+		Color3.fromRGB(68, 53, 96),
+		Enum.Material.WoodPlanks
+	)
+	backWall.CanCollide = false
+
+	local sign = createDecorPart(
+		shopFolder,
+		"ShopSign",
+		Vector3.new(0.8, 4, 18),
+		basePosition + Vector3.new(6.7, 7.2, 0),
+		Color3.fromRGB(103, 83, 127),
+		Enum.Material.Wood
+	)
+
+	local signGui = Instance.new("SurfaceGui")
+	signGui.Face = Enum.NormalId.Left
+	signGui.AlwaysOnTop = true
+	signGui.Parent = sign
+
+	local signLabel = Instance.new("TextLabel")
+	signLabel.BackgroundTransparency = 1
+	signLabel.Size = UDim2.fromScale(1, 1)
+	signLabel.Font = Enum.Font.GothamBold
+	signLabel.Text = "Pickaxe Shop"
+	signLabel.TextColor3 = Color3.fromRGB(248, 248, 255)
+	signLabel.TextScaled = true
+	signLabel.Parent = signGui
+
+	local shopCallout = Instance.new("BillboardGui")
+	shopCallout.Name = "ShopCallout"
+	shopCallout.AlwaysOnTop = true
+	shopCallout.Size = UDim2.fromOffset(180, 44)
+	shopCallout.StudsOffset = Vector3.new(0, 4, 0)
+	shopCallout.Parent = sign
+
+	local calloutLabel = Instance.new("TextLabel")
+	calloutLabel.BackgroundTransparency = 1
+	calloutLabel.Size = UDim2.fromScale(1, 1)
+	calloutLabel.Font = Enum.Font.GothamBold
+	calloutLabel.Text = "Pickaxes tuned here."
+	calloutLabel.TextColor3 = Color3.fromRGB(248, 248, 255)
+	calloutLabel.TextScaled = true
+	calloutLabel.Parent = shopCallout
+
+	local shelf = createDecorPart(
+		shopFolder,
+		"PickaxeShelf",
+		Vector3.new(1, 1, 24),
+		basePosition + Vector3.new(6.1, 4.8, 0),
+		Color3.fromRGB(45, 38, 63),
+		Enum.Material.Wood
+	)
+
+	for index, tint in ipairs({
+		Color3.fromRGB(126, 126, 129),
+		Color3.fromRGB(184, 121, 74),
+		Color3.fromRGB(155, 164, 176),
+		Color3.fromRGB(224, 183, 74),
+		Color3.fromRGB(90, 195, 130),
+	}) do
+		local zOffset = -10 + ((index - 1) * 5)
+		local handle = createDecorPart(
+			shopFolder,
+			string.format("DisplayPickaxeHandle_%d", index),
+			Vector3.new(0.35, 3.4, 0.35),
+			basePosition + Vector3.new(5.5, 5.5, zOffset),
+			Color3.fromRGB(60, 45, 38),
+			Enum.Material.Wood
+		)
+		handle.CFrame = CFrame.new(handle.Position) * CFrame.Angles(0, 0, math.rad(22))
+
+		local head = createDecorPart(
+			shopFolder,
+			string.format("DisplayPickaxeHead_%d", index),
+			Vector3.new(0.45, 0.45, 2.6),
+			basePosition + Vector3.new(5.1, 6.85, zOffset),
+			tint,
+			Enum.Material.Metal
+		)
+		head.CFrame = CFrame.new(head.Position) * CFrame.Angles(0, math.rad(90), math.rad(22))
+	end
+	shelf.Transparency = 0.05
+
+	local promptAnchor = createDecorPart(
+		shopFolder,
+		"ShopPromptAnchor",
+		Vector3.new(2, 5, 24),
+		basePosition + Vector3.new(-5.5, 4, 0),
+		Color3.fromRGB(92, 180, 170),
+		Enum.Material.ForceField
+	)
+	promptAnchor.Transparency = 1
+	promptAnchor.CanQuery = false
+	promptAnchor.CanTouch = false
+
+	local prompt = Instance.new("ProximityPrompt")
+	prompt.Name = "ShopPrompt"
+	prompt.ActionText = "Browse Pickaxes"
+	prompt.ObjectText = "Pickaxe Smith"
+	prompt.KeyboardKeyCode = Enum.KeyCode.E
+	prompt.HoldDuration = 0
+	prompt.MaxActivationDistance = 10
+	prompt.RequiresLineOfSight = false
+	prompt:SetAttribute(SHOP_PROMPT_ATTRIBUTE, true)
+	prompt.Parent = promptAnchor
+
+	return shopFolder
+end
+
+local function buildMine(worldFolder)
+	local mine = worldFolder:FindFirstChild(MINE_NAME)
+	if mine ~= nil then
+		if mine:GetAttribute("StaticLayoutVersion") == STATIC_WORLD_LAYOUT_VERSION then
+			return mine
+		end
+		mine:Destroy()
+	end
+
+	mine = Instance.new("Model")
+	mine.Name = MINE_NAME
+	mine:SetAttribute("GemFactoryMine", true)
+	mine:SetAttribute("StaticLayoutVersion", STATIC_WORLD_LAYOUT_VERSION)
+	mine.Parent = worldFolder
+
+	local width = getSharedFloorSize()
+	local sourceBaseCFrame = CFrame.new(World.plotOrigin.x, World.plotOrigin.y + 1, World.plotOrigin.z)
+	local basePosition = sourceBaseCFrame.Position
+
+	local platform = createPart(
+		mine,
+		"MinePlatform",
+		Vector3.new(44, 2, 26),
+		basePosition,
+		Color3.fromRGB(35, 33, 43),
+		Enum.Material.Slate
+	)
+	platform.TopSurface = Enum.SurfaceType.Smooth
+
+	local zone = createDecorPart(
+		mine,
+		"MineStandingZone",
+		Vector3.new(40, 16, 24),
+		basePosition + Vector3.new(0, 8, 0),
+		Color3.fromRGB(92, 180, 170),
+		Enum.Material.ForceField
+	)
+	zone.Transparency = 1
+	zone.CanQuery = true
+	zone:SetAttribute(MINE_ZONE_ATTRIBUTE, true)
+
+	local mouth = createPart(
+		mine,
+		"MineFace",
+		Vector3.new(34, 22, 4),
+		basePosition + Vector3.new(0, 12, -9),
+		Color3.fromRGB(30, 28, 36),
+		Enum.Material.Rock
+	)
+	mouth:SetAttribute(MINE_TARGET_ATTRIBUTE, true)
+	mouth:SetAttribute("GemFactoryMine", true)
+
+	local target = createPart(
+		mine,
+		"MineTarget",
+		Vector3.new(24, 14, 1),
+		basePosition + Vector3.new(0, 10, -6.6),
+		Color3.fromRGB(58, 53, 72),
+		Enum.Material.Slate
+	)
+	target:SetAttribute(MINE_TARGET_ATTRIBUTE, true)
+	target:SetAttribute("GemFactoryMine", true)
+
+	for index = 1, 7 do
+		local xOffset = -15 + ((index - 1) * 5)
+		local crystal = createDecorPart(
+			mine,
+			string.format("MineCrystal_%d", index),
+			Vector3.new(1.5, 4 + (index % 3), 1.5),
+			basePosition + Vector3.new(xOffset, 4 + (index % 3), -6),
+			Color3.fromRGB(92 + (index * 12), 160, 190 + (index * 4)),
+			Enum.Material.Neon
+		)
+		crystal.CFrame = CFrame.new(crystal.Position) * CFrame.Angles(math.rad(8), math.rad(index * 17), math.rad(12))
+	end
+
+	local sign = createDecorPart(
+		mine,
+		"MineSign",
+		Vector3.new(18, 4, 0.6),
+		basePosition + Vector3.new(0, 17.5, -6.65),
+		Color3.fromRGB(76, 64, 91),
+		Enum.Material.Wood
+	)
+
+	local signGui = Instance.new("SurfaceGui")
+	signGui.Face = Enum.NormalId.Back
+	signGui.AlwaysOnTop = true
+	signGui.Parent = sign
+
+	local signLabel = Instance.new("TextLabel")
+	signLabel.BackgroundTransparency = 1
+	signLabel.Size = UDim2.fromScale(1, 1)
+	signLabel.Font = Enum.Font.GothamBold
+	signLabel.Text = "Geode Mine"
+	signLabel.TextColor3 = Color3.fromRGB(248, 248, 255)
+	signLabel.TextScaled = true
+	signLabel.Parent = signGui
+
+	local edgeX = World.plotOrigin.x - (width / 2) + 24
+	local targetBaseCFrame = CFrame.new(edgeX, basePosition.Y, World.plotOrigin.z) * CFrame.Angles(0, math.rad(90), 0)
+	pivotStaticModel(mine, sourceBaseCFrame, targetBaseCFrame)
+
+	return mine
 end
 
 local function addRockSpikes(parent, plot)
@@ -4025,6 +5641,8 @@ function WorldReplicaService:syncAll()
 	local worldFolder = ensureWorldFolder()
 	local plots = plotService:getAllPlots()
 	ensureStaticWorld(worldFolder, plots)
+	buildMine(worldFolder)
+	buildPickaxeShop(worldFolder)
 
 	for _, plot in ipairs(plots) do
 		if plot.userId ~= nil then
@@ -4087,11 +5705,11 @@ return WorldReplicaService
           </Properties>
         </Item>
       </Item>
-      <Item class="Folder" referent="52">
+      <Item class="Folder" referent="57">
         <Properties>
           <string name="Name">Systems</string>
         </Properties>
-        <Item class="ModuleScript" referent="53">
+        <Item class="ModuleScript" referent="58">
           <Properties>
             <string name="Name">RareAnnouncementSystem</string>
             <string name="Source"><![CDATA[--!strict
@@ -4131,21 +5749,21 @@ return RareAnnouncementSystem
       </Item>
     </Item>
   </Item>
-  <Item class="SoundService" referent="54">
+  <Item class="SoundService" referent="59">
     <Properties>
       <string name="Name">SoundService</string>
       <bool name="RespectFilteringEnabled">true</bool>
     </Properties>
   </Item>
-  <Item class="StarterPlayer" referent="55">
+  <Item class="StarterPlayer" referent="60">
     <Properties>
       <string name="Name">StarterPlayer</string>
     </Properties>
-    <Item class="StarterPlayerScripts" referent="56">
+    <Item class="StarterPlayerScripts" referent="61">
       <Properties>
         <string name="Name">StarterPlayerScripts</string>
       </Properties>
-      <Item class="LocalScript" referent="57">
+      <Item class="LocalScript" referent="62">
         <Properties>
           <string name="Name">Client</string>
           <string name="Source"><![CDATA[local ClientBootstrap = require(script.Bootstrap.ClientBootstrap)
@@ -4153,11 +5771,11 @@ return RareAnnouncementSystem
 ClientBootstrap.start()
 ]]></string>
         </Properties>
-        <Item class="Folder" referent="58">
+        <Item class="Folder" referent="63">
           <Properties>
             <string name="Name">Bootstrap</string>
           </Properties>
-          <Item class="ModuleScript" referent="59">
+          <Item class="ModuleScript" referent="64">
             <Properties>
               <string name="Name">ClientBootstrap</string>
               <string name="Source"><![CDATA[--!strict
@@ -4179,11 +5797,11 @@ return ClientBootstrap
             </Properties>
           </Item>
         </Item>
-        <Item class="Folder" referent="60">
+        <Item class="Folder" referent="65">
           <Properties>
             <string name="Name">Controllers</string>
           </Properties>
-          <Item class="ModuleScript" referent="61">
+          <Item class="ModuleScript" referent="66">
             <Properties>
               <string name="Name">AppController</string>
               <string name="Source"><![CDATA[--!strict
@@ -4196,14 +5814,13 @@ local TableUtil = require(Shared.Util.TableUtil)
 local Time = require(Shared.Util.Time)
 local Signal = require(Shared.Util.Signal)
 local PlayerProfile = require(Shared.Types.PlayerProfile)
-local Shops = require(Shared.Config.Shops)
-local ShopRotation = require(Shared.Domain.ShopRotation)
 local RemoteNames = require(Shared.Net.RemoteNames)
 
 local RootScreen = require(script.Parent.Parent.UI.Screens.RootScreen)
 
 local HUDController = require(script.Parent.HUDController)
 local ShopController = require(script.Parent.ShopController)
+local MiningController = require(script.Parent.MiningController)
 local GeodeController = require(script.Parent.GeodeController)
 local PlotController = require(script.Parent.PlotController)
 local GeodeInteractionController = require(script.Parent.GeodeInteractionController)
@@ -4215,31 +5832,10 @@ local Palette = require(script.Parent.Parent.UI.Theme.Palette)
 local AppController = {}
 AppController.__index = AppController
 
-local function buildHourlyShopState(nowUnix: number)
-	local offers = Shops.hourlyRotation
-	local starterOffer = Shops.starterOffers[1]
-	local offerIndex = 1
-	local currentOffer = nil
-	local secondsRemaining = 0
-
-	if #offers > 0 then
-		offerIndex = ShopRotation.getHourlyIndex(nowUnix, #offers)
-		currentOffer = TableUtil.deepCopy(offers[offerIndex])
-		secondsRemaining = ShopRotation.getSecondsUntilNextRotation(nowUnix)
-	end
-
-	return {
-		currentOffer = currentOffer,
-		offerIndex = offerIndex,
-		secondsRemaining = secondsRemaining,
-		starterOffer = TableUtil.deepCopy(starterOffer),
-	}
-end
-
 local function buildDefaultState(nowUnix: number)
 	return {
 		profile = PlayerProfile.new(nowUnix),
-		shop = buildHourlyShopState(nowUnix),
+		shop = {},
 		announcements = {},
 		connectionMessage = "Loading crystal cavern...",
 	}
@@ -4277,6 +5873,12 @@ end
 
 local function normalizeShopState(currentShop, payload)
 	local shop = TableUtil.deepCopy(currentShop)
+	local handledKeys = {
+		currentOffer = true,
+		offerIndex = true,
+		secondsRemaining = true,
+		starterOffer = true,
+	}
 
 	if type(payload) ~= "table" then
 		return shop
@@ -4298,6 +5900,12 @@ local function normalizeShopState(currentShop, payload)
 
 	if payload.starterOffer ~= nil then
 		shop.starterOffer = TableUtil.deepCopy(payload.starterOffer)
+	end
+
+	for key, value in pairs(payload) do
+		if handledKeys[key] ~= true then
+			shop[key] = TableUtil.deepCopy(value)
+		end
 	end
 
 	return shop
@@ -4431,6 +6039,7 @@ function AppController.new()
 	self.controllers = {
 		HUDController.new(context),
 		ShopController.new(context),
+		MiningController.new(context),
 		GeodeController.new(context),
 		PlotController.new(context),
 		GeodeInteractionController.new(context),
@@ -4496,17 +6105,6 @@ function AppController:invokeRemote(name, ...)
 	end
 
 	return true, result
-end
-
-function AppController:requestBuyStarterGeode()
-	local ok, result = self:invokeRemote(RemoteNames.RequestBuyGeode, "starter_geode")
-	if ok and type(result) == "table" and result.ok == true then
-		self:setStatus("Starter geode purchased and added to your inventory.")
-	else
-		local errorText = type(result) == "table" and result.errorCode or result
-		self:setStatus("Starter geode purchase failed: " .. tostring(errorText))
-	end
-	return ok, result
 end
 
 function AppController:getPendingGeodePlacementId()
@@ -4724,7 +6322,7 @@ return AppController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="62">
+          <Item class="ModuleScript" referent="67">
             <Properties>
               <string name="Name">DailyRewardsController</string>
               <string name="Source"><![CDATA[--!strict
@@ -4818,7 +6416,7 @@ return DailyRewardsController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="63">
+          <Item class="ModuleScript" referent="68">
             <Properties>
               <string name="Name">GeodeController</string>
               <string name="Source"><![CDATA[--!strict
@@ -4990,7 +6588,8 @@ function GeodeController:start()
 				summary.crackingCount,
 				summary.readyCount
 			),
-			"Bought geodes stay in your inventory until you place them.",
+			"Mine geodes in the cave and they will appear in your Roblox backpack.",
+			"Equip a geode from your Roblox backpack to place it.",
 			"Click a ready geode on the plot to crack it open.",
 		}
 
@@ -5003,7 +6602,7 @@ function GeodeController:start()
 		end
 
 		if summary.totalCount == 0 then
-			screen:setGeodeText("No geodes are active yet.\nBuy a geode from the shop and it will stay in your inventory until you place it.")
+			screen:setGeodeText("No geodes are active yet.\nMine inside the cave and they will appear in your Roblox backpack.")
 			latestPlaceGeodeId = nil
 			latestOpenGeodeId = nil
 			latestCanPlaceGeode = false
@@ -5057,7 +6656,7 @@ return GeodeController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="64">
+          <Item class="ModuleScript" referent="69">
             <Properties>
               <string name="Name">GeodeInteractionController</string>
               <string name="Source"><![CDATA[--!strict
@@ -5071,8 +6670,9 @@ local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
+local Geodes = require(Shared.Config.Geodes)
 local Resources = require(Shared.Config.Resources)
-local World = require(Shared.Config.World)
+local GeodePlacementGhost = require(script.Parent.GeodePlacementGhost)
 
 local GeodeInteractionController = {}
 GeodeInteractionController.__index = GeodeInteractionController
@@ -5131,33 +6731,6 @@ local function getReadyStateLabel(geodePart: BasePart): string?
 	end
 
 	return nil
-end
-
-local function getPlotBase(plotModel: Model): BasePart?
-	local plotBase = plotModel:FindFirstChild("PlotBase")
-	if plotBase ~= nil and plotBase:IsA("BasePart") then
-		return plotBase
-	end
-
-	return nil
-end
-
-local function getGridCellFromHit(plotModel: Model, hitPosition: Vector3): (number?, number?)
-	local plotBase = getPlotBase(plotModel)
-	if plotBase == nil then
-		return nil
-	end
-
-	local minX = plotBase.Position.X - ((World.plotGridWidth * World.cellSize) / 2)
-	local minZ = plotBase.Position.Z - ((World.plotGridHeight * World.cellSize) / 2)
-	local x = math.floor((hitPosition.X - minX) / World.cellSize) + 1
-	local y = math.floor((hitPosition.Z - minZ) / World.cellSize) + 1
-
-	if x < 1 or x > World.plotGridWidth or y < 1 or y > World.plotGridHeight then
-		return nil
-	end
-
-	return x, y
 end
 
 local function extractPrimaryResource(openResult: any)
@@ -5296,7 +6869,119 @@ end
 function GeodeInteractionController:start()
 	local app = self.context.app
 	local mouse = Players.LocalPlayer:GetMouse()
+	local preview = GeodePlacementGhost.new()
 	local lastClickAt = 0
+	local activePlacementCellX: number? = nil
+	local activePlacementCellY: number? = nil
+	local activePlacementGeodeId: string? = nil
+	local lastEquippedToolId: string? = nil
+
+	local function getEquippedGeodeTool()
+		local character = Players.LocalPlayer.Character
+		if character == nil then
+			return nil
+		end
+
+		local tool = character:FindFirstChildWhichIsA("Tool")
+		if tool == nil then
+			return nil
+		end
+
+		if tool:GetAttribute("GemFactoryGeodeTool") ~= true then
+			return nil
+		end
+
+		local geodeInstanceId = tool:GetAttribute("GeodeInstanceId")
+		local geodeTypeId = tool:GetAttribute("GeodeTypeId")
+		if type(geodeInstanceId) ~= "string" or type(geodeTypeId) ~= "string" then
+			return nil
+		end
+
+		return tool, geodeInstanceId, geodeTypeId
+	end
+
+	local function resolvePendingPlacement()
+		local pendingGeodePlacementId = app:getPendingGeodePlacementId()
+		if pendingGeodePlacementId == nil then
+			return nil
+		end
+
+		local state = app:getState()
+		local geode = state.profile and state.profile.geodesById and state.profile.geodesById[pendingGeodePlacementId] or nil
+		if type(geode) ~= "table" or geode.placement ~= nil then
+			return nil
+		end
+
+		if type(geode.geodeTypeId) ~= "string" then
+			return nil
+		end
+
+		return pendingGeodePlacementId, geode.geodeTypeId
+	end
+
+	local function clearPreview()
+		activePlacementCellX = nil
+		activePlacementCellY = nil
+		activePlacementGeodeId = nil
+		preview:hide()
+	end
+
+	local function refreshPlacementPreview()
+		local equippedTool, equippedGeodeInstanceId, equippedGeodeTypeId = getEquippedGeodeTool()
+		local geodeInstanceId
+		local geodeTypeId
+		if equippedTool ~= nil then
+			geodeInstanceId = equippedGeodeInstanceId
+			geodeTypeId = equippedGeodeTypeId
+		else
+			local pendingId, pendingTypeId = resolvePendingPlacement()
+			geodeInstanceId = pendingId
+			geodeTypeId = pendingTypeId
+		end
+
+		if geodeInstanceId == nil or geodeTypeId == nil then
+			clearPreview()
+			if lastEquippedToolId ~= nil then
+				lastEquippedToolId = nil
+			end
+			return
+		end
+
+		preview:setGeodeTypeId(geodeTypeId)
+		local plotModel = findPlotModel(mouse.Target)
+		if plotModel == nil then
+			clearPreview()
+			return
+		end
+
+		local ownerUserId = plotModel:GetAttribute("OwnerUserId")
+		if ownerUserId ~= Players.LocalPlayer.UserId then
+			clearPreview()
+			return
+		end
+
+		local cellX, cellY, _ = preview:showAt(plotModel, mouse.Hit.Position)
+		if cellX == nil or cellY == nil then
+			clearPreview()
+			return
+		end
+
+		activePlacementCellX = cellX
+		activePlacementCellY = cellY
+		activePlacementGeodeId = geodeInstanceId
+
+		if equippedTool ~= nil and lastEquippedToolId ~= geodeInstanceId then
+			lastEquippedToolId = geodeInstanceId
+			local geodeDefinition = Geodes[geodeTypeId]
+			if geodeDefinition ~= nil and geodeDefinition.displayName ~= nil then
+				app:setStatus(string.format("Equipped %s. Click your plot to place it.", geodeDefinition.displayName))
+			end
+		elseif equippedTool == nil then
+			lastEquippedToolId = nil
+		end
+	end
+
+	RunService.RenderStepped:Connect(refreshPlacementPreview)
 
 	local function handleClick()
 		local now = os.clock()
@@ -5305,33 +6990,13 @@ function GeodeInteractionController:start()
 		end
 		lastClickAt = now
 
+		if activePlacementGeodeId ~= nil and activePlacementCellX ~= nil and activePlacementCellY ~= nil then
+			app:requestPlaceGeode(activePlacementGeodeId, activePlacementCellX, activePlacementCellY)
+			return
+		end
+
 		local target = mouse.Target
 		if target == nil or not target:IsA("BasePart") then
-			return
-		end
-
-		local plotModel = findPlotModel(target)
-		if plotModel == nil then
-			if app:getPendingGeodePlacementId() ~= nil then
-				app:cancelGeodePlacement()
-			end
-			return
-		end
-
-		local ownerUserId = plotModel:GetAttribute("OwnerUserId")
-		if ownerUserId ~= Players.LocalPlayer.UserId then
-			return
-		end
-
-		local pendingGeodePlacementId = app:getPendingGeodePlacementId()
-		if pendingGeodePlacementId ~= nil then
-			local x, y = getGridCellFromHit(plotModel, mouse.Hit.Position)
-			if x == nil or y == nil then
-				app:setStatus("Click a valid cell inside your plot to place the geode.")
-				return
-			end
-
-			app:requestPlaceGeode(pendingGeodePlacementId, x, y)
 			return
 		end
 
@@ -5367,7 +7032,187 @@ return GeodeInteractionController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="65">
+          <Item class="ModuleScript" referent="70">
+            <Properties>
+              <string name="Name">GeodePlacementGhost</string>
+              <string name="Source"><![CDATA[--!strict
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+
+local Geodes = require(Shared.Config.Geodes)
+local World = require(Shared.Config.World)
+
+local GeodePlacementGhost = {}
+GeodePlacementGhost.__index = GeodePlacementGhost
+
+local function getPlotBase(plotModel: Model): BasePart?
+	local plotBase = plotModel:FindFirstChild("PlotBase")
+	if plotBase ~= nil and plotBase:IsA("BasePart") then
+		return plotBase
+	end
+
+	return nil
+end
+
+local function getGeodeDefinition(geodeTypeId: string?)
+	if geodeTypeId == nil then
+		return nil
+	end
+
+	return Geodes[geodeTypeId]
+end
+
+function GeodePlacementGhost.new()
+	local model = Instance.new("Model")
+	model.Name = "GeodePlacementGhost"
+
+	local shell = Instance.new("Part")
+	shell.Name = "Shell"
+	shell.Anchored = true
+	shell.CanCollide = false
+	shell.CanQuery = false
+	shell.CanTouch = false
+	shell.CastShadow = false
+	shell.Material = Enum.Material.SmoothPlastic
+	shell.Shape = Enum.PartType.Ball
+	shell.Size = Vector3.new(4.5, 4.5, 4.5)
+	shell.Transparency = 0.7
+	shell.Parent = model
+
+	local core = Instance.new("Part")
+	core.Name = "Core"
+	core.Anchored = true
+	core.CanCollide = false
+	core.CanQuery = false
+	core.CanTouch = false
+	core.CastShadow = false
+	core.Material = Enum.Material.Glass
+	core.Shape = Enum.PartType.Ball
+	core.Size = Vector3.new(3.2, 3.2, 3.2)
+	core.Transparency = 0.55
+	core.Parent = model
+
+	local prompt = Instance.new("BillboardGui")
+	prompt.Name = "Label"
+	prompt.AlwaysOnTop = true
+	prompt.Size = UDim2.fromOffset(140, 24)
+	prompt.StudsOffset = Vector3.new(0, 3.5, 0)
+	prompt.Parent = core
+
+	local label = Instance.new("TextLabel")
+	label.BackgroundTransparency = 1
+	label.Size = UDim2.fromScale(1, 1)
+	label.Font = Enum.Font.GothamBold
+	label.Text = "Geode"
+	label.TextColor3 = Color3.fromRGB(245, 247, 255)
+	label.TextSize = 14
+	label.TextWrapped = true
+	label.Parent = prompt
+
+	model.PrimaryPart = core
+
+	return setmetatable({
+		model = model,
+		core = core,
+		label = label,
+		shell = shell,
+		geodeTypeId = nil,
+		footprintWidth = 2,
+		footprintHeight = 2,
+		visible = false,
+	}, GeodePlacementGhost)
+end
+
+function GeodePlacementGhost:setGeodeTypeId(geodeTypeId: string?)
+	if self.geodeTypeId == geodeTypeId then
+		return
+	end
+
+	self.geodeTypeId = geodeTypeId
+
+	local definition = getGeodeDefinition(geodeTypeId)
+	if definition ~= nil then
+		self.footprintWidth = definition.gridSize and definition.gridSize.width or 2
+		self.footprintHeight = definition.gridSize and definition.gridSize.height or 2
+		self.core.Color = definition.displayColor or Color3.fromRGB(240, 240, 255)
+		self.shell.Color = definition.displayColor or Color3.fromRGB(205, 210, 224)
+		self.label.Text = definition.displayName or "Geode"
+	else
+		self.footprintWidth = 2
+		self.footprintHeight = 2
+		self.core.Color = Color3.fromRGB(240, 240, 255)
+		self.shell.Color = Color3.fromRGB(205, 210, 224)
+		self.label.Text = "Geode"
+	end
+end
+
+function GeodePlacementGhost:getSnappedCell(plotModel: Model, hitPosition: Vector3): (number?, number?, Vector3?)
+	local plotBase = getPlotBase(plotModel)
+	if plotBase == nil then
+		return nil, nil, nil
+	end
+
+	local maxX = World.plotGridWidth - self.footprintWidth + 1
+	local maxY = World.plotGridHeight - self.footprintHeight + 1
+	if maxX < 1 or maxY < 1 then
+		return nil, nil, nil
+	end
+
+	local minX = plotBase.Position.X - ((World.plotGridWidth * World.cellSize) / 2)
+	local minZ = plotBase.Position.Z - ((World.plotGridHeight * World.cellSize) / 2)
+	local cellX = math.floor((hitPosition.X - minX) / World.cellSize) + 1
+	local cellY = math.floor((hitPosition.Z - minZ) / World.cellSize) + 1
+
+	if cellX < 1 or cellY < 1 or cellX > maxX or cellY > maxY then
+		return nil, nil, nil
+	end
+
+	local gridOriginX = plotBase.Position.X - ((World.plotGridWidth * World.cellSize) / 2) + (World.cellSize / 2)
+	local gridOriginZ = plotBase.Position.Z - ((World.plotGridHeight * World.cellSize) / 2) + (World.cellSize / 2)
+	local worldPosition = Vector3.new(
+		gridOriginX + ((cellX - 1) * World.cellSize) + (((self.footprintWidth - 1) * World.cellSize) / 2),
+		plotBase.Position.Y + 3.25,
+		gridOriginZ + ((cellY - 1) * World.cellSize) + (((self.footprintHeight - 1) * World.cellSize) / 2)
+	)
+
+	return cellX, cellY, worldPosition
+end
+
+function GeodePlacementGhost:showAt(plotModel: Model, hitPosition: Vector3): (number?, number?, Vector3?)
+	local cellX, cellY, worldPosition = self:getSnappedCell(plotModel, hitPosition)
+	if cellX == nil or cellY == nil or worldPosition == nil then
+		self:hide()
+		return nil, nil, nil
+	end
+
+	self.model.Parent = Workspace
+	self.model:PivotTo(CFrame.new(worldPosition))
+	self.visible = true
+	return cellX, cellY, worldPosition
+end
+
+function GeodePlacementGhost:hide()
+	if not self.visible then
+		return
+	end
+
+	self.visible = false
+	self.model.Parent = nil
+end
+
+function GeodePlacementGhost:destroy()
+	self.model:Destroy()
+end
+
+return GeodePlacementGhost
+
+]]></string>
+            </Properties>
+          </Item>
+          <Item class="ModuleScript" referent="71">
             <Properties>
               <string name="Name">HUDController</string>
               <string name="Source"><![CDATA[--!strict
@@ -5477,7 +7322,174 @@ return HUDController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="66">
+          <Item class="ModuleScript" referent="72">
+            <Properties>
+              <string name="Name">MiningController</string>
+              <string name="Source"><![CDATA[--!strict
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+
+local Pickaxes = require(Shared.Config.Pickaxes)
+local RemoteNames = require(Shared.Net.RemoteNames)
+
+local MiningController = {}
+MiningController.__index = MiningController
+
+local MINE_TARGET_ATTRIBUTE = "GemFactoryMineTarget"
+local PICKAXE_TOOL_ATTRIBUTE = "GemFactoryPickaxeTool"
+local MINE_COOLDOWN_SECONDS = 0.35
+local MINE_REMOTE_NAME = (RemoteNames :: any).RequestMine or "RequestMine"
+
+local function getPickaxeDisplayName(tool: Tool): string
+	local pickaxeTypeId = tool:GetAttribute("PickaxeTypeId")
+	if type(pickaxeTypeId) == "string" and pickaxeTypeId ~= "" then
+		local definition = Pickaxes.catalog[pickaxeTypeId]
+		return if definition ~= nil then definition.displayName else pickaxeTypeId
+	end
+
+	local pickaxeId = tool:GetAttribute("PickaxeId")
+	if type(pickaxeId) == "string" and pickaxeId ~= "" then
+		local definition = Pickaxes.catalog[pickaxeId]
+		return if definition ~= nil then definition.displayName else pickaxeId
+	end
+
+	return tool.Name
+end
+
+local function isMineTarget(target: Instance?): BasePart?
+	if target == nil or not target:IsA("BasePart") then
+		return nil
+	end
+
+	if target:GetAttribute(MINE_TARGET_ATTRIBUTE) == true then
+		return target
+	end
+
+	local ancestor = target.Parent
+	while ancestor ~= nil do
+		if ancestor:IsA("Model") and ancestor:GetAttribute("GemFactoryMine") == true then
+			return target
+		end
+		ancestor = ancestor.Parent
+	end
+
+	return nil
+end
+
+function MiningController.new(context)
+	return setmetatable({
+		context = context or {},
+	}, MiningController)
+end
+
+function MiningController:start()
+	local app = self.context.app
+	local screen = self.context.screen
+	local mouse = Players.LocalPlayer:GetMouse()
+	local lastMineClickAt = 0
+	local lastEquippedPickaxeId: string? = nil
+
+	local function getEquippedPickaxeTool()
+		local character = Players.LocalPlayer.Character
+		if character == nil then
+			return nil
+		end
+
+		local tool = character:FindFirstChildWhichIsA("Tool")
+		if tool == nil then
+			return nil
+		end
+
+		if tool:GetAttribute(PICKAXE_TOOL_ATTRIBUTE) ~= true then
+			return nil
+		end
+
+		local pickaxeTypeId = tool:GetAttribute("PickaxeTypeId")
+		if type(pickaxeTypeId) ~= "string" or pickaxeTypeId == "" then
+			pickaxeTypeId = tool.Name
+		end
+
+		return tool, tostring(pickaxeTypeId)
+	end
+
+	local function refreshEquippedStatus()
+		local equippedTool, pickaxeId = getEquippedPickaxeTool()
+		if equippedTool ~= nil and pickaxeId ~= nil and lastEquippedPickaxeId ~= pickaxeId then
+			lastEquippedPickaxeId = pickaxeId
+			app:setStatus(string.format("Equipped %s. Click the mine to dig.", getPickaxeDisplayName(equippedTool)))
+		elseif equippedTool == nil then
+			lastEquippedPickaxeId = nil
+		end
+	end
+
+	RunService.RenderStepped:Connect(refreshEquippedStatus)
+
+	local function handleMineClick()
+		local now = os.clock()
+		if now - lastMineClickAt < MINE_COOLDOWN_SECONDS then
+			return
+		end
+		lastMineClickAt = now
+
+		local equippedTool, pickaxeId = getEquippedPickaxeTool()
+		if equippedTool == nil then
+			app:setStatus("Equip a pickaxe before mining.")
+			if screen ~= nil and screen.showMiningPopup ~= nil then
+				screen:showMiningPopup("Equip a pickaxe")
+			end
+			return
+		end
+
+		local mineTarget = isMineTarget(mouse.Target)
+		if mineTarget == nil then
+			return
+		end
+
+		local ok, result = app:invokeRemote(MINE_REMOTE_NAME, pickaxeId, mineTarget)
+		if ok and type(result) == "table" and result.ok == true then
+			local rewardText = nil
+			if type(result.coins) == "number" and result.coins > 0 then
+				rewardText = string.format("Found %d coins in the mine.", math.floor(result.coins + 0.5))
+			elseif type(result.geodeDisplayName) == "string" then
+				rewardText = string.format("Unearthed %s.", tostring(result.geodeDisplayName))
+			elseif type(result.geodeTypeId) == "string" then
+				rewardText = string.format("Unearthed %s.", tostring(result.geodeTypeId))
+			elseif type(result.rewardText) == "string" then
+				rewardText = tostring(result.rewardText)
+			end
+
+			app:setStatus(rewardText or "Mining hit registered.")
+			if screen ~= nil and screen.showMiningPopup ~= nil then
+				screen:showMiningPopup(rewardText or "Mining hit registered")
+			end
+		else
+			local errorText = type(result) == "table" and result.errorCode or result
+			if errorText == "mine_cooldown" then
+				return
+			end
+			if errorText == "not_inside_mine" then
+				app:setStatus("Stand inside the mine to mine.")
+				if screen ~= nil and screen.showMiningPopup ~= nil then
+					screen:showMiningPopup("Stand inside the mine")
+				end
+				return
+			end
+			app:setStatus("Mining failed: " .. tostring(errorText))
+		end
+	end
+
+	mouse.Button1Down:Connect(handleMineClick)
+end
+
+return MiningController
+]]></string>
+            </Properties>
+          </Item>
+          <Item class="ModuleScript" referent="73">
             <Properties>
               <string name="Name">NotificationsController</string>
               <string name="Source"><![CDATA[--!strict
@@ -5569,7 +7581,7 @@ return NotificationsController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="67">
+          <Item class="ModuleScript" referent="74">
             <Properties>
               <string name="Name">PlacementController</string>
               <string name="Source"><![CDATA[--!strict
@@ -5636,7 +7648,7 @@ return PlacementController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="68">
+          <Item class="ModuleScript" referent="75">
             <Properties>
               <string name="Name">PlotController</string>
               <string name="Source"><![CDATA[--!strict
@@ -5713,18 +7725,26 @@ return PlotController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="69">
+          <Item class="ModuleScript" referent="76">
             <Properties>
               <string name="Name">ShopController</string>
               <string name="Source"><![CDATA[--!strict
 
+local ProximityPromptService = game:GetService("ProximityPromptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
-local Shops = require(Shared.Config.Shops)
+local Pickaxes = require(Shared.Config.Pickaxes)
+local RemoteNames = require(Shared.Net.RemoteNames)
 
 local ShopController = {}
 ShopController.__index = ShopController
+
+local SHOP_PROMPT_ATTRIBUTE = "GemFactoryShopPrompt"
+local SHOP_ROW_Z_INDEX = 62
+local SHOP_TEXT_Z_INDEX = 63
+local SHOP_BUTTON_Z_INDEX = 64
 
 local function formatNumber(value: number): string
 	local text = tostring(math.floor(value + 0.5))
@@ -5738,12 +7758,137 @@ local function formatNumber(value: number): string
 	return text
 end
 
-local function formatDuration(seconds: number): string
-	local safeSeconds = math.max(0, math.floor(seconds))
-	local hours = math.floor(safeSeconds / 3600)
-	local minutes = math.floor((safeSeconds % 3600) / 60)
-	local remaining = safeSeconds % 60
-	return string.format("%02d:%02d:%02d", hours, minutes, remaining)
+local function clearOfferRows(container: Instance)
+	for _, child in ipairs(container:GetChildren()) do
+		if child:IsA("UIListLayout") or child:IsA("UIPadding") or child:IsA("UIGridLayout") then
+			continue
+		end
+		child:Destroy()
+	end
+end
+
+local function collectOffers()
+	local offers = {}
+	for _, pickaxeId in ipairs(Pickaxes.order) do
+		local definition = Pickaxes.catalog[pickaxeId]
+		if definition ~= nil then
+			table.insert(offers, definition)
+		end
+	end
+	return offers
+end
+
+local function collectRarityLabels()
+	local labels = {}
+	for _, pickaxeId in ipairs(Pickaxes.order) do
+		local definition = Pickaxes.catalog[pickaxeId]
+		if definition ~= nil then
+			table.insert(labels, definition.rarity)
+		end
+	end
+	return labels
+end
+
+local function createOfferRow(parent: Instance, palette, offer, isOwned: boolean, isEquipped: boolean, canAfford: boolean, onBuy, onEquip)
+	local row = Instance.new("Frame")
+	row.Name = offer.displayName .. "Row"
+	row.BackgroundColor3 = palette.background.panelAlt
+	row.BorderSizePixel = 0
+	row.Size = UDim2.new(1, 0, 0, 102)
+	row.ZIndex = SHOP_ROW_Z_INDEX
+	row.Parent = parent
+
+	local rowCorner = Instance.new("UICorner")
+	rowCorner.CornerRadius = UDim.new(0, 8)
+	rowCorner.Parent = row
+
+	local rowStroke = Instance.new("UIStroke")
+	rowStroke.Color = palette.border
+	rowStroke.Thickness = 1
+	rowStroke.Transparency = 0.15
+	rowStroke.Parent = row
+
+	local padding = Instance.new("UIPadding")
+	padding.PaddingTop = UDim.new(0, 10)
+	padding.PaddingBottom = UDim.new(0, 10)
+	padding.PaddingLeft = UDim.new(0, 12)
+	padding.PaddingRight = UDim.new(0, 12)
+	padding.Parent = row
+
+	local title = Instance.new("TextLabel")
+	title.BackgroundTransparency = 1
+	title.Size = UDim2.new(1, -132, 0, 22)
+	title.Font = Enum.Font.GothamBold
+	title.Text = offer.displayName
+	title.TextColor3 = palette.text
+	title.TextSize = 18
+	title.TextXAlignment = Enum.TextXAlignment.Left
+	title.ZIndex = SHOP_TEXT_Z_INDEX
+	title.Parent = row
+
+	local subtitle = Instance.new("TextLabel")
+	subtitle.BackgroundTransparency = 1
+	subtitle.Position = UDim2.new(0, 0, 0, 24)
+	subtitle.Size = UDim2.new(1, -132, 0, 46)
+	subtitle.Font = Enum.Font.Gotham
+	subtitle.Text = string.format(
+		"%s pickaxe\nCoins %d-%d | Geode chance %d%%",
+		offer.rarity,
+		offer.coinRewardMin,
+		offer.coinRewardMax,
+		offer.geodeChance
+	)
+	subtitle.TextColor3 = palette.muted
+	subtitle.TextSize = 14
+	subtitle.TextWrapped = true
+	subtitle.TextXAlignment = Enum.TextXAlignment.Left
+	subtitle.TextYAlignment = Enum.TextYAlignment.Top
+	subtitle.ZIndex = SHOP_TEXT_Z_INDEX
+	subtitle.Parent = row
+
+	local price = Instance.new("TextLabel")
+	price.BackgroundTransparency = 1
+	price.Position = UDim2.new(0, 0, 0, 76)
+	price.Size = UDim2.new(1, -132, 0, 16)
+	price.Font = Enum.Font.Gotham
+	price.Text = if isOwned then "Owned" else string.format("%s %s", formatNumber(offer.price), string.lower(offer.currency))
+	price.TextColor3 = palette.accentSoft
+	price.TextSize = 12
+	price.TextXAlignment = Enum.TextXAlignment.Left
+	price.ZIndex = SHOP_TEXT_Z_INDEX
+	price.Parent = row
+
+	local action = Instance.new("TextButton")
+	action.Name = "ActionButton"
+	action.AnchorPoint = Vector2.new(1, 0.5)
+	action.AutoButtonColor = not isEquipped and (isOwned or canAfford)
+	action.Active = not isEquipped and (isOwned or canAfford)
+	action.BackgroundColor3 = if isEquipped then Color3.fromRGB(120, 120, 120) elseif isOwned or canAfford then palette.accent else Color3.fromRGB(110, 110, 110)
+	action.BorderSizePixel = 0
+	action.Position = UDim2.new(1, 0, 0.5, 0)
+	action.Size = UDim2.new(0, 112, 0, 40)
+	action.Font = Enum.Font.GothamBold
+	action.Text = if isEquipped then "Equipped" elseif isOwned then "Equip" else if canAfford then "Buy" else "Need coins"
+	action.TextColor3 = palette.shadow
+	action.TextSize = 14
+	action.ZIndex = SHOP_BUTTON_Z_INDEX
+	action.Parent = row
+
+	local actionCorner = Instance.new("UICorner")
+	actionCorner.CornerRadius = UDim.new(0, 8)
+	actionCorner.Parent = action
+
+	action.Activated:Connect(function()
+		if isEquipped then
+			return
+		end
+
+		if isOwned then
+			onEquip(offer)
+		elseif canAfford then
+			onBuy(offer)
+		end
+	end)
 end
 
 function ShopController.new(context)
@@ -5752,57 +7897,96 @@ function ShopController.new(context)
 	}, ShopController)
 end
 
-function ShopController:start()
+function ShopController:_openShop()
+	self.context.screen:setShopMenuVisible(true)
+	self.context.app:setStatus("Pickaxe Shop opened.")
+end
+
+function ShopController:_refresh(state)
 	local screen = self.context.screen
 	local app = self.context.app
-	local starterOffer = Shops.starterOffers[1]
+	local profile = state.profile or {}
+	local currencies = profile.currencies or {}
+	local inventory = profile.inventory or {}
+	local ownedPickaxes = inventory.pickaxes or {}
+	local equippedPickaxeId = profile.progression and profile.progression.equippedPickaxeId or "stone_pickaxe"
+	local coinBalance = currencies.coins or 0
 
-	local function profileCoins(state)
-		return state.profile.currencies.coins or 0
-	end
+	screen:setShopText("Pickaxes are sold at the forge. Better pickaxes improve coin payouts and rare geode odds when mining.")
+	screen:setShopMenuSubtitle("Press E at the forge to browse pickaxes.")
+	screen:setShopMenuInfo(string.format("Coins: %s | Equipped: %s", formatNumber(coinBalance), equippedPickaxeId))
+	screen:setShopMenuRarities(collectRarityLabels())
 
-	local function refresh(state)
-		local shopState = state.shop
-		local currentOffer = shopState.currentOffer or shopState.starterOffer or starterOffer
-		local secondsRemaining = shopState.secondsRemaining or 0
+	local offerContainer = screen:getShopOfferContainer()
+	clearOfferRows(offerContainer)
 
-		screen:setShopText(string.format(
-			"Limited offer: %s\nPrice: %s %s\nRefreshes in: %s\nStarter geodes stay available from the button below.",
-			currentOffer.displayName or currentOffer.offerId or "Unknown Offer",
-			formatNumber(currentOffer.price or starterOffer.price),
-			string.lower(currentOffer.currency or starterOffer.currency or "coins"),
-			formatDuration(secondsRemaining)
-		))
-
-		screen:setBuyStarterButton(
-			(profileCoins(state) >= starterOffer.price),
-			string.format("Buy Starter Geode (%s coins)", formatNumber(starterOffer.price))
+	for _, offer in ipairs(collectOffers()) do
+		local isOwned = ownedPickaxes[offer.id] == true
+		local isEquipped = equippedPickaxeId == offer.id
+		createOfferRow(
+			offerContainer,
+			app.context.palette,
+			offer,
+			isOwned,
+			isEquipped,
+			coinBalance >= offer.price,
+			function(selectedOffer)
+				local ok, result = app:invokeRemote(RemoteNames.RequestBuyPickaxe, selectedOffer.id)
+				if ok and type(result) == "table" and result.ok == true then
+					app:setStatus(string.format("%s bought and added to your backpack.", selectedOffer.displayName))
+				else
+					local errorText = type(result) == "table" and result.errorCode or result
+					app:setStatus("Pickaxe purchase failed: " .. tostring(errorText))
+				end
+			end,
+			function(selectedOffer)
+				local ok, result = app:invokeRemote(RemoteNames.RequestEquipPickaxe, selectedOffer.id)
+				if ok and type(result) == "table" and result.ok == true then
+					app:setStatus(string.format("Equipped %s.", selectedOffer.displayName))
+				else
+					local errorText = type(result) == "table" and result.errorCode or result
+					app:setStatus("Pickaxe equip failed: " .. tostring(errorText))
+				end
+			end
 		)
 	end
+end
 
-	screen.buttons.buyStarter.Activated:Connect(function()
-		app:requestBuyStarterGeode()
+function ShopController:start()
+	local app = self.context.app
+
+	self.context.stateChanged:Connect(function(state)
+		self:_refresh(state)
 	end)
 
-	self.context.stateChanged:Connect(refresh)
-	refresh(app:getState())
+	self.context.screen.shop.closeButton.Activated:Connect(function()
+		self.context.screen:setShopMenuVisible(false)
+	end)
+
+	ProximityPromptService.PromptTriggered:Connect(function(prompt)
+		if prompt ~= nil and prompt:IsA("ProximityPrompt") and prompt:GetAttribute(SHOP_PROMPT_ATTRIBUTE) == true then
+			self:_openShop()
+		end
+	end)
+
+	self.context.screen:setShopMenuVisible(false)
+	self:_refresh(app:getState())
 end
 
 return ShopController
-
 ]]></string>
             </Properties>
           </Item>
         </Item>
-        <Item class="Folder" referent="70">
+        <Item class="Folder" referent="77">
           <Properties>
             <string name="Name">UI</string>
           </Properties>
-          <Item class="Folder" referent="71">
+          <Item class="Folder" referent="78">
             <Properties>
               <string name="Name">Components</string>
             </Properties>
-            <Item class="ModuleScript" referent="72">
+            <Item class="ModuleScript" referent="79">
               <Properties>
                 <string name="Name">Panel</string>
                 <string name="Source"><![CDATA[--!strict
@@ -5915,21 +8099,42 @@ return Panel
               </Properties>
             </Item>
           </Item>
-          <Item class="Folder" referent="73">
+          <Item class="Folder" referent="80">
             <Properties>
               <string name="Name">Screens</string>
             </Properties>
-            <Item class="ModuleScript" referent="74">
+            <Item class="ModuleScript" referent="81">
               <Properties>
                 <string name="Name">RootScreen</string>
                 <string name="Source"><![CDATA[--!strict
 
 local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
 
 local Panel = require(script.Parent.Parent.Components.Panel)
 
 local RootScreen = {}
 RootScreen.__index = RootScreen
+
+local SHOP_BASE_Z_INDEX = 60
+local POPUP_Z_INDEX = 80
+
+local function applyGuiZIndex(root, zIndex)
+	for _, descendant in ipairs(root:GetDescendants()) do
+		if descendant:IsA("GuiObject") then
+			descendant.ZIndex = zIndex
+		end
+	end
+end
+
+local function clearContainer(container)
+	for _, child in ipairs(container:GetChildren()) do
+		if child:IsA("UIListLayout") or child:IsA("UIPadding") or child:IsA("UIGridLayout") or child:IsA("UICorner") or child:IsA("UIStroke") then
+			continue
+		end
+		child:Destroy()
+	end
+end
 
 function RootScreen.new(context)
 	local palette = context.palette
@@ -5940,6 +8145,7 @@ function RootScreen.new(context)
 	screenGui.IgnoreGuiInset = false
 	screenGui.ResetOnSpawn = false
 	screenGui.DisplayOrder = 50
+	screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
 	screenGui.Parent = playerGui
 
 	local backdrop = Instance.new("Frame")
@@ -5952,7 +8158,7 @@ function RootScreen.new(context)
 	backdrop.Parent = screenGui
 
 	local backdropCorner = Instance.new("UICorner")
-	backdropCorner.CornerRadius = UDim.new(0, 18)
+	backdropCorner.CornerRadius = UDim.new(0, 8)
 	backdropCorner.Parent = backdrop
 
 	local backdropStroke = Instance.new("UIStroke")
@@ -5969,7 +8175,7 @@ function RootScreen.new(context)
 	header.Parent = backdrop
 
 	local headerCorner = Instance.new("UICorner")
-	headerCorner.CornerRadius = UDim.new(0, 18)
+	headerCorner.CornerRadius = UDim.new(0, 8)
 	headerCorner.Parent = header
 
 	local headerStroke = Instance.new("UIStroke")
@@ -6021,7 +8227,7 @@ function RootScreen.new(context)
 	collapseButton.Parent = header
 
 	local collapseCorner = Instance.new("UICorner")
-	collapseCorner.CornerRadius = UDim.new(0, 10)
+	collapseCorner.CornerRadius = UDim.new(0, 8)
 	collapseCorner.Parent = collapseButton
 
 	local scroll = Instance.new("ScrollingFrame")
@@ -6047,14 +8253,16 @@ function RootScreen.new(context)
 	local overview = Panel.createCard(scroll, "Crystal Cavern Overview", palette, 1)
 	local overviewLabel = Panel.createLabel(overview.body, "Loading crystal cavern statistics...", palette, 1)
 
-	local shop = Panel.createCard(scroll, "Hourly Shop", palette, 2)
-	local shopLabel = Panel.createLabel(shop.body, "Loading shop rotation...", palette, 1)
-	local buyStarter = Panel.createButton(shop.body, "Buy Starter Geode", palette, 2)
+	local shop = Panel.createCard(scroll, "Merchant Stall", palette, 2)
+	local shopLabel = Panel.createLabel(shop.body, "Loading pickaxe stock...", palette, 1)
+	local shopHint = Panel.createLabel(shop.body, "Visit the forge at the far edge to browse pickaxes.", palette, 2)
+	shop.frame.Visible = false
 
 	local geode = Panel.createCard(scroll, "Geode Inventory", palette, 3)
 	local geodeLabel = Panel.createLabel(geode.body, "Waiting for geode data...", palette, 1)
 	local placeGeode = Panel.createButton(geode.body, "Place Next Geode", palette, 2)
 	local openReadyGeodes = Panel.createButton(geode.body, "Open Ready Geode", palette, 3)
+	placeGeode.Visible = false
 
 	local daily = Panel.createCard(scroll, "Daily Rewards", palette, 4)
 	local dailyLabel = Panel.createLabel(daily.body, "Waiting for daily reward data...", palette, 1)
@@ -6090,7 +8298,7 @@ function RootScreen.new(context)
 	reopenButton.Parent = screenGui
 
 	local reopenCorner = Instance.new("UICorner")
-	reopenCorner.CornerRadius = UDim.new(0, 12)
+	reopenCorner.CornerRadius = UDim.new(0, 8)
 	reopenCorner.Parent = reopenButton
 
 	local reopenStroke = Instance.new("UIStroke")
@@ -6099,15 +8307,289 @@ function RootScreen.new(context)
 	reopenStroke.Transparency = 0.15
 	reopenStroke.Parent = reopenButton
 
+	local shopOverlay = Instance.new("Frame")
+	shopOverlay.Name = "ShopOverlay"
+	shopOverlay.BackgroundColor3 = Color3.fromRGB(8, 8, 12)
+	shopOverlay.BackgroundTransparency = 0.25
+	shopOverlay.BorderSizePixel = 0
+	shopOverlay.Size = UDim2.fromScale(1, 1)
+	shopOverlay.Visible = false
+	shopOverlay.ZIndex = SHOP_BASE_Z_INDEX
+	shopOverlay.Parent = screenGui
+
+	local shopOverlayStroke = Instance.new("UIStroke")
+	shopOverlayStroke.Color = Color3.fromRGB(0, 0, 0)
+	shopOverlayStroke.Transparency = 1
+	shopOverlayStroke.Parent = shopOverlay
+
+	local shopPanel = Instance.new("Frame")
+	shopPanel.Name = "ShopPanel"
+	shopPanel.AnchorPoint = Vector2.new(0.5, 0.5)
+	shopPanel.BackgroundColor3 = palette.background.panel
+	shopPanel.BorderSizePixel = 0
+	shopPanel.Position = UDim2.fromScale(0.5, 0.5)
+	shopPanel.Size = UDim2.new(0.92, 0, 0.84, 0)
+	shopPanel.ZIndex = SHOP_BASE_Z_INDEX + 1
+	shopPanel.Parent = shopOverlay
+
+	local shopPanelCorner = Instance.new("UICorner")
+	shopPanelCorner.CornerRadius = UDim.new(0, 8)
+	shopPanelCorner.Parent = shopPanel
+
+	local shopPanelStroke = Instance.new("UIStroke")
+	shopPanelStroke.Color = palette.border
+	shopPanelStroke.Thickness = 1
+	shopPanelStroke.Transparency = 0.1
+	shopPanelStroke.Parent = shopPanel
+
+	local shopPanelConstraint = Instance.new("UISizeConstraint")
+	shopPanelConstraint.MinSize = Vector2.new(320, 420)
+	shopPanelConstraint.MaxSize = Vector2.new(560, 680)
+	shopPanelConstraint.Parent = shopPanel
+
+	local shopPadding = Instance.new("UIPadding")
+	shopPadding.PaddingTop = UDim.new(0, 16)
+	shopPadding.PaddingBottom = UDim.new(0, 16)
+	shopPadding.PaddingLeft = UDim.new(0, 16)
+	shopPadding.PaddingRight = UDim.new(0, 16)
+	shopPadding.Parent = shopPanel
+
+	local shopLayout = Instance.new("UIListLayout")
+	shopLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	shopLayout.Padding = UDim.new(0, 12)
+	shopLayout.Parent = shopPanel
+
+	local shopHeader = Instance.new("Frame")
+	shopHeader.Name = "ShopHeader"
+	shopHeader.BackgroundTransparency = 1
+	shopHeader.LayoutOrder = 1
+	shopHeader.Size = UDim2.new(1, 0, 0, 56)
+	shopHeader.Parent = shopPanel
+
+	local shopTitle = Instance.new("TextLabel")
+	shopTitle.BackgroundTransparency = 1
+	shopTitle.Size = UDim2.new(1, -56, 0, 24)
+	shopTitle.Font = Enum.Font.GothamBold
+	shopTitle.Text = "Pickaxe Shop"
+	shopTitle.TextColor3 = palette.text
+	shopTitle.TextSize = 22
+	shopTitle.TextXAlignment = Enum.TextXAlignment.Left
+	shopTitle.Parent = shopHeader
+
+	local shopSubtitle = Instance.new("TextLabel")
+	shopSubtitle.BackgroundTransparency = 1
+	shopSubtitle.Position = UDim2.new(0, 0, 0, 28)
+	shopSubtitle.Size = UDim2.new(1, -56, 0, 20)
+	shopSubtitle.Font = Enum.Font.Gotham
+	shopSubtitle.Text = "Press E at the forge to open the shop."
+	shopSubtitle.TextColor3 = palette.muted
+	shopSubtitle.TextSize = 14
+	shopSubtitle.TextXAlignment = Enum.TextXAlignment.Left
+	shopSubtitle.TextWrapped = true
+	shopSubtitle.Parent = shopHeader
+
+	local shopClose = Instance.new("TextButton")
+	shopClose.Name = "CloseShopButton"
+	shopClose.AnchorPoint = Vector2.new(1, 0)
+	shopClose.AutoButtonColor = true
+	shopClose.BackgroundColor3 = palette.accent
+	shopClose.BorderSizePixel = 0
+	shopClose.Position = UDim2.new(1, 0, 0, 0)
+	shopClose.Size = UDim2.new(0, 40, 0, 32)
+	shopClose.Font = Enum.Font.GothamBold
+	shopClose.Text = "X"
+	shopClose.TextColor3 = palette.shadow
+	shopClose.TextSize = 18
+	shopClose.ZIndex = 62
+	shopClose.Parent = shopHeader
+
+	local shopCloseCorner = Instance.new("UICorner")
+	shopCloseCorner.CornerRadius = UDim.new(0, 8)
+	shopCloseCorner.Parent = shopClose
+
+	local shopCloseStroke = Instance.new("UIStroke")
+	shopCloseStroke.Color = palette.border
+	shopCloseStroke.Thickness = 1
+	shopCloseStroke.Transparency = 0.15
+	shopCloseStroke.Parent = shopClose
+
+	local shopInfo = Instance.new("Frame")
+	shopInfo.Name = "ShopInfo"
+	shopInfo.BackgroundColor3 = palette.background.panelAlt
+	shopInfo.BorderSizePixel = 0
+	shopInfo.LayoutOrder = 2
+	shopInfo.Size = UDim2.new(1, 0, 0, 64)
+	shopInfo.Parent = shopPanel
+
+	local shopInfoCorner = Instance.new("UICorner")
+	shopInfoCorner.CornerRadius = UDim.new(0, 8)
+	shopInfoCorner.Parent = shopInfo
+
+	local shopInfoStroke = Instance.new("UIStroke")
+	shopInfoStroke.Color = palette.border
+	shopInfoStroke.Thickness = 1
+	shopInfoStroke.Transparency = 0.18
+	shopInfoStroke.Parent = shopInfo
+
+	local shopInfoPadding = Instance.new("UIPadding")
+	shopInfoPadding.PaddingTop = UDim.new(0, 10)
+	shopInfoPadding.PaddingBottom = UDim.new(0, 10)
+	shopInfoPadding.PaddingLeft = UDim.new(0, 12)
+	shopInfoPadding.PaddingRight = UDim.new(0, 12)
+	shopInfoPadding.Parent = shopInfo
+
+	local shopInfoLabel = Instance.new("TextLabel")
+	shopInfoLabel.BackgroundTransparency = 1
+	shopInfoLabel.Size = UDim2.new(1, 0, 1, 0)
+	shopInfoLabel.Font = Enum.Font.Gotham
+	shopInfoLabel.Text = "Loading pickaxe stock..."
+	shopInfoLabel.TextColor3 = palette.text
+	shopInfoLabel.TextSize = 14
+	shopInfoLabel.TextWrapped = true
+	shopInfoLabel.TextXAlignment = Enum.TextXAlignment.Left
+	shopInfoLabel.TextYAlignment = Enum.TextYAlignment.Top
+	shopInfoLabel.Parent = shopInfo
+
+	local shopOfferScroll = Instance.new("ScrollingFrame")
+	shopOfferScroll.Name = "ShopOffers"
+	shopOfferScroll.BackgroundTransparency = 1
+	shopOfferScroll.BorderSizePixel = 0
+	shopOfferScroll.LayoutOrder = 3
+	shopOfferScroll.ScrollBarThickness = 6
+	shopOfferScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	shopOfferScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+	shopOfferScroll.Size = UDim2.new(1, 0, 0, 214)
+	shopOfferScroll.ZIndex = SHOP_BASE_Z_INDEX + 2
+	shopOfferScroll.Parent = shopPanel
+
+	local shopOfferPadding = Instance.new("UIPadding")
+	shopOfferPadding.PaddingBottom = UDim.new(0, 4)
+	shopOfferPadding.Parent = shopOfferScroll
+
+	local shopOfferLayout = Instance.new("UIListLayout")
+	shopOfferLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	shopOfferLayout.Padding = UDim.new(0, 10)
+	shopOfferLayout.Parent = shopOfferScroll
+
+	local rarityFrame = Instance.new("Frame")
+	rarityFrame.Name = "RarityLadder"
+	rarityFrame.BackgroundTransparency = 1
+	rarityFrame.LayoutOrder = 4
+	rarityFrame.Size = UDim2.new(1, 0, 0, 128)
+	rarityFrame.Parent = shopPanel
+
+	local rarityTitle = Instance.new("TextLabel")
+	rarityTitle.BackgroundTransparency = 1
+	rarityTitle.Size = UDim2.new(1, 0, 0, 20)
+	rarityTitle.Font = Enum.Font.GothamBold
+	rarityTitle.Text = "Pickaxe Tiers"
+	rarityTitle.TextColor3 = palette.accentSoft
+	rarityTitle.TextSize = 16
+	rarityTitle.TextXAlignment = Enum.TextXAlignment.Left
+	rarityTitle.Parent = rarityFrame
+
+	local rarityGrid = Instance.new("Frame")
+	rarityGrid.Name = "RarityGrid"
+	rarityGrid.BackgroundTransparency = 1
+	rarityGrid.Position = UDim2.new(0, 0, 0, 26)
+	rarityGrid.Size = UDim2.new(1, 0, 1, -26)
+	rarityGrid.Parent = rarityFrame
+
+	local rarityLayout = Instance.new("UIGridLayout")
+	rarityLayout.CellPadding = UDim2.new(0, 6, 0, 6)
+	rarityLayout.CellSize = UDim2.new(0.2, -5, 0.5, -3)
+	rarityLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	rarityLayout.Parent = rarityGrid
+
+	local rarityLabels = {}
+	local rarityNames = {
+		"Common",
+		"Uncommon",
+		"Rare",
+		"Epic",
+		"Mythic",
+		"Legendary",
+		"Storm",
+		"Ancient",
+		"Prismatic",
+		"Sovereign",
+	}
+
+	for index, rarityName in ipairs(rarityNames) do
+		local rarityChip = Instance.new("TextLabel")
+		rarityChip.Name = string.format("Rarity%d", index)
+		rarityChip.BackgroundColor3 = palette.background.panelAlt
+		rarityChip.BorderSizePixel = 0
+		rarityChip.Font = Enum.Font.GothamBold
+		rarityChip.LayoutOrder = index
+		rarityChip.Text = rarityName
+		rarityChip.TextColor3 = palette.text
+		rarityChip.TextSize = 13
+		rarityChip.TextWrapped = false
+		rarityChip.ZIndex = SHOP_BASE_Z_INDEX + 2
+		rarityChip.Parent = rarityGrid
+
+		local chipCorner = Instance.new("UICorner")
+		chipCorner.CornerRadius = UDim.new(0, 8)
+		chipCorner.Parent = rarityChip
+
+		local chipStroke = Instance.new("UIStroke")
+		chipStroke.Color = palette.border
+		chipStroke.Thickness = 1
+		chipStroke.Transparency = 0.2
+		chipStroke.Parent = rarityChip
+
+		table.insert(rarityLabels, rarityChip)
+	end
+
+	applyGuiZIndex(shopPanel, SHOP_BASE_Z_INDEX + 2)
+	shopPanel.ZIndex = SHOP_BASE_Z_INDEX + 1
+	shopOverlay.ZIndex = SHOP_BASE_Z_INDEX
+	shopClose.ZIndex = SHOP_BASE_Z_INDEX + 4
+
+	local miningPopupContainer = Instance.new("Frame")
+	miningPopupContainer.Name = "MiningPopups"
+	miningPopupContainer.AnchorPoint = Vector2.new(0.5, 0)
+	miningPopupContainer.BackgroundTransparency = 1
+	miningPopupContainer.BorderSizePixel = 0
+	miningPopupContainer.Position = UDim2.new(0.5, 0, 0.22, 0)
+	miningPopupContainer.Size = UDim2.new(0, 420, 0, 180)
+	miningPopupContainer.ZIndex = POPUP_Z_INDEX
+	miningPopupContainer.Parent = screenGui
+
+	local miningPopupConstraint = Instance.new("UISizeConstraint")
+	miningPopupConstraint.MinSize = Vector2.new(240, 120)
+	miningPopupConstraint.MaxSize = Vector2.new(520, 220)
+	miningPopupConstraint.Parent = miningPopupContainer
+
+	local miningPopupLayout = Instance.new("UIListLayout")
+	miningPopupLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	miningPopupLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	miningPopupLayout.Padding = UDim.new(0, 8)
+	miningPopupLayout.Parent = miningPopupContainer
+
 	local self = setmetatable({
 		gui = screenGui,
 		backdrop = backdrop,
 		scroll = scroll,
 		reopenButton = reopenButton,
+		shop = {
+			overlay = shopOverlay,
+			panel = shopPanel,
+			title = shopTitle,
+			subtitle = shopSubtitle,
+			info = shopInfoLabel,
+			offers = shopOfferScroll,
+			rarity = rarityGrid,
+			rarityLabels = rarityLabels,
+			closeButton = shopClose,
+		},
+		miningPopupContainer = miningPopupContainer,
 		labels = {
 			status = status,
 			overview = overviewLabel,
 			shop = shopLabel,
+			shopHint = shopHint,
 			geode = geodeLabel,
 			daily = dailyLabel,
 			offline = offlineLabel,
@@ -6116,7 +8598,6 @@ function RootScreen.new(context)
 			notifications = notificationsLabel,
 		},
 		buttons = {
-			buyStarter = buyStarter,
 			placeGeode = placeGeode,
 			openReadyGeodes = openReadyGeodes,
 			claimDaily = claimDaily,
@@ -6124,7 +8605,6 @@ function RootScreen.new(context)
 			placeStarterStation = placeStarterStation,
 		},
 		buttonColors = {
-			buyStarter = buyStarter.BackgroundColor3,
 			placeGeode = placeGeode.BackgroundColor3,
 			openReadyGeodes = openReadyGeodes.BackgroundColor3,
 			claimDaily = claimDaily.BackgroundColor3,
@@ -6148,7 +8628,11 @@ function RootScreen.new(context)
 		setOpen(true)
 	end)
 
-	self:setPlaceGeodeButton(false, "Place Next Geode")
+	shopClose.Activated:Connect(function()
+		shopOverlay.Visible = false
+	end)
+
+	self:setShopMenuVisible(false)
 	self:setOpenReadyGeodeButton(false, "Open Ready Geode")
 	self:setOfflineButtonState(false, "Claim Offline Cache")
 	self:setPlaceStarterStationButton(true, "Place Starter Station")
@@ -6172,6 +8656,7 @@ function RootScreen:setGeodeText(text)
 end
 
 function RootScreen:setPlaceGeodeButton(enabled, text)
+	self.buttons.placeGeode.Visible = false
 	self.buttons.placeGeode.Active = enabled
 	self.buttons.placeGeode.AutoButtonColor = enabled
 	self.buttons.placeGeode.Text = text
@@ -6212,11 +8697,80 @@ function RootScreen:setNotificationsText(text)
 	self.labels.notifications.Text = text
 end
 
-function RootScreen:setBuyStarterButton(enabled, text)
-	self.buttons.buyStarter.Active = enabled
-	self.buttons.buyStarter.AutoButtonColor = enabled
-	self.buttons.buyStarter.Text = text
-	self.buttons.buyStarter.BackgroundColor3 = if enabled then self.buttonColors.buyStarter else Color3.fromRGB(120, 120, 120)
+function RootScreen:showMiningPopup(text)
+	local popup = Instance.new("TextLabel")
+	popup.Name = "MiningPopup"
+	popup.AnchorPoint = Vector2.new(0.5, 0)
+	popup.BackgroundColor3 = Color3.fromRGB(18, 17, 24)
+	popup.BackgroundTransparency = 0.08
+	popup.BorderSizePixel = 0
+	popup.Size = UDim2.new(0.92, 0, 0, 48)
+	popup.Font = Enum.Font.GothamBlack
+	popup.Text = tostring(text)
+	popup.TextColor3 = Color3.fromRGB(255, 246, 196)
+	popup.TextSize = 24
+	popup.TextWrapped = true
+	popup.ZIndex = POPUP_Z_INDEX
+	popup.Parent = self.miningPopupContainer
+
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 8)
+	corner.Parent = popup
+
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = Color3.fromRGB(109, 231, 255)
+	stroke.Thickness = 2
+	stroke.Transparency = 0.05
+	stroke.Parent = popup
+
+	task.delay(1.4, function()
+		if popup.Parent == nil then
+			return
+		end
+
+		local tween = TweenService:Create(
+			popup,
+			TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+			{
+				BackgroundTransparency = 1,
+				TextTransparency = 1,
+			}
+		)
+		tween:Play()
+		tween.Completed:Connect(function()
+			popup:Destroy()
+		end)
+	end)
+end
+
+function RootScreen:setShopMenuVisible(visible)
+	self.shop.overlay.Visible = visible
+end
+
+function RootScreen:getShopOfferContainer()
+	return self.shop.offers
+end
+
+function RootScreen:getShopRarityContainer()
+	return self.shop.rarity
+end
+
+function RootScreen:setShopMenuSubtitle(text)
+	self.shop.subtitle.Text = text
+end
+
+function RootScreen:setShopMenuInfo(text)
+	self.shop.info.Text = text
+end
+
+function RootScreen:setShopMenuRarities(labels)
+	for index, rarityLabel in ipairs(self.shop.rarityLabels) do
+		rarityLabel.Text = labels[index] or ""
+	end
+end
+
+function RootScreen:clearShopOfferRows()
+	clearContainer(self.shop.offers)
 end
 
 function RootScreen:setDailyButtonState(enabled, text)
@@ -6245,11 +8799,11 @@ return RootScreen
               </Properties>
             </Item>
           </Item>
-          <Item class="Folder" referent="75">
+          <Item class="Folder" referent="82">
             <Properties>
               <string name="Name">Theme</string>
             </Properties>
-            <Item class="ModuleScript" referent="76">
+            <Item class="ModuleScript" referent="83">
               <Properties>
                 <string name="Name">Palette</string>
                 <string name="Source"><![CDATA[--!strict
@@ -6279,13 +8833,13 @@ return Palette
       </Item>
     </Item>
   </Item>
-  <Item class="Workspace" referent="77">
+  <Item class="Workspace" referent="84">
     <Properties>
       <string name="Name">Workspace</string>
       <bool name="FilteringEnabled">true</bool>
       <bool name="NeedsPivotMigration">false</bool>
     </Properties>
-    <Item class="Part" referent="78">
+    <Item class="Part" referent="85">
       <Properties>
         <string name="Name">Baseplate</string>
         <bool name="Anchored">true</bool>
