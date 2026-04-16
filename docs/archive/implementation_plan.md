@@ -1,4 +1,6 @@
-# Gem Factory Implementation Plan
+# Archived Gem Factory Implementation Plan
+
+This is an earlier phase-based plan kept for historical context. It is not the source of truth for current behavior. For the live implementation snapshot, read [../current_state.md](../current_state.md).
 
 ## Project Direction
 

@@ -1,111 +1,76 @@
-# final-project-u1406330
+# Gem Factory
 
-## Proposal
+Gem Factory is a Roblox idle progression prototype built with Rojo and Luau. The current game loop is about buying geodes, placing them on a player plot, waiting for them to finish, cracking them open, feeding the revealed resources into stations, and earning passive income.
 
-My final project proposal is a simple Roblox idle game called Gem Factory that uses many of the same game design principles found in the popular Roblox game Grow A Garden. The basic gameplay is described in the MVP Loop and Theme Direction sections below. The idea for this project came from a video I watched analyzing the design of Grow A Garden. The video can be found here: https://www.youtube.com/watch?v=5WQHP7BnQ9M
-.
+The project is intentionally small and testable right now. Server services own the authoritative gameplay state, shared modules hold deterministic rules and config, and client controllers handle HUD, placement input, and world presentation.
 
-Grow A Garden is intentionally extremely simple, and in some people's opinion it is not even a very good game mechanically. Despite this, it has managed to attract a massive player base. The reason for this is not the gameplay itself, but the psychological strategies the game uses to keep players engaged. The game constantly creates the feeling that something rewarding is about to happen, which makes players stay longer than they planned.
+## Start Here
 
-Some of these strategies include
+For the fastest context, read these in order:
 
-• Idle progression where progress continues even when the player is offline
-• Variable rewards such as rare drops and random shop rotations
-• Timers and restocks that encourage players to stay just a little longer
-• Big number progression where values grow rapidly over time
-• Scarcity events such as limited items or weekly updates
-• Social comparison where players see other players with larger bases
-• A very simple gameplay loop that is easy to understand and repeat
+1. [docs/README.md](docs/README.md) - documentation map and what each doc is for.
+2. [docs/current_state.md](docs/current_state.md) - what works now, what is partial, and what should happen next.
+3. [docs/gem_factory_design.md](docs/gem_factory_design.md) - current product direction and design principles.
+4. [docs/agents.md](docs/agents.md) - collaboration rules for agent-assisted implementation.
 
-Because of these systems the gameplay itself can be extremely basic while still retaining players effectively.
-
-For the agentic loop in this project, I will build test suites for the backend logic and verify in game features using Roblox Studio, Roblox’s built in development environment. This allows the agent to iterate on the project through both repeatable code level testing and direct gameplay validation.
-
-A natural question is how well an AI agent can actually model and generate parts of a game world. From my testing the results have been surprisingly good. The agent has been able to generate environments, models, and even basic animations and GUI components from prompts.
-
-I think this project is a good fit for an AI agent because the underlying mechanics are extremely simple. Vibe coded games are still often rough around the edges, but this type of game has such a straightforward structure that an agent has a realistic chance of producing something functional.
-
-If the game ends up working well, it would be an interesting demonstration of what AI assisted development is capable of. And if it somehow becomes successful, I might even make a little money from it.
-
-## Week 13
-
-The game world is pretty far along for the current version. The baseplate is in, the player plots work, geodes can be placed, and the geode cracking feature is working now. The main loop is basically: buy a geode, put it on your plot, wait for it to finish, crack it open, and then use what comes out to start making passive income.
-
-For next week, my plan is mostly to keep adding features and polish the game more. I want to do more testing in Roblox Studio, make placement feel clearer, improve the geode cracking effect, and keep cleaning up the early game loop so it feels more like an actual idle game and less like just a prototype.
-
-I am using Codex instead of Amp, so I do not have any Amp threads to link. The smartest thing the agent loop did this week was probably helping create models, animations, and world stuff pretty quickly, even when I did not have a super specific idea of what would look good. I honestly have not seen it do anything especially stupid yet. The main thing I changed going forward is just being more careful about documenting the project state and checking features with tests or Studio checks instead of only trusting that something looked okay in the interactive window.
+Historical planning notes live in [docs/archive](docs/archive). They are useful for understanding where the project came from, but they should not be treated as the source of truth for the current implementation.
 
 ## Current MVP Loop
 
 1. Buy a starter geode from the HUD.
-2. Place that geode onto your plot from inventory.
-3. Wait for the geode timer to finish.
-4. Click the finished geode in the world to crack it open.
-5. Place the starter station on the player plot.
-6. Let revealed resources auto-slot into the placed station.
-7. Watch passive income begin ticking online.
+2. Place the geode onto your assigned plot.
+3. Wait for the geode timer to complete.
+4. Click the ready geode in the world to crack it open.
+5. Place a starter station on the plot.
+6. Let revealed resources auto-slot into available station capacity.
+7. Earn passive income online and collect offline rewards later.
 
-## Theme Direction
-
-- Players collect and break geodes instead of hatching anything zoo-based.
-- Rewards are gems, rare minerals, crystals, and other valuable resources.
-- Progress should feel like building a richer, busier gem-processing operation inside a magical cavern.
-- The long-term fantasy is moving from a tiny starter setup to a high-value gem empire filled with rare finds and premium production upgrades.
-
-## Current Structure
+## Repo Layout
 
 ```text
-tests/
 src/
-  client/
-    Bootstrap/
-    Controllers/
-    UI/
-  server/
-    Bootstrap/
-    Services/
-    Systems/
-  shared/
-    Config/
-    Domain/
-    Net/
-    Types/
-    Util/
+  client/   Client bootstrap, controllers, HUD, placement input, and presentation.
+  server/   Server bootstrap, services, persistence, economy, plots, and world replica.
+  shared/   Config, deterministic domain modules, remote names, types, and utilities.
+
+tests/      Deterministic Luau specs for shared gameplay rules.
+docs/       Current docs plus archived historical planning notes.
 ```
 
-## How To Work With This Project
+Important entry points:
 
 - `src/server/init.server.luau` starts the server bootstrap.
-- `src/client/init.client.luau` starts the client bootstrap and creates the HUD.
-- Shared config and deterministic math live under `src/shared`.
-- Server-owned gameplay services live under `src/server`.
-- Client presentation and input controllers live under `src/client`.
-- `gem_factory_design.md` is the canonical design document.
-- `build_a_zoo_design.md` is retained only as a deprecated migration note.
+- `src/client/init.client.luau` starts the client bootstrap.
+- `default.project.json` maps the Rojo project into Roblox services.
+- `src/shared/Net/RemoteNames.luau` defines the remote contract names used across client and server.
 
-## Current Slice
+## Current Systems
 
-- The client requests initial state on startup when the server exposes the remotes.
-- The HUD shows currency, passive income, geode inventory status, daily reward status, hourly shop info, plot info, and announcements.
-- Buttons are wired for starter geode purchase, manual geode placement, ready geode cracking, starter station placement, daily reward claiming, and offline reward claiming.
-- Placing the starter station uses deterministic first-fit placement when the client does not provide coordinates.
-- Bought geodes now become owned inventory entries that stay stored until the player places them on their plot, then crack in-world and can be opened once ready.
-- Opening a finished geode removes it from the plot, grants the revealed resource, and auto-slots newly revealed resources into available placed stations so passive income can start immediately.
-- Passive income accrues online and offline, and the world replica shows simple displayed resources on placed stations.
-- The map now uses a shared central cavern floor with 8 larger player plots per server, low-profile plot markers, and deterministic rock-spike variations for display flavor.
-- If the server endpoints are not yet wired, the client falls back to a local preview state so the UI still loads.
+- Shared 8-player cavern map with assigned plots.
+- Mock persistence with profile reconciliation.
+- Geode shop purchasing and owned geode inventory.
+- Grid placement for geodes and starter stations.
+- Timed geode lifecycle with ready-to-crack world interaction.
+- Weighted geode reward rolls and trait-aware resource instances.
+- Station assignment for revealed resources.
+- Online passive income and offline reward summaries.
+- Daily rewards, hourly shop rotation, HUD panels, and rare reveal announcements.
+- Workspace replica for plots, geodes, stations, and displayed resources.
 
-## Notes
+## Build And Verification
 
-- The project is intentionally minimal right now.
-- The structure is built for a shared-map crystal cavern layout with grid placement, offline geode progression, and mock persistence first.
-- The shared domain modules now contain deterministic economy, rotation, placement, station-assignment, and geode-resolution math.
-- Player profile creation, reconciliation, mock loading/saving, plot assignment, and offline summary generation are wired into server startup.
-- The current world direction is a single shared cavern map sized for 8 players, with larger plots and lighter environmental boundaries so builds can breathe.
-- The client slice is intentionally minimal, but it is now functional enough to complete the first loop in Studio: buy a geode, place it on the plot, wait for it to finish, open it, place the starter station, and watch passive income begin.
+Build the Roblox place file with Rojo:
 
-## Verification
+```powershell
+rojo build default.project.json -o build-check.rbxlx
+```
 
-- `rojo build default.project.json -o build.rbxlx` succeeds locally.
-- Deterministic specs live under `tests/`, including new placement-search and station-assignment coverage.
-- A dedicated local automated test runner is not wired in this repo yet, so the specs are currently authored for Studio-side or future runner integration rather than executed from the terminal.
+The repo contains Luau specs under `tests/`, including coverage for economy math, geode lifecycle, placement rules, station assignment, offline math, shop rotation, and remote names. A terminal-integrated test runner is not wired into this repo yet, so the specs are currently intended for Studio-side execution or a future runner setup.
+
+## Working Notes
+
+- Treat [docs/current_state.md](docs/current_state.md) as the live implementation summary.
+- Treat [docs/gem_factory_design.md](docs/gem_factory_design.md) as the current product direction, not a promise that every listed future system exists.
+- Keep deterministic gameplay logic in `src/shared/Domain` whenever possible.
+- Keep server mutation authoritative; the client should request actions and render state.
+- After gameplay changes, update docs that describe the affected loop or system.
