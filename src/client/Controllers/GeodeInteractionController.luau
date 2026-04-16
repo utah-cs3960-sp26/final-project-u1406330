@@ -12,6 +12,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Geodes = require(Shared.Config.Geodes)
 local Resources = require(Shared.Config.Resources)
 local GeodePlacementGhost = require(script.Parent.GeodePlacementGhost)
+local ResourcePlacementGhost = require(script.Parent.ResourcePlacementGhost)
 
 local GeodeInteractionController = {}
 GeodeInteractionController.__index = GeodeInteractionController
@@ -209,10 +210,12 @@ function GeodeInteractionController:start()
 	local app = self.context.app
 	local mouse = Players.LocalPlayer:GetMouse()
 	local preview = GeodePlacementGhost.new()
+	local resourcePreview = ResourcePlacementGhost.new()
 	local lastClickAt = 0
 	local activePlacementCellX: number? = nil
 	local activePlacementCellY: number? = nil
 	local activePlacementGeodeId: string? = nil
+	local activePlacementResourceId: string? = nil
 	local lastEquippedToolId: string? = nil
 
 	local function getEquippedGeodeTool()
@@ -262,7 +265,9 @@ function GeodeInteractionController:start()
 		activePlacementCellX = nil
 		activePlacementCellY = nil
 		activePlacementGeodeId = nil
+		activePlacementResourceId = nil
 		preview:hide()
+		resourcePreview:hide()
 	end
 
 	local function refreshPlacementPreview()
@@ -278,7 +283,47 @@ function GeodeInteractionController:start()
 			geodeTypeId = pendingTypeId
 		end
 
+		local pendingResourceId = app:getPendingResourcePlacementId()
 		if geodeInstanceId == nil or geodeTypeId == nil then
+			if pendingResourceId ~= nil then
+				local state = app:getState()
+				local resource = state.profile
+					and state.profile.resourcesById
+					and state.profile.resourcesById[pendingResourceId]
+					or nil
+				if type(resource) ~= "table" or resource.placement ~= nil or type(resource.resourceTypeId) ~= "string" then
+					clearPreview()
+					return
+				end
+
+				resourcePreview:setResourceTypeId(resource.resourceTypeId)
+				local plotModel = findPlotModel(mouse.Target)
+				if plotModel == nil then
+					clearPreview()
+					return
+				end
+
+				local ownerUserId = plotModel:GetAttribute("OwnerUserId")
+				if ownerUserId ~= Players.LocalPlayer.UserId then
+					clearPreview()
+					return
+				end
+
+				local cellX, cellY, _ = resourcePreview:showAt(plotModel, mouse.Hit.Position)
+				if cellX == nil or cellY == nil then
+					clearPreview()
+					return
+				end
+
+				preview:hide()
+				activePlacementCellX = cellX
+				activePlacementCellY = cellY
+				activePlacementGeodeId = nil
+				activePlacementResourceId = pendingResourceId
+				lastEquippedToolId = nil
+				return
+			end
+
 			clearPreview()
 			if lastEquippedToolId ~= nil then
 				lastEquippedToolId = nil
@@ -287,6 +332,7 @@ function GeodeInteractionController:start()
 		end
 
 		preview:setGeodeTypeId(geodeTypeId)
+		resourcePreview:hide()
 		local plotModel = findPlotModel(mouse.Target)
 		if plotModel == nil then
 			clearPreview()
@@ -308,6 +354,7 @@ function GeodeInteractionController:start()
 		activePlacementCellX = cellX
 		activePlacementCellY = cellY
 		activePlacementGeodeId = geodeInstanceId
+		activePlacementResourceId = nil
 
 		if equippedTool ~= nil and lastEquippedToolId ~= geodeInstanceId then
 			lastEquippedToolId = geodeInstanceId
@@ -331,6 +378,11 @@ function GeodeInteractionController:start()
 
 		if activePlacementGeodeId ~= nil and activePlacementCellX ~= nil and activePlacementCellY ~= nil then
 			app:requestPlaceGeode(activePlacementGeodeId, activePlacementCellX, activePlacementCellY)
+			return
+		end
+
+		if activePlacementResourceId ~= nil and activePlacementCellX ~= nil and activePlacementCellY ~= nil then
+			app:requestPlaceResource(activePlacementResourceId, activePlacementCellX, activePlacementCellY)
 			return
 		end
 

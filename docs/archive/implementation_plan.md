@@ -2,7 +2,7 @@
 
 This is an earlier phase-based plan kept for historical context. It is not the source of truth for current behavior. For the live implementation snapshot, read [../current_state.md](../current_state.md).
 
-Archive note: the current implementation has since pivoted to mine-based geode acquisition. Geodes are earned by mining while standing inside the mine, and the shop now sells permanent coin-priced pickaxes only. Older references below to direct geode buying or a geode shop are historical.
+Archive note: the current implementation has since pivoted to mine-based geode acquisition and a Vault-based item flow. Geodes are earned by mining while standing inside the mine, geodes and revealed resources are stored in the Vault for place/sell actions, and the shop now sells permanent coin-priced pickaxes only. Older references below to direct geode buying, a geode shop, or automatic resource station flow are historical.
 
 ## Project Direction
 

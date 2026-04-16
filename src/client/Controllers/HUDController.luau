@@ -83,6 +83,7 @@ function HUDController:start()
 		local plotId = profile.plotState.plotId or "Unassigned"
 
 		screen:setStatusText(state.connectionMessage or "Ready")
+		screen:setCoinCounterText(formatNumber(profile.currencies.coins))
 		screen:setOverviewText(string.format(
 			"Coins: %s\nPassive: %s / sec\nCavern Value: %s\nResources: %d\nStations: %d\nQueue: %d\nPlot: %s",
 			formatNumber(profile.currencies.coins),

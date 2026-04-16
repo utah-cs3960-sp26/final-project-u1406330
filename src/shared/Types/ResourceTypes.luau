@@ -7,6 +7,13 @@ export type ResourceInstance = {
 	level: number,
 	stationId: string?,
 	obtainedAt: number,
+	placement: {
+		plotId: string,
+		x: number,
+		y: number,
+		width: number,
+		height: number,
+	}?,
 }
 
 return {}

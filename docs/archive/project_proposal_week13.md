@@ -2,7 +2,7 @@
 
 This document preserves the older proposal and Week 13 progress narrative that previously lived in the root README. It is kept for project history only. For current behavior, read [../current_state.md](../current_state.md).
 
-Archive note: the current implementation has since pivoted away from buying geodes directly. Players now mine for coins/geodes and buy permanent coin-priced pickaxes from a pickaxe shop. The older "buy a geode" wording below describes the Week 13 state, not the live loop.
+Archive note: the current implementation has since pivoted away from buying geodes directly. Players now mine for coins/geodes, manage geodes and revealed resources through the Vault, and buy permanent coin-priced pickaxes from a pickaxe shop. The older "buy a geode" and direct passive-income wording below describes the Week 13 state, not the live loop.
 
 ## Original Proposal Summary
 

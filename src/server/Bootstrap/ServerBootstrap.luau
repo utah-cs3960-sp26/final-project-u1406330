@@ -106,6 +106,7 @@ local function resolveServices(remotes)
 	local EconomyService = require(servicesFolder.EconomyService)
 	local GeodeService = require(servicesFolder.GeodeService)
 	local GeodeToolService = require(servicesFolder.GeodeToolService)
+	local VaultService = require(servicesFolder.VaultService)
 	local MiningService = require(servicesFolder.MiningService)
 	local PickaxeToolService = require(servicesFolder.PickaxeToolService)
 	local GeodeQueueService = require(servicesFolder.GeodeQueueService)
@@ -134,6 +135,10 @@ local function resolveServices(remotes)
 	})
 	local geodeTools = GeodeToolService.new({
 		playerData = playerData,
+	})
+	local vault = VaultService.new({
+		playerData = playerData,
+		placementService = placement,
 	})
 	local pickaxeTools = PickaxeToolService.new({
 		playerData = playerData,
@@ -175,6 +180,7 @@ local function resolveServices(remotes)
 		economy = economy,
 		geode = geode,
 		geodeTools = geodeTools,
+		vault = vault,
 		mining = mining,
 		pickaxeTools = pickaxeTools,
 		geodeQueue = geodeQueue,
@@ -342,6 +348,52 @@ function ServerBootstrap.start()
 		end)
 	end
 
+	remotes.RequestPlaceResource.OnServerInvoke = function(player, resourceId, x, y)
+		return callAction("RequestPlaceResource", function()
+			local placeResult, errorCode = services.vault:placeResource(player.UserId, resourceId, x, y)
+			if placeResult == nil then
+				return {
+					ok = false,
+					errorCode = errorCode or "placement_failed",
+				}
+			end
+
+			return {
+				ok = true,
+				placement = placeResult.placement,
+				resource = placeResult.resource,
+			}
+		end)
+	end
+
+	remotes.RequestSellVaultItem.OnServerInvoke = function(player, itemKind, itemId)
+		return callAction("RequestSellVaultItem", function()
+			local sellResult, errorCode
+			if itemKind == "geode" then
+				sellResult, errorCode = services.vault:sellGeode(player.UserId, itemId)
+			elseif itemKind == "resource" then
+				sellResult, errorCode = services.vault:sellResource(player.UserId, itemId)
+			else
+				return {
+					ok = false,
+					errorCode = "unsupported_vault_item",
+				}
+			end
+
+			if sellResult == nil then
+				return {
+					ok = false,
+					errorCode = errorCode or "sell_failed",
+				}
+			end
+
+			return {
+				ok = true,
+				sale = sellResult,
+			}
+		end)
+	end
+
 	remotes.RequestClaimDailyReward.OnServerInvoke = function(player)
 		return callAction("RequestClaimDailyReward", function()
 			local result, errorCode = services.dailyRewards:claimReward(player.UserId, Time.nowUnix())
@@ -399,7 +451,7 @@ function ServerBootstrap.start()
 			local resourceIds = {}
 			for _, resourceId in ipairs(profile.resourceOrder) do
 				local resource = profile.resourcesById[resourceId]
-				if resource ~= nil and resource.stationId == nil then
+				if resource ~= nil and resource.stationId == nil and resource.placement == nil then
 					table.insert(resourceIds, resourceId)
 				end
 			end
@@ -447,6 +499,7 @@ function ServerBootstrap.start()
 		services.economy,
 		services.geode,
 		services.geodeTools,
+		services.vault,
 		services.mining,
 		services.pickaxeTools,
 		services.geodeQueue,

@@ -97,6 +97,12 @@ function PlayerDataService:onPlayerAdded(player)
 				end
 			end
 
+			for _, resource in pairs(profile.resourcesById) do
+				if resource.placement ~= nil then
+					resource.placement.plotId = plotId
+				end
+			end
+
 			profile.plotState.plotId = plotId
 		end
 	end

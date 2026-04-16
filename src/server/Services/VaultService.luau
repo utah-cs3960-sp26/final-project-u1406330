@@ -1,0 +1,182 @@
+--!strict
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+
+local Geodes = require(Shared.Config.Geodes)
+local Resources = require(Shared.Config.Resources)
+local Traits = require(Shared.Config.Traits)
+local GeodeState = require(Shared.Domain.GeodeState)
+local VaultMath = require(Shared.Domain.VaultMath)
+
+local VaultService = {}
+VaultService.__index = VaultService
+
+local function removeFromOrder(order, id)
+	for index = #order, 1, -1 do
+		if order[index] == id then
+			table.remove(order, index)
+			return
+		end
+	end
+end
+
+local function adjustGeodeInventory(profile, geodeTypeId, delta)
+	local current = profile.inventory.geodes[geodeTypeId] or 0
+	profile.inventory.geodes[geodeTypeId] = math.max(0, current + delta)
+end
+
+function VaultService.new(dependencies)
+	return setmetatable({
+		dependencies = dependencies or {},
+	}, VaultService)
+end
+
+function VaultService:getResourceSellValue(resource)
+	local resourceDefinition = resource ~= nil and Resources[resource.resourceTypeId] or nil
+	local traitDefinition = resource ~= nil and Traits[resource.traitId or "none"] or Traits.none
+	return VaultMath.getResourceSellValue(resourceDefinition, traitDefinition)
+end
+
+function VaultService:getGeodeSellValue(geode)
+	local geodeDefinition = geode ~= nil and Geodes[geode.geodeTypeId] or nil
+	return VaultMath.getGeodeSellValue(geodeDefinition)
+end
+
+function VaultService:placeResource(userId, resourceId, x, y)
+	local playerData = self.dependencies.playerData
+	local placementService = self.dependencies.placementService
+	if placementService == nil then
+		return nil, "placement_unavailable"
+	end
+
+	local result
+	local _, mutateError = playerData:mutateProfile(userId, function(currentProfile)
+		local resource = currentProfile.resourcesById[resourceId]
+		if resource == nil then
+			return nil, "unknown_resource_instance"
+		end
+
+		if resource.stationId ~= nil then
+			return nil, "resource_assigned_to_station"
+		end
+
+		local placedResource, placementOrReason = placementService:placeResource(currentProfile, resource, x, y)
+		if placedResource == nil or placementOrReason == nil then
+			return nil, placementOrReason or "resource_placement_failed"
+		end
+
+		result = {
+			resource = placedResource,
+			placement = placementOrReason,
+		}
+		return result
+	end)
+
+	if result ~= nil then
+		playerData:notifyProfileChanged(userId)
+	end
+
+	if result == nil and mutateError ~= nil then
+		return nil, mutateError
+	end
+
+	return result
+end
+
+function VaultService:sellResource(userId, resourceId)
+	local playerData = self.dependencies.playerData
+	local placementService = self.dependencies.placementService
+
+	local result
+	local _, mutateError = playerData:mutateProfile(userId, function(currentProfile)
+		local resource = currentProfile.resourcesById[resourceId]
+		if resource == nil then
+			return nil, "unknown_resource_instance"
+		end
+
+		local sellValue = self:getResourceSellValue(resource)
+		if sellValue <= 0 then
+			return nil, "resource_not_sellable"
+		end
+
+		if resource.stationId ~= nil then
+			local station = currentProfile.stationsById[resource.stationId]
+			if station ~= nil and station.occupantIds ~= nil then
+				removeFromOrder(station.occupantIds, resource.id)
+			end
+		end
+
+		if placementService ~= nil then
+			placementService:removeObjectByObjectId(currentProfile, "resource", resource.id)
+		end
+
+		currentProfile.resourcesById[resource.id] = nil
+		removeFromOrder(currentProfile.resourceOrder, resource.id)
+		currentProfile.currencies.coins += sellValue
+
+		result = {
+			resourceId = resource.id,
+			coins = sellValue,
+		}
+		return result
+	end)
+
+	if result ~= nil then
+		playerData:notifyProfileChanged(userId)
+	end
+
+	if result == nil and mutateError ~= nil then
+		return nil, mutateError
+	end
+
+	return result
+end
+
+function VaultService:sellGeode(userId, geodeInstanceId)
+	local playerData = self.dependencies.playerData
+	local placementService = self.dependencies.placementService
+
+	local result
+	local _, mutateError = playerData:mutateProfile(userId, function(currentProfile)
+		local geode = currentProfile.geodesById[geodeInstanceId]
+		if geode == nil then
+			return nil, "unknown_geode_instance"
+		end
+
+		local sellValue = self:getGeodeSellValue(geode)
+		if sellValue <= 0 then
+			return nil, "geode_not_sellable"
+		end
+
+		if placementService ~= nil then
+			placementService:removeObjectByObjectId(currentProfile, "geode", geode.id)
+		end
+
+		adjustGeodeInventory(currentProfile, geode.geodeTypeId, -1)
+		GeodeState.removeGeode(currentProfile.geodesById, currentProfile.geodeOrder, geode.id)
+		currentProfile.currencies.coins += sellValue
+
+		result = {
+			geodeInstanceId = geode.id,
+			coins = sellValue,
+		}
+		return result
+	end)
+
+	if result ~= nil then
+		playerData:notifyProfileChanged(userId)
+	end
+
+	if result == nil and mutateError ~= nil then
+		return nil, mutateError
+	end
+
+	return result
+end
+
+function VaultService:start()
+	print("[GemFactory] VaultService ready")
+end
+
+return VaultService

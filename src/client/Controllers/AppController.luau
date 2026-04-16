@@ -21,6 +21,7 @@ local GeodeInteractionController = require(script.Parent.GeodeInteractionControl
 local PlacementController = require(script.Parent.PlacementController)
 local DailyRewardsController = require(script.Parent.DailyRewardsController)
 local NotificationsController = require(script.Parent.NotificationsController)
+local VaultController = require(script.Parent.VaultController)
 local Palette = require(script.Parent.Parent.UI.Theme.Palette)
 
 local AppController = {}
@@ -226,6 +227,7 @@ function AppController.new()
 		remotes = {},
 		controllers = {},
 		pendingGeodePlacementId = nil,
+		pendingResourcePlacementId = nil,
 		_running = false,
 	}, AppController)
 
@@ -240,6 +242,7 @@ function AppController.new()
 		PlacementController.new(context),
 		DailyRewardsController.new(context),
 		NotificationsController.new(context),
+		VaultController.new(context),
 	}
 
 	return self
@@ -305,13 +308,29 @@ function AppController:getPendingGeodePlacementId()
 	return self.pendingGeodePlacementId
 end
 
+function AppController:getPendingResourcePlacementId()
+	return self.pendingResourcePlacementId
+end
+
 function AppController:beginGeodePlacement(geodeInstanceId)
 	if geodeInstanceId == nil then
 		return false
 	end
 
 	self.pendingGeodePlacementId = geodeInstanceId
+	self.pendingResourcePlacementId = nil
 	self:setStatus("Click a cell on your plot to place this geode.")
+	return true
+end
+
+function AppController:beginResourcePlacement(resourceId)
+	if resourceId == nil then
+		return false
+	end
+
+	self.pendingResourcePlacementId = resourceId
+	self.pendingGeodePlacementId = nil
+	self:setStatus("Click a cell on your plot to place this treasure.")
 	return true
 end
 
@@ -322,6 +341,15 @@ function AppController:cancelGeodePlacement()
 
 	self.pendingGeodePlacementId = nil
 	self:setStatus("Geode placement canceled.")
+end
+
+function AppController:cancelResourcePlacement()
+	if self.pendingResourcePlacementId == nil then
+		return
+	end
+
+	self.pendingResourcePlacementId = nil
+	self:setStatus("Resource placement canceled.")
 end
 
 function AppController:requestPlaceGeode(geodeInstanceId, x, y)
@@ -336,6 +364,39 @@ function AppController:requestPlaceGeode(geodeInstanceId, x, y)
 	else
 		local errorText = type(result) == "table" and result.errorCode or result
 		self:setStatus("Geode placement failed: " .. tostring(errorText))
+	end
+	return ok, result
+end
+
+function AppController:requestPlaceResource(resourceId, x, y)
+	if resourceId == nil then
+		return false, "missing_resource_id"
+	end
+
+	local ok, result = self:invokeRemote(RemoteNames.RequestPlaceResource, resourceId, x, y)
+	if ok and type(result) == "table" and result.ok == true then
+		self.pendingResourcePlacementId = nil
+		self:setStatus("Treasure placed on your plot.")
+	else
+		local errorText = type(result) == "table" and result.errorCode or result
+		self:setStatus("Treasure placement failed: " .. tostring(errorText))
+	end
+	return ok, result
+end
+
+function AppController:requestSellVaultItem(itemKind, itemId)
+	local ok, result = self:invokeRemote(RemoteNames.RequestSellVaultItem, itemKind, itemId)
+	if ok and type(result) == "table" and result.ok == true then
+		local sale = result.sale
+		local coins = type(sale) == "table" and sale.coins or nil
+		if type(coins) == "number" then
+			self:setStatus(string.format("Sold from Vault for %d coins.", math.floor(coins + 0.5)))
+		else
+			self:setStatus("Sold from Vault.")
+		end
+	else
+		local errorText = type(result) == "table" and result.errorCode or result
+		self:setStatus("Vault sale failed: " .. tostring(errorText))
 	end
 	return ok, result
 end

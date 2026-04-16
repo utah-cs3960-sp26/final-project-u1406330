@@ -1,11 +1,6 @@
 --!strict
 
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Shared = ReplicatedStorage:WaitForChild("Shared")
-
-local Geodes = require(Shared.Config.Geodes)
-
 local GeodeToolService = {}
 GeodeToolService.__index = GeodeToolService
 
@@ -36,21 +31,6 @@ local function getContainer(player, containerName: string)
 	return nil
 end
 
-local function buildDesiredGeodes(profile)
-	local desiredGeodes = {}
-	local desiredById = {}
-
-	for _, geodeInstanceId in ipairs(profile.geodeOrder) do
-		local geodeInstance = profile.geodesById[geodeInstanceId]
-		if geodeInstance ~= nil and geodeInstance.placement == nil then
-			desiredById[geodeInstance.id] = geodeInstance
-			table.insert(desiredGeodes, geodeInstance)
-		end
-	end
-
-	return desiredGeodes, desiredById
-end
-
 function GeodeToolService.new(dependencies)
 	return setmetatable({
 		dependencies = dependencies or {},
@@ -60,30 +40,7 @@ function GeodeToolService.new(dependencies)
 	}, GeodeToolService)
 end
 
-function GeodeToolService:createGeodeTool(geodeInstance)
-	local geodeDefinition = Geodes[geodeInstance.geodeTypeId]
-	local tool = Instance.new("Tool")
-	tool.Name = if geodeDefinition ~= nil then geodeDefinition.displayName else geodeInstance.geodeTypeId
-	tool.RequiresHandle = false
-	tool.CanBeDropped = false
-	tool.ToolTip = tool.Name
-	tool:SetAttribute("GemFactoryGeodeTool", true)
-	tool:SetAttribute("GeodeInstanceId", geodeInstance.id)
-	tool:SetAttribute("GeodeTypeId", geodeInstance.geodeTypeId)
-	return tool
-end
-
 function GeodeToolService:syncPlayerTools(player)
-	local playerData = self.dependencies.playerData
-	if playerData == nil then
-		return
-	end
-
-	local profile = playerData:getProfile(player.UserId)
-	if profile == nil then
-		return
-	end
-
 	local backpack = getContainer(player, "Backpack")
 	local starterGear = getContainer(player, "StarterGear")
 	local character = player.Character
@@ -91,20 +48,11 @@ function GeodeToolService:syncPlayerTools(player)
 		return
 	end
 
-	local desiredGeodes, desiredById = buildDesiredGeodes(profile)
-
-	local equippedById = {}
 	if character ~= nil then
 		for _, child in ipairs(character:GetChildren()) do
 			local geodeInstanceId = getGeodeInstanceId(child)
 			if geodeInstanceId ~= nil then
-				if desiredById[geodeInstanceId] == nil then
-					child:Destroy()
-				elseif equippedById[geodeInstanceId] then
-					child:Destroy()
-				else
-					equippedById[geodeInstanceId] = true
-				end
+				child:Destroy()
 			end
 		end
 	end
@@ -116,22 +64,10 @@ function GeodeToolService:syncPlayerTools(player)
 		end
 	end
 
-	for _, geodeInstance in ipairs(desiredGeodes) do
-		local tool = self:createGeodeTool(geodeInstance)
-		tool.Parent = starterGear
-	end
-
 	for _, child in ipairs(backpack:GetChildren()) do
 		local geodeInstanceId = getGeodeInstanceId(child)
 		if geodeInstanceId ~= nil then
 			child:Destroy()
-		end
-	end
-
-	for _, geodeInstance in ipairs(desiredGeodes) do
-		if equippedById[geodeInstance.id] ~= true then
-			local tool = self:createGeodeTool(geodeInstance)
-			tool.Parent = backpack
 		end
 	end
 end
@@ -210,7 +146,7 @@ function GeodeToolService:start()
 		self:onPlayerAdded(player)
 	end
 
-	print("[GemFactory] GeodeToolService ready")
+	print("[GemFactory] GeodeToolService ready; geodes are stored in Vault")
 end
 
 return GeodeToolService

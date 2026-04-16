@@ -165,6 +165,28 @@ local function collectPlacedGeodes(profile, plotId, nowUnix)
 	return placedGeodes
 end
 
+local function collectPlacedResources(profile, plotId)
+	local placedResources = {}
+	if profile == nil then
+		return placedResources
+	end
+
+	for _, resourceId in ipairs(profile.resourceOrder or {}) do
+		local resource = profile.resourcesById[resourceId]
+		local placement = resource and resource.placement or nil
+		if type(placement) == "table" and placement.plotId == plotId then
+			table.insert(placedResources, {
+				id = resource.id or resourceId,
+				resourceTypeId = resource.resourceTypeId,
+				traitId = resource.traitId,
+				placement = placement,
+			})
+		end
+	end
+
+	return placedResources
+end
+
 local function buildPlotSignature(plot, profile, nowUnix)
 	local signatureParts = {
 		tostring(plot.userId or "none"),
@@ -217,6 +239,20 @@ local function buildPlotSignature(plot, profile, nowUnix)
 
 		table.sort(geodeParts)
 		table.insert(signatureParts, table.concat(geodeParts, "|"))
+
+		local resourceParts = {}
+		for _, resource in ipairs(collectPlacedResources(profile, plot.id)) do
+			table.insert(resourceParts, table.concat({
+				resource.id,
+				tostring(resource.resourceTypeId or "unknown"),
+				tostring(resource.traitId or "none"),
+				tostring(resource.placement.x or "nil"),
+				tostring(resource.placement.y or "nil"),
+			}, ":"))
+		end
+
+		table.sort(resourceParts)
+		table.insert(signatureParts, table.concat(resourceParts, "|"))
 	end
 
 	return table.concat(signatureParts, "||")
@@ -688,6 +724,61 @@ local function addGeodes(parent, plot, profile, nowUnix)
 	end
 end
 
+local function createResourcePart(parent, resourceName, resourceTypeId, traitId, position)
+	local resourceDefinition = if resourceTypeId ~= nil then Resources[resourceTypeId] else nil
+	local resourcePart = createDecorPart(
+		parent,
+		resourceName,
+		Vector3.new(3, 3, 3),
+		position,
+		resourceDefinition and resourceDefinition.color or Color3.fromRGB(240, 240, 255),
+		Enum.Material.Neon
+	)
+	resourcePart.Shape = Enum.PartType.Ball
+	resourcePart:SetAttribute("ResourceId", resourceName)
+	resourcePart:SetAttribute("ResourceTypeId", resourceTypeId)
+	resourcePart:SetAttribute("TraitId", traitId or "none")
+
+	local marker = Instance.new("BillboardGui")
+	marker.Name = resourceName .. "_Marker"
+	marker.Size = UDim2.fromOffset(140, 28)
+	marker.StudsOffset = Vector3.new(0, 2.6, 0)
+	marker.AlwaysOnTop = true
+	marker.Parent = resourcePart
+
+	local label = Instance.new("TextLabel")
+	label.BackgroundTransparency = 1
+	label.Size = UDim2.fromScale(1, 1)
+	label.Font = Enum.Font.GothamBold
+	label.Text = resourceDefinition and resourceDefinition.displayName or "Resource"
+	label.TextColor3 = Color3.fromRGB(248, 248, 255)
+	label.TextScaled = true
+	label.Parent = marker
+end
+
+local function addResources(parent, plot, profile)
+	local resourceFolder = Instance.new("Folder")
+	resourceFolder.Name = "PlacedResources"
+	resourceFolder.Parent = parent
+
+	local placedResources = collectPlacedResources(profile, plot.id)
+	local cellSize = World.cellSize
+	local gridOriginX = plot.position.x - ((World.plotGridWidth * cellSize) / 2) + (cellSize / 2)
+	local gridOriginZ = plot.position.z - ((World.plotGridHeight * cellSize) / 2) + (cellSize / 2)
+
+	for _, resource in ipairs(placedResources) do
+		local placement = resource.placement
+		local footprintWidth = placement.width or 1
+		local footprintHeight = placement.height or 1
+		local resourcePosition = Vector3.new(
+			gridOriginX + ((placement.x - 1) * cellSize) + (((footprintWidth - 1) * cellSize) / 2),
+			plot.position.y + 3,
+			gridOriginZ + ((placement.y - 1) * cellSize) + (((footprintHeight - 1) * cellSize) / 2)
+		)
+		createResourcePart(resourceFolder, tostring(resource.id), resource.resourceTypeId, resource.traitId, resourcePosition)
+	end
+end
+
 function WorldReplicaService:_getPlotModel(plotId)
 	local _, plotFolder = ensureWorldFolder()
 	local plotModel = plotFolder:FindFirstChild(plotId)
@@ -738,6 +829,7 @@ function WorldReplicaService:_buildPlot(plot, profile, signature, nowUnix)
 
 	addRockSpikes(plotModel, plot)
 	addGeodes(plotModel, plot, profile, nowUnix)
+	addResources(plotModel, plot, profile)
 
 	local stationFolder = Instance.new("Folder")
 	stationFolder.Name = World.stationFolderName

@@ -249,6 +249,7 @@ function GeodeService:createResourceInstance(geodeId, nowUnix, rng)
 		level = 1,
 		stationId = nil,
 		obtainedAt = nowUnix,
+		placement = nil,
 	}
 end
 
@@ -265,6 +266,7 @@ function GeodeService:createRewardResourceInstance(resourceId, nowUnix)
 		level = 1,
 		stationId = nil,
 		obtainedAt = nowUnix,
+		placement = nil,
 	}
 end
 

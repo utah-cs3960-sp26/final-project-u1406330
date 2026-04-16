@@ -1298,6 +1298,10 @@ function StationAssignment.assignResourceToStation(profile, stationDefinitions, 
 		return false, "resource_not_found"
 	end
 
+	if resource.placement ~= nil then
+		return false, "resource_already_placed"
+	end
+
 	local station = profile.stationsById[stationId]
 	if station == nil then
 		return false, "station_not_found"
@@ -1422,12 +1426,42 @@ return TraitRoller
 ]]></string>
           </Properties>
         </Item>
+        <Item class="ModuleScript" referent="23">
+          <Properties>
+            <string name="Name">VaultMath</string>
+            <string name="Source"><![CDATA[--!strict
+
+local VaultMath = {}
+
+function VaultMath.getResourceSellValue(resourceDefinition, traitDefinition): number
+	if resourceDefinition == nil then
+		return 0
+	end
+
+	local baseCoinRate = resourceDefinition.baseCoinRate or 0
+	local traitMultiplier = if traitDefinition ~= nil then traitDefinition.multiplier or 1 else 1
+	return math.max(1, math.floor((baseCoinRate * 25 * traitMultiplier) + 0.5))
+end
+
+function VaultMath.getGeodeSellValue(geodeDefinition): number
+	if geodeDefinition == nil then
+		return 0
+	end
+
+	local geodeSeconds = geodeDefinition.geodeSeconds or 0
+	return math.max(1, math.floor((geodeSeconds * 3) + 0.5))
+end
+
+return VaultMath
+]]></string>
+          </Properties>
+        </Item>
       </Item>
-      <Item class="Folder" referent="23">
+      <Item class="Folder" referent="24">
         <Properties>
           <string name="Name">Net</string>
         </Properties>
-        <Item class="ModuleScript" referent="24">
+        <Item class="ModuleScript" referent="25">
           <Properties>
             <string name="Name">RemoteNames</string>
             <string name="Source"><![CDATA[--!strict
@@ -1438,6 +1472,8 @@ local RemoteNames = {
 	RequestBuyPickaxe = "RequestBuyPickaxe",
 	RequestEquipPickaxe = "RequestEquipPickaxe",
 	RequestPlaceGeode = "RequestPlaceGeode",
+	RequestPlaceResource = "RequestPlaceResource",
+	RequestSellVaultItem = "RequestSellVaultItem",
 	RequestCrackGeode = "RequestCrackGeode",
 	RequestOpenGeode = "RequestCrackGeode",
 	RequestClaimFinishedGeode = "RequestClaimFinishedGeode",
@@ -1458,7 +1494,7 @@ return RemoteNames
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="25">
+        <Item class="ModuleScript" referent="26">
           <Properties>
             <string name="Name">Remotes</string>
             <string name="Source"><![CDATA[--!strict
@@ -1472,6 +1508,8 @@ local Remotes = {
 		[RemoteNames.RequestBuyPickaxe] = "RemoteFunction",
 		[RemoteNames.RequestEquipPickaxe] = "RemoteFunction",
 		[RemoteNames.RequestPlaceGeode] = "RemoteFunction",
+		[RemoteNames.RequestPlaceResource] = "RemoteFunction",
+		[RemoteNames.RequestSellVaultItem] = "RemoteFunction",
 		[RemoteNames.RequestCrackGeode] = "RemoteFunction",
 		[RemoteNames.RequestClaimFinishedGeode] = "RemoteFunction",
 		[RemoteNames.RequestPlaceStation] = "RemoteFunction",
@@ -1492,11 +1530,11 @@ return Remotes
           </Properties>
         </Item>
       </Item>
-      <Item class="Folder" referent="26">
+      <Item class="Folder" referent="27">
         <Properties>
           <string name="Name">Types</string>
         </Properties>
-        <Item class="ModuleScript" referent="27">
+        <Item class="ModuleScript" referent="28">
           <Properties>
             <string name="Name">GeodeTypes</string>
             <string name="Source"><![CDATA[--!strict
@@ -1523,7 +1561,7 @@ return {}
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="28">
+        <Item class="ModuleScript" referent="29">
           <Properties>
             <string name="Name">PlayerProfile</string>
             <string name="Source"><![CDATA[--!strict
@@ -1676,7 +1714,7 @@ return PlayerProfile
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="29">
+        <Item class="ModuleScript" referent="30">
           <Properties>
             <string name="Name">ResourceTypes</string>
             <string name="Source"><![CDATA[--!strict
@@ -1688,13 +1726,20 @@ export type ResourceInstance = {
 	level: number,
 	stationId: string?,
 	obtainedAt: number,
+	placement: {
+		plotId: string,
+		x: number,
+		y: number,
+		width: number,
+		height: number,
+	}?,
 }
 
 return {}
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="30">
+        <Item class="ModuleScript" referent="31">
           <Properties>
             <string name="Name">StationTypes</string>
             <string name="Source"><![CDATA[--!strict
@@ -1732,11 +1777,11 @@ return {}
           </Properties>
         </Item>
       </Item>
-      <Item class="Folder" referent="31">
+      <Item class="Folder" referent="32">
         <Properties>
           <string name="Name">Util</string>
         </Properties>
-        <Item class="ModuleScript" referent="32">
+        <Item class="ModuleScript" referent="33">
           <Properties>
             <string name="Name">Id</string>
             <string name="Source"><![CDATA[--!strict
@@ -1758,7 +1803,7 @@ return Id
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="33">
+        <Item class="ModuleScript" referent="34">
           <Properties>
             <string name="Name">Result</string>
             <string name="Source"><![CDATA[--!strict
@@ -1795,7 +1840,7 @@ return Result
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="34">
+        <Item class="ModuleScript" referent="35">
           <Properties>
             <string name="Name">Signal</string>
             <string name="Source"><![CDATA[--!strict
@@ -1842,7 +1887,7 @@ return Signal
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="35">
+        <Item class="ModuleScript" referent="36">
           <Properties>
             <string name="Name">TableUtil</string>
             <string name="Source"><![CDATA[--!strict
@@ -1906,7 +1951,7 @@ return TableUtil
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="36">
+        <Item class="ModuleScript" referent="37">
           <Properties>
             <string name="Name">Time</string>
             <string name="Source"><![CDATA[--!strict
@@ -1933,11 +1978,11 @@ return Time
       </Item>
     </Item>
   </Item>
-  <Item class="ServerScriptService" referent="37">
+  <Item class="ServerScriptService" referent="38">
     <Properties>
       <string name="Name">ServerScriptService</string>
     </Properties>
-    <Item class="Script" referent="38">
+    <Item class="Script" referent="39">
       <Properties>
         <string name="Name">Server</string>
         <token name="RunContext">0</token>
@@ -1946,11 +1991,11 @@ return Time
 ServerBootstrap.start()
 ]]></string>
       </Properties>
-      <Item class="Folder" referent="39">
+      <Item class="Folder" referent="40">
         <Properties>
           <string name="Name">Bootstrap</string>
         </Properties>
-        <Item class="ModuleScript" referent="40">
+        <Item class="ModuleScript" referent="41">
           <Properties>
             <string name="Name">ServerBootstrap</string>
             <string name="Source"><![CDATA[--!strict
@@ -2061,6 +2106,7 @@ local function resolveServices(remotes)
 	local EconomyService = require(servicesFolder.EconomyService)
 	local GeodeService = require(servicesFolder.GeodeService)
 	local GeodeToolService = require(servicesFolder.GeodeToolService)
+	local VaultService = require(servicesFolder.VaultService)
 	local MiningService = require(servicesFolder.MiningService)
 	local PickaxeToolService = require(servicesFolder.PickaxeToolService)
 	local GeodeQueueService = require(servicesFolder.GeodeQueueService)
@@ -2089,6 +2135,10 @@ local function resolveServices(remotes)
 	})
 	local geodeTools = GeodeToolService.new({
 		playerData = playerData,
+	})
+	local vault = VaultService.new({
+		playerData = playerData,
+		placementService = placement,
 	})
 	local pickaxeTools = PickaxeToolService.new({
 		playerData = playerData,
@@ -2130,6 +2180,7 @@ local function resolveServices(remotes)
 		economy = economy,
 		geode = geode,
 		geodeTools = geodeTools,
+		vault = vault,
 		mining = mining,
 		pickaxeTools = pickaxeTools,
 		geodeQueue = geodeQueue,
@@ -2297,6 +2348,52 @@ function ServerBootstrap.start()
 		end)
 	end
 
+	remotes.RequestPlaceResource.OnServerInvoke = function(player, resourceId, x, y)
+		return callAction("RequestPlaceResource", function()
+			local placeResult, errorCode = services.vault:placeResource(player.UserId, resourceId, x, y)
+			if placeResult == nil then
+				return {
+					ok = false,
+					errorCode = errorCode or "placement_failed",
+				}
+			end
+
+			return {
+				ok = true,
+				placement = placeResult.placement,
+				resource = placeResult.resource,
+			}
+		end)
+	end
+
+	remotes.RequestSellVaultItem.OnServerInvoke = function(player, itemKind, itemId)
+		return callAction("RequestSellVaultItem", function()
+			local sellResult, errorCode
+			if itemKind == "geode" then
+				sellResult, errorCode = services.vault:sellGeode(player.UserId, itemId)
+			elseif itemKind == "resource" then
+				sellResult, errorCode = services.vault:sellResource(player.UserId, itemId)
+			else
+				return {
+					ok = false,
+					errorCode = "unsupported_vault_item",
+				}
+			end
+
+			if sellResult == nil then
+				return {
+					ok = false,
+					errorCode = errorCode or "sell_failed",
+				}
+			end
+
+			return {
+				ok = true,
+				sale = sellResult,
+			}
+		end)
+	end
+
 	remotes.RequestClaimDailyReward.OnServerInvoke = function(player)
 		return callAction("RequestClaimDailyReward", function()
 			local result, errorCode = services.dailyRewards:claimReward(player.UserId, Time.nowUnix())
@@ -2354,7 +2451,7 @@ function ServerBootstrap.start()
 			local resourceIds = {}
 			for _, resourceId in ipairs(profile.resourceOrder) do
 				local resource = profile.resourcesById[resourceId]
-				if resource ~= nil and resource.stationId == nil then
+				if resource ~= nil and resource.stationId == nil and resource.placement == nil then
 					table.insert(resourceIds, resourceId)
 				end
 			end
@@ -2402,6 +2499,7 @@ function ServerBootstrap.start()
 		services.economy,
 		services.geode,
 		services.geodeTools,
+		services.vault,
 		services.mining,
 		services.pickaxeTools,
 		services.geodeQueue,
@@ -2428,11 +2526,11 @@ return ServerBootstrap
           </Properties>
         </Item>
       </Item>
-      <Item class="Folder" referent="41">
+      <Item class="Folder" referent="42">
         <Properties>
           <string name="Name">Services</string>
         </Properties>
-        <Item class="ModuleScript" referent="42">
+        <Item class="ModuleScript" referent="43">
           <Properties>
             <string name="Name">DailyRewardsService</string>
             <string name="Source"><![CDATA[--!strict
@@ -2481,6 +2579,7 @@ local function applyReward(profile, reward, nowUnix)
 					level = 1,
 					stationId = nil,
 					obtainedAt = nowUnix,
+					placement = nil,
 				}
 				table.insert(profile.resourceOrder, resourceId)
 			end
@@ -2571,7 +2670,7 @@ return DailyRewardsService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="43">
+        <Item class="ModuleScript" referent="44">
           <Properties>
             <string name="Name">EconomyService</string>
             <string name="Source"><![CDATA[--!strict
@@ -2711,7 +2810,7 @@ return EconomyService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="44">
+        <Item class="ModuleScript" referent="45">
           <Properties>
             <string name="Name">GeodeQueueService</string>
             <string name="Source"><![CDATA[--!strict
@@ -2871,7 +2970,10 @@ function GeodeQueueService:claimEntries(profile, nowUnix, rng, geodeId, playerNa
 	local stationService = self.dependencies.stationService
 	local autoAssignment = nil
 	if stationService ~= nil and #createdResourceIds > 0 then
-		autoAssignment = stationService:autoAssignResources(profile, createdResourceIds)
+		autoAssignment = {
+			assignedResourceIds = {},
+			unassignedResourceIds = createdResourceIds,
+		}
 	end
 
 	self:syncQueueCache(profile, nowUnix)
@@ -2894,7 +2996,7 @@ return GeodeQueueService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="45">
+        <Item class="ModuleScript" referent="46">
           <Properties>
             <string name="Name">GeodeService</string>
             <string name="Source"><![CDATA[--!strict
@@ -3148,6 +3250,7 @@ function GeodeService:createResourceInstance(geodeId, nowUnix, rng)
 		level = 1,
 		stationId = nil,
 		obtainedAt = nowUnix,
+		placement = nil,
 	}
 end
 
@@ -3164,6 +3267,7 @@ function GeodeService:createRewardResourceInstance(resourceId, nowUnix)
 		level = 1,
 		stationId = nil,
 		obtainedAt = nowUnix,
+		placement = nil,
 	}
 end
 
@@ -3182,17 +3286,12 @@ return GeodeService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="46">
+        <Item class="ModuleScript" referent="47">
           <Properties>
             <string name="Name">GeodeToolService</string>
             <string name="Source"><![CDATA[--!strict
 
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Shared = ReplicatedStorage:WaitForChild("Shared")
-
-local Geodes = require(Shared.Config.Geodes)
-
 local GeodeToolService = {}
 GeodeToolService.__index = GeodeToolService
 
@@ -3223,21 +3322,6 @@ local function getContainer(player, containerName: string)
 	return nil
 end
 
-local function buildDesiredGeodes(profile)
-	local desiredGeodes = {}
-	local desiredById = {}
-
-	for _, geodeInstanceId in ipairs(profile.geodeOrder) do
-		local geodeInstance = profile.geodesById[geodeInstanceId]
-		if geodeInstance ~= nil and geodeInstance.placement == nil then
-			desiredById[geodeInstance.id] = geodeInstance
-			table.insert(desiredGeodes, geodeInstance)
-		end
-	end
-
-	return desiredGeodes, desiredById
-end
-
 function GeodeToolService.new(dependencies)
 	return setmetatable({
 		dependencies = dependencies or {},
@@ -3247,30 +3331,7 @@ function GeodeToolService.new(dependencies)
 	}, GeodeToolService)
 end
 
-function GeodeToolService:createGeodeTool(geodeInstance)
-	local geodeDefinition = Geodes[geodeInstance.geodeTypeId]
-	local tool = Instance.new("Tool")
-	tool.Name = if geodeDefinition ~= nil then geodeDefinition.displayName else geodeInstance.geodeTypeId
-	tool.RequiresHandle = false
-	tool.CanBeDropped = false
-	tool.ToolTip = tool.Name
-	tool:SetAttribute("GemFactoryGeodeTool", true)
-	tool:SetAttribute("GeodeInstanceId", geodeInstance.id)
-	tool:SetAttribute("GeodeTypeId", geodeInstance.geodeTypeId)
-	return tool
-end
-
 function GeodeToolService:syncPlayerTools(player)
-	local playerData = self.dependencies.playerData
-	if playerData == nil then
-		return
-	end
-
-	local profile = playerData:getProfile(player.UserId)
-	if profile == nil then
-		return
-	end
-
 	local backpack = getContainer(player, "Backpack")
 	local starterGear = getContainer(player, "StarterGear")
 	local character = player.Character
@@ -3278,20 +3339,11 @@ function GeodeToolService:syncPlayerTools(player)
 		return
 	end
 
-	local desiredGeodes, desiredById = buildDesiredGeodes(profile)
-
-	local equippedById = {}
 	if character ~= nil then
 		for _, child in ipairs(character:GetChildren()) do
 			local geodeInstanceId = getGeodeInstanceId(child)
 			if geodeInstanceId ~= nil then
-				if desiredById[geodeInstanceId] == nil then
-					child:Destroy()
-				elseif equippedById[geodeInstanceId] then
-					child:Destroy()
-				else
-					equippedById[geodeInstanceId] = true
-				end
+				child:Destroy()
 			end
 		end
 	end
@@ -3303,22 +3355,10 @@ function GeodeToolService:syncPlayerTools(player)
 		end
 	end
 
-	for _, geodeInstance in ipairs(desiredGeodes) do
-		local tool = self:createGeodeTool(geodeInstance)
-		tool.Parent = starterGear
-	end
-
 	for _, child in ipairs(backpack:GetChildren()) do
 		local geodeInstanceId = getGeodeInstanceId(child)
 		if geodeInstanceId ~= nil then
 			child:Destroy()
-		end
-	end
-
-	for _, geodeInstance in ipairs(desiredGeodes) do
-		if equippedById[geodeInstance.id] ~= true then
-			local tool = self:createGeodeTool(geodeInstance)
-			tool.Parent = backpack
 		end
 	end
 end
@@ -3397,14 +3437,14 @@ function GeodeToolService:start()
 		self:onPlayerAdded(player)
 	end
 
-	print("[GemFactory] GeodeToolService ready")
+	print("[GemFactory] GeodeToolService ready; geodes are stored in Vault")
 end
 
 return GeodeToolService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="47">
+        <Item class="ModuleScript" referent="48">
           <Properties>
             <string name="Name">MiningService</string>
             <string name="Source"><![CDATA[--!strict
@@ -3652,7 +3692,7 @@ return MiningService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="48">
+        <Item class="ModuleScript" referent="49">
           <Properties>
             <string name="Name">MockPersistenceService</string>
             <string name="Source"><![CDATA[--!strict
@@ -3709,7 +3749,7 @@ return MockPersistenceService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="49">
+        <Item class="ModuleScript" referent="50">
           <Properties>
             <string name="Name">OfflineProgressService</string>
             <string name="Source"><![CDATA[--!strict
@@ -3804,7 +3844,7 @@ return OfflineProgressService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="50">
+        <Item class="ModuleScript" referent="51">
           <Properties>
             <string name="Name">PickaxeToolService</string>
             <string name="Source"><![CDATA[--!strict
@@ -4033,7 +4073,7 @@ return PickaxeToolService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="51">
+        <Item class="ModuleScript" referent="52">
           <Properties>
             <string name="Name">PlacementService</string>
             <string name="Source"><![CDATA[--!strict
@@ -4042,6 +4082,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
 local Geodes = require(Shared.Config.Geodes)
+local Resources = require(Shared.Config.Resources)
 local World = require(Shared.Config.World)
 local PlacementRules = require(Shared.Domain.PlacementRules)
 local Id = require(Shared.Util.Id)
@@ -4223,6 +4264,45 @@ function PlacementService:placeGeode(profile, geodeInstance, x, y)
 	return geodeInstance, placement
 end
 
+function PlacementService:placeResource(profile, resourceInstance, x, y)
+	local resourceDefinition = Resources[resourceInstance.resourceTypeId]
+	if resourceDefinition == nil then
+		return nil, "unknown_resource"
+	end
+
+	if resourceInstance.placement ~= nil then
+		return nil, "resource_already_placed"
+	end
+
+	local gridSize = resourceDefinition.gridSize or { width = 1, height = 1 }
+	local targetX = x
+	local targetY = y
+	if targetX == nil or targetY == nil then
+		local placementTarget, placementReason = self:findFirstOpenCell(profile, gridSize.width, gridSize.height)
+		if placementTarget == nil then
+			return nil, placementReason
+		end
+
+		targetX = placementTarget.x
+		targetY = placementTarget.y
+	end
+
+	local placement, reason = self:place(profile, "resource", resourceInstance.id, targetX, targetY, gridSize.width, gridSize.height)
+	if placement == nil then
+		return nil, reason
+	end
+
+	resourceInstance.placement = {
+		plotId = placement.plotId,
+		x = placement.x,
+		y = placement.y,
+		width = placement.width,
+		height = placement.height,
+	}
+
+	return resourceInstance, placement
+end
+
 function PlacementService:removeObjectByObjectId(profile, objectType, objectId)
 	for placementId, record in pairs(profile.placedObjects) do
 		if record.objectType == objectType and record.objectId == objectId then
@@ -4249,6 +4329,11 @@ function PlacementService:remove(profile, placementId)
 	local geodeInstance = profile.geodesById[record.objectId]
 	if geodeInstance ~= nil and geodeInstance.placement ~= nil then
 		geodeInstance.placement = nil
+	end
+
+	local resource = profile.resourcesById[record.objectId]
+	if resource ~= nil and resource.placement ~= nil then
+		resource.placement = nil
 	end
 
 	profile.placedObjects[placementId] = nil
@@ -4289,6 +4374,12 @@ function PlacementService:move(profile, placementId, x, y)
 		geodeInstance.placement.y = y
 	end
 
+	local resource = profile.resourcesById[record.objectId]
+	if resource ~= nil and resource.placement ~= nil then
+		resource.placement.x = x
+		resource.placement.y = y
+	end
+
 	for dx = 0, record.width - 1 do
 		for dy = 0, record.height - 1 do
 			local cellKey = PlacementRules.buildOccupancyKey(x + dx, y + dy)
@@ -4308,7 +4399,7 @@ return PlacementService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="52">
+        <Item class="ModuleScript" referent="53">
           <Properties>
             <string name="Name">PlayerDataService</string>
             <string name="Source"><![CDATA[--!strict
@@ -4407,6 +4498,12 @@ function PlayerDataService:onPlayerAdded(player)
 			for _, geodeInstance in pairs(profile.geodesById) do
 				if geodeInstance.placement ~= nil then
 					geodeInstance.placement.plotId = plotId
+				end
+			end
+
+			for _, resource in pairs(profile.resourcesById) do
+				if resource.placement ~= nil then
+					resource.placement.plotId = plotId
 				end
 			end
 
@@ -4523,7 +4620,7 @@ return PlayerDataService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="53">
+        <Item class="ModuleScript" referent="54">
           <Properties>
             <string name="Name">PlotService</string>
             <string name="Source"><![CDATA[--!strict
@@ -4662,7 +4759,7 @@ return PlotService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="54">
+        <Item class="ModuleScript" referent="55">
           <Properties>
             <string name="Name">ShopService</string>
             <string name="Source"><![CDATA[--!strict
@@ -4737,7 +4834,7 @@ return ShopService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="55">
+        <Item class="ModuleScript" referent="56">
           <Properties>
             <string name="Name">StationService</string>
             <string name="Source"><![CDATA[--!strict
@@ -4833,7 +4930,195 @@ return StationService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="56">
+        <Item class="ModuleScript" referent="57">
+          <Properties>
+            <string name="Name">VaultService</string>
+            <string name="Source"><![CDATA[--!strict
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+
+local Geodes = require(Shared.Config.Geodes)
+local Resources = require(Shared.Config.Resources)
+local Traits = require(Shared.Config.Traits)
+local GeodeState = require(Shared.Domain.GeodeState)
+local VaultMath = require(Shared.Domain.VaultMath)
+
+local VaultService = {}
+VaultService.__index = VaultService
+
+local function removeFromOrder(order, id)
+	for index = #order, 1, -1 do
+		if order[index] == id then
+			table.remove(order, index)
+			return
+		end
+	end
+end
+
+local function adjustGeodeInventory(profile, geodeTypeId, delta)
+	local current = profile.inventory.geodes[geodeTypeId] or 0
+	profile.inventory.geodes[geodeTypeId] = math.max(0, current + delta)
+end
+
+function VaultService.new(dependencies)
+	return setmetatable({
+		dependencies = dependencies or {},
+	}, VaultService)
+end
+
+function VaultService:getResourceSellValue(resource)
+	local resourceDefinition = resource ~= nil and Resources[resource.resourceTypeId] or nil
+	local traitDefinition = resource ~= nil and Traits[resource.traitId or "none"] or Traits.none
+	return VaultMath.getResourceSellValue(resourceDefinition, traitDefinition)
+end
+
+function VaultService:getGeodeSellValue(geode)
+	local geodeDefinition = geode ~= nil and Geodes[geode.geodeTypeId] or nil
+	return VaultMath.getGeodeSellValue(geodeDefinition)
+end
+
+function VaultService:placeResource(userId, resourceId, x, y)
+	local playerData = self.dependencies.playerData
+	local placementService = self.dependencies.placementService
+	if placementService == nil then
+		return nil, "placement_unavailable"
+	end
+
+	local result
+	local _, mutateError = playerData:mutateProfile(userId, function(currentProfile)
+		local resource = currentProfile.resourcesById[resourceId]
+		if resource == nil then
+			return nil, "unknown_resource_instance"
+		end
+
+		if resource.stationId ~= nil then
+			return nil, "resource_assigned_to_station"
+		end
+
+		local placedResource, placementOrReason = placementService:placeResource(currentProfile, resource, x, y)
+		if placedResource == nil or placementOrReason == nil then
+			return nil, placementOrReason or "resource_placement_failed"
+		end
+
+		result = {
+			resource = placedResource,
+			placement = placementOrReason,
+		}
+		return result
+	end)
+
+	if result ~= nil then
+		playerData:notifyProfileChanged(userId)
+	end
+
+	if result == nil and mutateError ~= nil then
+		return nil, mutateError
+	end
+
+	return result
+end
+
+function VaultService:sellResource(userId, resourceId)
+	local playerData = self.dependencies.playerData
+	local placementService = self.dependencies.placementService
+
+	local result
+	local _, mutateError = playerData:mutateProfile(userId, function(currentProfile)
+		local resource = currentProfile.resourcesById[resourceId]
+		if resource == nil then
+			return nil, "unknown_resource_instance"
+		end
+
+		local sellValue = self:getResourceSellValue(resource)
+		if sellValue <= 0 then
+			return nil, "resource_not_sellable"
+		end
+
+		if resource.stationId ~= nil then
+			local station = currentProfile.stationsById[resource.stationId]
+			if station ~= nil and station.occupantIds ~= nil then
+				removeFromOrder(station.occupantIds, resource.id)
+			end
+		end
+
+		if placementService ~= nil then
+			placementService:removeObjectByObjectId(currentProfile, "resource", resource.id)
+		end
+
+		currentProfile.resourcesById[resource.id] = nil
+		removeFromOrder(currentProfile.resourceOrder, resource.id)
+		currentProfile.currencies.coins += sellValue
+
+		result = {
+			resourceId = resource.id,
+			coins = sellValue,
+		}
+		return result
+	end)
+
+	if result ~= nil then
+		playerData:notifyProfileChanged(userId)
+	end
+
+	if result == nil and mutateError ~= nil then
+		return nil, mutateError
+	end
+
+	return result
+end
+
+function VaultService:sellGeode(userId, geodeInstanceId)
+	local playerData = self.dependencies.playerData
+	local placementService = self.dependencies.placementService
+
+	local result
+	local _, mutateError = playerData:mutateProfile(userId, function(currentProfile)
+		local geode = currentProfile.geodesById[geodeInstanceId]
+		if geode == nil then
+			return nil, "unknown_geode_instance"
+		end
+
+		local sellValue = self:getGeodeSellValue(geode)
+		if sellValue <= 0 then
+			return nil, "geode_not_sellable"
+		end
+
+		if placementService ~= nil then
+			placementService:removeObjectByObjectId(currentProfile, "geode", geode.id)
+		end
+
+		adjustGeodeInventory(currentProfile, geode.geodeTypeId, -1)
+		GeodeState.removeGeode(currentProfile.geodesById, currentProfile.geodeOrder, geode.id)
+		currentProfile.currencies.coins += sellValue
+
+		result = {
+			geodeInstanceId = geode.id,
+			coins = sellValue,
+		}
+		return result
+	end)
+
+	if result ~= nil then
+		playerData:notifyProfileChanged(userId)
+	end
+
+	if result == nil and mutateError ~= nil then
+		return nil, mutateError
+	end
+
+	return result
+end
+
+function VaultService:start()
+	print("[GemFactory] VaultService ready")
+end
+
+return VaultService
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="58">
           <Properties>
             <string name="Name">WorldReplicaService</string>
             <string name="Source"><![CDATA[--!strict
@@ -5003,6 +5288,28 @@ local function collectPlacedGeodes(profile, plotId, nowUnix)
 	return placedGeodes
 end
 
+local function collectPlacedResources(profile, plotId)
+	local placedResources = {}
+	if profile == nil then
+		return placedResources
+	end
+
+	for _, resourceId in ipairs(profile.resourceOrder or {}) do
+		local resource = profile.resourcesById[resourceId]
+		local placement = resource and resource.placement or nil
+		if type(placement) == "table" and placement.plotId == plotId then
+			table.insert(placedResources, {
+				id = resource.id or resourceId,
+				resourceTypeId = resource.resourceTypeId,
+				traitId = resource.traitId,
+				placement = placement,
+			})
+		end
+	end
+
+	return placedResources
+end
+
 local function buildPlotSignature(plot, profile, nowUnix)
 	local signatureParts = {
 		tostring(plot.userId or "none"),
@@ -5055,6 +5362,20 @@ local function buildPlotSignature(plot, profile, nowUnix)
 
 		table.sort(geodeParts)
 		table.insert(signatureParts, table.concat(geodeParts, "|"))
+
+		local resourceParts = {}
+		for _, resource in ipairs(collectPlacedResources(profile, plot.id)) do
+			table.insert(resourceParts, table.concat({
+				resource.id,
+				tostring(resource.resourceTypeId or "unknown"),
+				tostring(resource.traitId or "none"),
+				tostring(resource.placement.x or "nil"),
+				tostring(resource.placement.y or "nil"),
+			}, ":"))
+		end
+
+		table.sort(resourceParts)
+		table.insert(signatureParts, table.concat(resourceParts, "|"))
 	end
 
 	return table.concat(signatureParts, "||")
@@ -5526,6 +5847,61 @@ local function addGeodes(parent, plot, profile, nowUnix)
 	end
 end
 
+local function createResourcePart(parent, resourceName, resourceTypeId, traitId, position)
+	local resourceDefinition = if resourceTypeId ~= nil then Resources[resourceTypeId] else nil
+	local resourcePart = createDecorPart(
+		parent,
+		resourceName,
+		Vector3.new(3, 3, 3),
+		position,
+		resourceDefinition and resourceDefinition.color or Color3.fromRGB(240, 240, 255),
+		Enum.Material.Neon
+	)
+	resourcePart.Shape = Enum.PartType.Ball
+	resourcePart:SetAttribute("ResourceId", resourceName)
+	resourcePart:SetAttribute("ResourceTypeId", resourceTypeId)
+	resourcePart:SetAttribute("TraitId", traitId or "none")
+
+	local marker = Instance.new("BillboardGui")
+	marker.Name = resourceName .. "_Marker"
+	marker.Size = UDim2.fromOffset(140, 28)
+	marker.StudsOffset = Vector3.new(0, 2.6, 0)
+	marker.AlwaysOnTop = true
+	marker.Parent = resourcePart
+
+	local label = Instance.new("TextLabel")
+	label.BackgroundTransparency = 1
+	label.Size = UDim2.fromScale(1, 1)
+	label.Font = Enum.Font.GothamBold
+	label.Text = resourceDefinition and resourceDefinition.displayName or "Resource"
+	label.TextColor3 = Color3.fromRGB(248, 248, 255)
+	label.TextScaled = true
+	label.Parent = marker
+end
+
+local function addResources(parent, plot, profile)
+	local resourceFolder = Instance.new("Folder")
+	resourceFolder.Name = "PlacedResources"
+	resourceFolder.Parent = parent
+
+	local placedResources = collectPlacedResources(profile, plot.id)
+	local cellSize = World.cellSize
+	local gridOriginX = plot.position.x - ((World.plotGridWidth * cellSize) / 2) + (cellSize / 2)
+	local gridOriginZ = plot.position.z - ((World.plotGridHeight * cellSize) / 2) + (cellSize / 2)
+
+	for _, resource in ipairs(placedResources) do
+		local placement = resource.placement
+		local footprintWidth = placement.width or 1
+		local footprintHeight = placement.height or 1
+		local resourcePosition = Vector3.new(
+			gridOriginX + ((placement.x - 1) * cellSize) + (((footprintWidth - 1) * cellSize) / 2),
+			plot.position.y + 3,
+			gridOriginZ + ((placement.y - 1) * cellSize) + (((footprintHeight - 1) * cellSize) / 2)
+		)
+		createResourcePart(resourceFolder, tostring(resource.id), resource.resourceTypeId, resource.traitId, resourcePosition)
+	end
+end
+
 function WorldReplicaService:_getPlotModel(plotId)
 	local _, plotFolder = ensureWorldFolder()
 	local plotModel = plotFolder:FindFirstChild(plotId)
@@ -5576,6 +5952,7 @@ function WorldReplicaService:_buildPlot(plot, profile, signature, nowUnix)
 
 	addRockSpikes(plotModel, plot)
 	addGeodes(plotModel, plot, profile, nowUnix)
+	addResources(plotModel, plot, profile)
 
 	local stationFolder = Instance.new("Folder")
 	stationFolder.Name = World.stationFolderName
@@ -5721,11 +6098,11 @@ return WorldReplicaService
           </Properties>
         </Item>
       </Item>
-      <Item class="Folder" referent="57">
+      <Item class="Folder" referent="59">
         <Properties>
           <string name="Name">Systems</string>
         </Properties>
-        <Item class="ModuleScript" referent="58">
+        <Item class="ModuleScript" referent="60">
           <Properties>
             <string name="Name">RareAnnouncementSystem</string>
             <string name="Source"><![CDATA[--!strict
@@ -5763,11 +6140,11 @@ return RareAnnouncementSystem
           </Properties>
         </Item>
       </Item>
-      <Item class="Folder" referent="59">
+      <Item class="Folder" referent="61">
         <Properties>
           <string name="Name">Util</string>
         </Properties>
-        <Item class="ModuleScript" referent="60">
+        <Item class="ModuleScript" referent="62">
           <Properties>
             <string name="Name">PickaxeModelBuilder</string>
             <string name="Source"><![CDATA[--!strict
@@ -5935,21 +6312,21 @@ return PickaxeModelBuilder
       </Item>
     </Item>
   </Item>
-  <Item class="SoundService" referent="61">
+  <Item class="SoundService" referent="63">
     <Properties>
       <string name="Name">SoundService</string>
       <bool name="RespectFilteringEnabled">true</bool>
     </Properties>
   </Item>
-  <Item class="StarterPlayer" referent="62">
+  <Item class="StarterPlayer" referent="64">
     <Properties>
       <string name="Name">StarterPlayer</string>
     </Properties>
-    <Item class="StarterPlayerScripts" referent="63">
+    <Item class="StarterPlayerScripts" referent="65">
       <Properties>
         <string name="Name">StarterPlayerScripts</string>
       </Properties>
-      <Item class="LocalScript" referent="64">
+      <Item class="LocalScript" referent="66">
         <Properties>
           <string name="Name">Client</string>
           <string name="Source"><![CDATA[local ClientBootstrap = require(script.Bootstrap.ClientBootstrap)
@@ -5957,11 +6334,11 @@ return PickaxeModelBuilder
 ClientBootstrap.start()
 ]]></string>
         </Properties>
-        <Item class="Folder" referent="65">
+        <Item class="Folder" referent="67">
           <Properties>
             <string name="Name">Bootstrap</string>
           </Properties>
-          <Item class="ModuleScript" referent="66">
+          <Item class="ModuleScript" referent="68">
             <Properties>
               <string name="Name">ClientBootstrap</string>
               <string name="Source"><![CDATA[--!strict
@@ -5983,11 +6360,11 @@ return ClientBootstrap
             </Properties>
           </Item>
         </Item>
-        <Item class="Folder" referent="67">
+        <Item class="Folder" referent="69">
           <Properties>
             <string name="Name">Controllers</string>
           </Properties>
-          <Item class="ModuleScript" referent="68">
+          <Item class="ModuleScript" referent="70">
             <Properties>
               <string name="Name">AppController</string>
               <string name="Source"><![CDATA[--!strict
@@ -6013,6 +6390,7 @@ local GeodeInteractionController = require(script.Parent.GeodeInteractionControl
 local PlacementController = require(script.Parent.PlacementController)
 local DailyRewardsController = require(script.Parent.DailyRewardsController)
 local NotificationsController = require(script.Parent.NotificationsController)
+local VaultController = require(script.Parent.VaultController)
 local Palette = require(script.Parent.Parent.UI.Theme.Palette)
 
 local AppController = {}
@@ -6218,6 +6596,7 @@ function AppController.new()
 		remotes = {},
 		controllers = {},
 		pendingGeodePlacementId = nil,
+		pendingResourcePlacementId = nil,
 		_running = false,
 	}, AppController)
 
@@ -6232,6 +6611,7 @@ function AppController.new()
 		PlacementController.new(context),
 		DailyRewardsController.new(context),
 		NotificationsController.new(context),
+		VaultController.new(context),
 	}
 
 	return self
@@ -6297,13 +6677,29 @@ function AppController:getPendingGeodePlacementId()
 	return self.pendingGeodePlacementId
 end
 
+function AppController:getPendingResourcePlacementId()
+	return self.pendingResourcePlacementId
+end
+
 function AppController:beginGeodePlacement(geodeInstanceId)
 	if geodeInstanceId == nil then
 		return false
 	end
 
 	self.pendingGeodePlacementId = geodeInstanceId
+	self.pendingResourcePlacementId = nil
 	self:setStatus("Click a cell on your plot to place this geode.")
+	return true
+end
+
+function AppController:beginResourcePlacement(resourceId)
+	if resourceId == nil then
+		return false
+	end
+
+	self.pendingResourcePlacementId = resourceId
+	self.pendingGeodePlacementId = nil
+	self:setStatus("Click a cell on your plot to place this treasure.")
 	return true
 end
 
@@ -6314,6 +6710,15 @@ function AppController:cancelGeodePlacement()
 
 	self.pendingGeodePlacementId = nil
 	self:setStatus("Geode placement canceled.")
+end
+
+function AppController:cancelResourcePlacement()
+	if self.pendingResourcePlacementId == nil then
+		return
+	end
+
+	self.pendingResourcePlacementId = nil
+	self:setStatus("Resource placement canceled.")
 end
 
 function AppController:requestPlaceGeode(geodeInstanceId, x, y)
@@ -6328,6 +6733,39 @@ function AppController:requestPlaceGeode(geodeInstanceId, x, y)
 	else
 		local errorText = type(result) == "table" and result.errorCode or result
 		self:setStatus("Geode placement failed: " .. tostring(errorText))
+	end
+	return ok, result
+end
+
+function AppController:requestPlaceResource(resourceId, x, y)
+	if resourceId == nil then
+		return false, "missing_resource_id"
+	end
+
+	local ok, result = self:invokeRemote(RemoteNames.RequestPlaceResource, resourceId, x, y)
+	if ok and type(result) == "table" and result.ok == true then
+		self.pendingResourcePlacementId = nil
+		self:setStatus("Treasure placed on your plot.")
+	else
+		local errorText = type(result) == "table" and result.errorCode or result
+		self:setStatus("Treasure placement failed: " .. tostring(errorText))
+	end
+	return ok, result
+end
+
+function AppController:requestSellVaultItem(itemKind, itemId)
+	local ok, result = self:invokeRemote(RemoteNames.RequestSellVaultItem, itemKind, itemId)
+	if ok and type(result) == "table" and result.ok == true then
+		local sale = result.sale
+		local coins = type(sale) == "table" and sale.coins or nil
+		if type(coins) == "number" then
+			self:setStatus(string.format("Sold from Vault for %d coins.", math.floor(coins + 0.5)))
+		else
+			self:setStatus("Sold from Vault.")
+		end
+	else
+		local errorText = type(result) == "table" and result.errorCode or result
+		self:setStatus("Vault sale failed: " .. tostring(errorText))
 	end
 	return ok, result
 end
@@ -6508,7 +6946,7 @@ return AppController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="69">
+          <Item class="ModuleScript" referent="71">
             <Properties>
               <string name="Name">DailyRewardsController</string>
               <string name="Source"><![CDATA[--!strict
@@ -6602,7 +7040,7 @@ return DailyRewardsController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="70">
+          <Item class="ModuleScript" referent="72">
             <Properties>
               <string name="Name">GeodeController</string>
               <string name="Source"><![CDATA[--!strict
@@ -6774,8 +7212,8 @@ function GeodeController:start()
 				summary.crackingCount,
 				summary.readyCount
 			),
-			"Mine geodes in the cave and they will appear in your Roblox backpack.",
-			"Equip a geode from your Roblox backpack to place it.",
+			"Mine geodes in the cave and they will appear in your Vault.",
+			"Open the Vault to place or sell stored geodes.",
 			"Click a ready geode on the plot to crack it open.",
 		}
 
@@ -6788,7 +7226,7 @@ function GeodeController:start()
 		end
 
 		if summary.totalCount == 0 then
-			screen:setGeodeText("No geodes are active yet.\nMine inside the cave and they will appear in your Roblox backpack.")
+			screen:setGeodeText("No geodes are active yet.\nMine inside the cave and they will appear in your Vault.")
 			latestPlaceGeodeId = nil
 			latestOpenGeodeId = nil
 			latestCanPlaceGeode = false
@@ -6842,7 +7280,7 @@ return GeodeController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="71">
+          <Item class="ModuleScript" referent="73">
             <Properties>
               <string name="Name">GeodeInteractionController</string>
               <string name="Source"><![CDATA[--!strict
@@ -6859,6 +7297,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Geodes = require(Shared.Config.Geodes)
 local Resources = require(Shared.Config.Resources)
 local GeodePlacementGhost = require(script.Parent.GeodePlacementGhost)
+local ResourcePlacementGhost = require(script.Parent.ResourcePlacementGhost)
 
 local GeodeInteractionController = {}
 GeodeInteractionController.__index = GeodeInteractionController
@@ -7056,10 +7495,12 @@ function GeodeInteractionController:start()
 	local app = self.context.app
 	local mouse = Players.LocalPlayer:GetMouse()
 	local preview = GeodePlacementGhost.new()
+	local resourcePreview = ResourcePlacementGhost.new()
 	local lastClickAt = 0
 	local activePlacementCellX: number? = nil
 	local activePlacementCellY: number? = nil
 	local activePlacementGeodeId: string? = nil
+	local activePlacementResourceId: string? = nil
 	local lastEquippedToolId: string? = nil
 
 	local function getEquippedGeodeTool()
@@ -7109,7 +7550,9 @@ function GeodeInteractionController:start()
 		activePlacementCellX = nil
 		activePlacementCellY = nil
 		activePlacementGeodeId = nil
+		activePlacementResourceId = nil
 		preview:hide()
+		resourcePreview:hide()
 	end
 
 	local function refreshPlacementPreview()
@@ -7125,7 +7568,47 @@ function GeodeInteractionController:start()
 			geodeTypeId = pendingTypeId
 		end
 
+		local pendingResourceId = app:getPendingResourcePlacementId()
 		if geodeInstanceId == nil or geodeTypeId == nil then
+			if pendingResourceId ~= nil then
+				local state = app:getState()
+				local resource = state.profile
+					and state.profile.resourcesById
+					and state.profile.resourcesById[pendingResourceId]
+					or nil
+				if type(resource) ~= "table" or resource.placement ~= nil or type(resource.resourceTypeId) ~= "string" then
+					clearPreview()
+					return
+				end
+
+				resourcePreview:setResourceTypeId(resource.resourceTypeId)
+				local plotModel = findPlotModel(mouse.Target)
+				if plotModel == nil then
+					clearPreview()
+					return
+				end
+
+				local ownerUserId = plotModel:GetAttribute("OwnerUserId")
+				if ownerUserId ~= Players.LocalPlayer.UserId then
+					clearPreview()
+					return
+				end
+
+				local cellX, cellY, _ = resourcePreview:showAt(plotModel, mouse.Hit.Position)
+				if cellX == nil or cellY == nil then
+					clearPreview()
+					return
+				end
+
+				preview:hide()
+				activePlacementCellX = cellX
+				activePlacementCellY = cellY
+				activePlacementGeodeId = nil
+				activePlacementResourceId = pendingResourceId
+				lastEquippedToolId = nil
+				return
+			end
+
 			clearPreview()
 			if lastEquippedToolId ~= nil then
 				lastEquippedToolId = nil
@@ -7134,6 +7617,7 @@ function GeodeInteractionController:start()
 		end
 
 		preview:setGeodeTypeId(geodeTypeId)
+		resourcePreview:hide()
 		local plotModel = findPlotModel(mouse.Target)
 		if plotModel == nil then
 			clearPreview()
@@ -7155,6 +7639,7 @@ function GeodeInteractionController:start()
 		activePlacementCellX = cellX
 		activePlacementCellY = cellY
 		activePlacementGeodeId = geodeInstanceId
+		activePlacementResourceId = nil
 
 		if equippedTool ~= nil and lastEquippedToolId ~= geodeInstanceId then
 			lastEquippedToolId = geodeInstanceId
@@ -7178,6 +7663,11 @@ function GeodeInteractionController:start()
 
 		if activePlacementGeodeId ~= nil and activePlacementCellX ~= nil and activePlacementCellY ~= nil then
 			app:requestPlaceGeode(activePlacementGeodeId, activePlacementCellX, activePlacementCellY)
+			return
+		end
+
+		if activePlacementResourceId ~= nil and activePlacementCellX ~= nil and activePlacementCellY ~= nil then
+			app:requestPlaceResource(activePlacementResourceId, activePlacementCellX, activePlacementCellY)
 			return
 		end
 
@@ -7218,7 +7708,7 @@ return GeodeInteractionController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="72">
+          <Item class="ModuleScript" referent="74">
             <Properties>
               <string name="Name">GeodePlacementGhost</string>
               <string name="Source"><![CDATA[--!strict
@@ -7398,7 +7888,7 @@ return GeodePlacementGhost
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="73">
+          <Item class="ModuleScript" referent="75">
             <Properties>
               <string name="Name">HUDController</string>
               <string name="Source"><![CDATA[--!strict
@@ -7486,6 +7976,7 @@ function HUDController:start()
 		local plotId = profile.plotState.plotId or "Unassigned"
 
 		screen:setStatusText(state.connectionMessage or "Ready")
+		screen:setCoinCounterText(formatNumber(profile.currencies.coins))
 		screen:setOverviewText(string.format(
 			"Coins: %s\nPassive: %s / sec\nCavern Value: %s\nResources: %d\nStations: %d\nQueue: %d\nPlot: %s",
 			formatNumber(profile.currencies.coins),
@@ -7508,7 +7999,7 @@ return HUDController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="74">
+          <Item class="ModuleScript" referent="76">
             <Properties>
               <string name="Name">MiningController</string>
               <string name="Source"><![CDATA[--!strict
@@ -7748,7 +8239,7 @@ return MiningController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="75">
+          <Item class="ModuleScript" referent="77">
             <Properties>
               <string name="Name">NotificationsController</string>
               <string name="Source"><![CDATA[--!strict
@@ -7840,7 +8331,7 @@ return NotificationsController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="76">
+          <Item class="ModuleScript" referent="78">
             <Properties>
               <string name="Name">PlacementController</string>
               <string name="Source"><![CDATA[--!strict
@@ -7907,7 +8398,7 @@ return PlacementController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="77">
+          <Item class="ModuleScript" referent="79">
             <Properties>
               <string name="Name">PlotController</string>
               <string name="Source"><![CDATA[--!strict
@@ -7984,7 +8475,154 @@ return PlotController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="78">
+          <Item class="ModuleScript" referent="80">
+            <Properties>
+              <string name="Name">ResourcePlacementGhost</string>
+              <string name="Source"><![CDATA[--!strict
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+
+local Resources = require(Shared.Config.Resources)
+local World = require(Shared.Config.World)
+
+local ResourcePlacementGhost = {}
+ResourcePlacementGhost.__index = ResourcePlacementGhost
+
+local function getPlotBase(plotModel: Model): BasePart?
+	local plotBase = plotModel:FindFirstChild("PlotBase")
+	if plotBase ~= nil and plotBase:IsA("BasePart") then
+		return plotBase
+	end
+
+	return nil
+end
+
+function ResourcePlacementGhost.new()
+	local part = Instance.new("Part")
+	part.Name = "ResourcePlacementGhost"
+	part.Anchored = true
+	part.CanCollide = false
+	part.CanQuery = false
+	part.CanTouch = false
+	part.CastShadow = false
+	part.Material = Enum.Material.Neon
+	part.Shape = Enum.PartType.Ball
+	part.Size = Vector3.new(3, 3, 3)
+	part.Transparency = 0.55
+
+	local prompt = Instance.new("BillboardGui")
+	prompt.Name = "Label"
+	prompt.AlwaysOnTop = true
+	prompt.Size = UDim2.fromOffset(140, 24)
+	prompt.StudsOffset = Vector3.new(0, 2.6, 0)
+	prompt.Parent = part
+
+	local label = Instance.new("TextLabel")
+	label.BackgroundTransparency = 1
+	label.Size = UDim2.fromScale(1, 1)
+	label.Font = Enum.Font.GothamBold
+	label.Text = "Treasure"
+	label.TextColor3 = Color3.fromRGB(245, 247, 255)
+	label.TextSize = 14
+	label.TextWrapped = true
+	label.Parent = prompt
+
+	return setmetatable({
+		part = part,
+		label = label,
+		resourceTypeId = nil,
+		footprintWidth = 1,
+		footprintHeight = 1,
+		visible = false,
+	}, ResourcePlacementGhost)
+end
+
+function ResourcePlacementGhost:setResourceTypeId(resourceTypeId: string?)
+	if self.resourceTypeId == resourceTypeId then
+		return
+	end
+
+	self.resourceTypeId = resourceTypeId
+	local definition = if resourceTypeId ~= nil then Resources[resourceTypeId] else nil
+	if definition ~= nil then
+		self.footprintWidth = definition.gridSize and definition.gridSize.width or 1
+		self.footprintHeight = definition.gridSize and definition.gridSize.height or 1
+		self.part.Color = definition.color or Color3.fromRGB(240, 240, 255)
+		self.label.Text = definition.displayName or "Treasure"
+	else
+		self.footprintWidth = 1
+		self.footprintHeight = 1
+		self.part.Color = Color3.fromRGB(240, 240, 255)
+		self.label.Text = "Treasure"
+	end
+end
+
+function ResourcePlacementGhost:getSnappedCell(plotModel: Model, hitPosition: Vector3): (number?, number?, Vector3?)
+	local plotBase = getPlotBase(plotModel)
+	if plotBase == nil then
+		return nil, nil, nil
+	end
+
+	local maxX = World.plotGridWidth - self.footprintWidth + 1
+	local maxY = World.plotGridHeight - self.footprintHeight + 1
+	if maxX < 1 or maxY < 1 then
+		return nil, nil, nil
+	end
+
+	local minX = plotBase.Position.X - ((World.plotGridWidth * World.cellSize) / 2)
+	local minZ = plotBase.Position.Z - ((World.plotGridHeight * World.cellSize) / 2)
+	local cellX = math.floor((hitPosition.X - minX) / World.cellSize) + 1
+	local cellY = math.floor((hitPosition.Z - minZ) / World.cellSize) + 1
+
+	if cellX < 1 or cellY < 1 or cellX > maxX or cellY > maxY then
+		return nil, nil, nil
+	end
+
+	local gridOriginX = plotBase.Position.X - ((World.plotGridWidth * World.cellSize) / 2) + (World.cellSize / 2)
+	local gridOriginZ = plotBase.Position.Z - ((World.plotGridHeight * World.cellSize) / 2) + (World.cellSize / 2)
+	local worldPosition = Vector3.new(
+		gridOriginX + ((cellX - 1) * World.cellSize) + (((self.footprintWidth - 1) * World.cellSize) / 2),
+		plotBase.Position.Y + 3,
+		gridOriginZ + ((cellY - 1) * World.cellSize) + (((self.footprintHeight - 1) * World.cellSize) / 2)
+	)
+
+	return cellX, cellY, worldPosition
+end
+
+function ResourcePlacementGhost:showAt(plotModel: Model, hitPosition: Vector3): (number?, number?, Vector3?)
+	local cellX, cellY, worldPosition = self:getSnappedCell(plotModel, hitPosition)
+	if cellX == nil or cellY == nil or worldPosition == nil then
+		self:hide()
+		return nil, nil, nil
+	end
+
+	self.part.Parent = Workspace
+	self.part.Position = worldPosition
+	self.visible = true
+	return cellX, cellY, worldPosition
+end
+
+function ResourcePlacementGhost:hide()
+	if not self.visible then
+		return
+	end
+
+	self.visible = false
+	self.part.Parent = nil
+end
+
+function ResourcePlacementGhost:destroy()
+	self.part:Destroy()
+end
+
+return ResourcePlacementGhost
+]]></string>
+            </Properties>
+          </Item>
+          <Item class="ModuleScript" referent="81">
             <Properties>
               <string name="Name">ShopController</string>
               <string name="Source"><![CDATA[--!strict
@@ -8236,16 +8874,237 @@ return ShopController
 ]]></string>
             </Properties>
           </Item>
+          <Item class="ModuleScript" referent="82">
+            <Properties>
+              <string name="Name">VaultController</string>
+              <string name="Source"><![CDATA[--!strict
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+
+local Geodes = require(Shared.Config.Geodes)
+local Resources = require(Shared.Config.Resources)
+local Traits = require(Shared.Config.Traits)
+local VaultMath = require(Shared.Domain.VaultMath)
+
+local VaultController = {}
+VaultController.__index = VaultController
+
+local function createRow(parent, titleText, detailText, tint, layoutOrder)
+	local row = Instance.new("Frame")
+	row.Name = titleText .. "Row"
+	row.BackgroundColor3 = Color3.fromRGB(255, 255, 250)
+	row.BorderSizePixel = 0
+	row.LayoutOrder = layoutOrder
+	row.Size = UDim2.new(1, -8, 0, 92)
+	row.ZIndex = 58
+	row.Parent = parent
+
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 14)
+	corner.Parent = row
+
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = tint
+	stroke.Thickness = 3
+	stroke.Parent = row
+
+	local swatch = Instance.new("Frame")
+	swatch.Name = "Swatch"
+	swatch.BackgroundColor3 = tint
+	swatch.BorderSizePixel = 0
+	swatch.Position = UDim2.new(0, 12, 0.5, -24)
+	swatch.Size = UDim2.new(0, 48, 0, 48)
+	swatch.ZIndex = 59
+	swatch.Parent = row
+
+	local swatchCorner = Instance.new("UICorner")
+	swatchCorner.CornerRadius = UDim.new(0, 14)
+	swatchCorner.Parent = swatch
+
+	local title = Instance.new("TextLabel")
+	title.BackgroundTransparency = 1
+	title.Position = UDim2.new(0, 72, 0, 10)
+	title.Size = UDim2.new(1, -220, 0, 30)
+	title.Font = Enum.Font.FredokaOne
+	title.Text = titleText
+	title.TextColor3 = Color3.fromRGB(71, 48, 20)
+	title.TextSize = 22
+	title.TextXAlignment = Enum.TextXAlignment.Left
+	title.TextTruncate = Enum.TextTruncate.AtEnd
+	title.ZIndex = 59
+	title.Parent = row
+
+	local detail = Instance.new("TextLabel")
+	detail.BackgroundTransparency = 1
+	detail.Position = UDim2.new(0, 72, 0, 43)
+	detail.Size = UDim2.new(1, -220, 0, 36)
+	detail.Font = Enum.Font.GothamBold
+	detail.Text = detailText
+	detail.TextColor3 = Color3.fromRGB(112, 84, 45)
+	detail.TextSize = 14
+	detail.TextWrapped = true
+	detail.TextXAlignment = Enum.TextXAlignment.Left
+	detail.ZIndex = 59
+	detail.Parent = row
+
+	return row
+end
+
+local function createActionButton(parent, text, color, xOffset)
+	local button = Instance.new("TextButton")
+	button.BackgroundColor3 = color
+	button.BorderSizePixel = 0
+	button.Position = UDim2.new(1, xOffset, 0.5, -17)
+	button.Size = UDim2.new(0, 78, 0, 34)
+	button.Font = Enum.Font.FredokaOne
+	button.Text = text
+	button.TextColor3 = Color3.fromRGB(48, 34, 14)
+	button.TextSize = 16
+	button.ZIndex = 60
+	button.Parent = parent
+
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 10)
+	corner.Parent = button
+
+	return button
+end
+
+local function getGeodeLabel(geode)
+	local definition = geode ~= nil and Geodes[geode.geodeTypeId] or nil
+	return definition and definition.displayName or "Geode"
+end
+
+local function getResourceLabel(resource)
+	local definition = resource ~= nil and Resources[resource.resourceTypeId] or nil
+	local trait = resource ~= nil and Traits[resource.traitId or "none"] or nil
+	local displayName = definition and definition.displayName or "Treasure"
+	if trait ~= nil and trait.id ~= "none" then
+		return trait.displayName .. " " .. displayName
+	end
+	return displayName
+end
+
+function VaultController.new(context)
+	return setmetatable({
+		context = context or {},
+	}, VaultController)
+end
+
+function VaultController:start()
+	local screen = self.context.screen
+	local app = self.context.app
+
+	local function refresh(state)
+		local profile = state.profile
+		screen:clearVaultRows()
+
+		local rows = {}
+		for _, geodeId in ipairs(profile.geodeOrder or {}) do
+			local geode = profile.geodesById[geodeId]
+			if geode ~= nil then
+				local definition = Geodes[geode.geodeTypeId]
+				table.insert(rows, {
+					kind = "geode",
+					id = geode.id,
+					title = getGeodeLabel(geode),
+					detail = if geode.placement ~= nil then "On plot. Crack it when ready or sell it." else "In Vault. Place it or sell it.",
+					tint = definition and definition.displayColor or Color3.fromRGB(180, 190, 210),
+					canPlace = geode.placement == nil,
+					sellValue = VaultMath.getGeodeSellValue(definition),
+				})
+			end
+		end
+
+		for _, resourceId in ipairs(profile.resourceOrder or {}) do
+			local resource = profile.resourcesById[resourceId]
+			if resource ~= nil then
+				local definition = Resources[resource.resourceTypeId]
+				local trait = Traits[resource.traitId or "none"] or Traits.none
+				table.insert(rows, {
+					kind = "resource",
+					id = resource.id,
+					title = getResourceLabel(resource),
+					detail = if resource.placement ~= nil then "On plot. Sell it anytime." else "In Vault. Place it or sell it.",
+					tint = definition and definition.color or Color3.fromRGB(240, 240, 255),
+					canPlace = resource.placement == nil and resource.stationId == nil,
+					sellValue = VaultMath.getResourceSellValue(definition, trait),
+				})
+			end
+		end
+
+		table.sort(rows, function(a, b)
+			if a.kind == b.kind then
+				return a.title < b.title
+			end
+			return a.kind < b.kind
+		end)
+
+		if #rows == 0 then
+			local empty = Instance.new("TextLabel")
+			empty.BackgroundTransparency = 1
+			empty.Size = UDim2.new(1, -8, 0, 120)
+			empty.Font = Enum.Font.FredokaOne
+			empty.Text = "Mine geodes to fill this Vault."
+			empty.TextColor3 = Color3.fromRGB(82, 52, 18)
+			empty.TextSize = 26
+			empty.TextWrapped = true
+			empty.ZIndex = 58
+			empty.Parent = screen:getVaultItemContainer()
+			return
+		end
+
+		for index, rowData in ipairs(rows) do
+			local row = createRow(
+				screen:getVaultItemContainer(),
+				rowData.title,
+				string.format("%s Sell: %d coins", rowData.detail, rowData.sellValue),
+				rowData.tint,
+				index
+			)
+
+			local place = createActionButton(row, "Place", Color3.fromRGB(122, 231, 184), -174)
+			place.Active = rowData.canPlace
+			place.AutoButtonColor = rowData.canPlace
+			place.BackgroundColor3 = if rowData.canPlace then Color3.fromRGB(122, 231, 184) else Color3.fromRGB(180, 180, 180)
+			place.Activated:Connect(function()
+				if not rowData.canPlace then
+					return
+				end
+				screen:setVaultVisible(false)
+				if rowData.kind == "geode" then
+					app:beginGeodePlacement(rowData.id)
+				else
+					app:beginResourcePlacement(rowData.id)
+				end
+			end)
+
+			local sell = createActionButton(row, "Sell", Color3.fromRGB(255, 195, 91), -88)
+			sell.Activated:Connect(function()
+				app:requestSellVaultItem(rowData.kind, rowData.id)
+			end)
+		end
+	end
+
+	self.context.stateChanged:Connect(refresh)
+	refresh(app:getState())
+end
+
+return VaultController
+]]></string>
+            </Properties>
+          </Item>
         </Item>
-        <Item class="Folder" referent="79">
+        <Item class="Folder" referent="83">
           <Properties>
             <string name="Name">UI</string>
           </Properties>
-          <Item class="Folder" referent="80">
+          <Item class="Folder" referent="84">
             <Properties>
               <string name="Name">Components</string>
             </Properties>
-            <Item class="ModuleScript" referent="81">
+            <Item class="ModuleScript" referent="85">
               <Properties>
                 <string name="Name">Panel</string>
                 <string name="Source"><![CDATA[--!strict
@@ -8358,11 +9217,11 @@ return Panel
               </Properties>
             </Item>
           </Item>
-          <Item class="Folder" referent="82">
+          <Item class="Folder" referent="86">
             <Properties>
               <string name="Name">Screens</string>
             </Properties>
-            <Item class="ModuleScript" referent="83">
+            <Item class="ModuleScript" referent="87">
               <Properties>
                 <string name="Name">RootScreen</string>
                 <string name="Source"><![CDATA[--!strict
@@ -8376,6 +9235,7 @@ local RootScreen = {}
 RootScreen.__index = RootScreen
 
 local SHOP_BASE_Z_INDEX = 60
+local VAULT_BASE_Z_INDEX = 55
 local POPUP_Z_INDEX = 80
 
 local function applyGuiZIndex(root, zIndex)
@@ -8565,6 +9425,176 @@ function RootScreen.new(context)
 	reopenStroke.Thickness = 1
 	reopenStroke.Transparency = 0.15
 	reopenStroke.Parent = reopenButton
+
+	local hudDock = Instance.new("Frame")
+	hudDock.Name = "BubblyHudDock"
+	hudDock.AnchorPoint = Vector2.new(0, 1)
+	hudDock.BackgroundTransparency = 1
+	hudDock.BorderSizePixel = 0
+	hudDock.Position = UDim2.new(0, 20, 1, -20)
+	hudDock.Size = UDim2.new(0, 260, 0, 132)
+	hudDock.Parent = screenGui
+
+	local dockLayout = Instance.new("UIListLayout")
+	dockLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	dockLayout.Padding = UDim.new(0, 10)
+	dockLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+	dockLayout.Parent = hudDock
+
+	local vaultButton = Instance.new("TextButton")
+	vaultButton.Name = "VaultButton"
+	vaultButton.AutoButtonColor = true
+	vaultButton.BackgroundColor3 = Color3.fromRGB(255, 210, 82)
+	vaultButton.BorderSizePixel = 0
+	vaultButton.LayoutOrder = 1
+	vaultButton.Size = UDim2.new(0, 210, 0, 54)
+	vaultButton.Font = Enum.Font.FredokaOne
+	vaultButton.Text = "Vault"
+	vaultButton.TextColor3 = Color3.fromRGB(80, 45, 10)
+	vaultButton.TextSize = 32
+	vaultButton.Parent = hudDock
+
+	local vaultButtonCorner = Instance.new("UICorner")
+	vaultButtonCorner.CornerRadius = UDim.new(0, 16)
+	vaultButtonCorner.Parent = vaultButton
+
+	local vaultButtonStroke = Instance.new("UIStroke")
+	vaultButtonStroke.Color = Color3.fromRGB(255, 246, 174)
+	vaultButtonStroke.Thickness = 4
+	vaultButtonStroke.Parent = vaultButton
+
+	local coinCounter = Instance.new("Frame")
+	coinCounter.Name = "CoinCounter"
+	coinCounter.BackgroundColor3 = Color3.fromRGB(255, 238, 123)
+	coinCounter.BorderSizePixel = 0
+	coinCounter.LayoutOrder = 2
+	coinCounter.Size = UDim2.new(0, 250, 0, 68)
+	coinCounter.Parent = hudDock
+
+	local coinCorner = Instance.new("UICorner")
+	coinCorner.CornerRadius = UDim.new(0, 18)
+	coinCorner.Parent = coinCounter
+
+	local coinStroke = Instance.new("UIStroke")
+	coinStroke.Color = Color3.fromRGB(255, 255, 230)
+	coinStroke.Thickness = 5
+	coinStroke.Parent = coinCounter
+
+	local coinIcon = Instance.new("TextLabel")
+	coinIcon.BackgroundTransparency = 1
+	coinIcon.Position = UDim2.new(0, 12, 0, 8)
+	coinIcon.Size = UDim2.new(0, 52, 0, 52)
+	coinIcon.Font = Enum.Font.FredokaOne
+	coinIcon.Text = "$"
+	coinIcon.TextColor3 = Color3.fromRGB(246, 143, 42)
+	coinIcon.TextSize = 44
+	coinIcon.Parent = coinCounter
+
+	local coinLabel = Instance.new("TextLabel")
+	coinLabel.Name = "CoinLabel"
+	coinLabel.BackgroundTransparency = 1
+	coinLabel.Position = UDim2.new(0, 66, 0, 4)
+	coinLabel.Size = UDim2.new(1, -78, 1, -8)
+	coinLabel.Font = Enum.Font.FredokaOne
+	coinLabel.Text = "0"
+	coinLabel.TextColor3 = Color3.fromRGB(76, 49, 16)
+	coinLabel.TextScaled = true
+	coinLabel.TextXAlignment = Enum.TextXAlignment.Left
+	coinLabel.Parent = coinCounter
+
+	local vaultOverlay = Instance.new("Frame")
+	vaultOverlay.Name = "VaultOverlay"
+	vaultOverlay.BackgroundColor3 = Color3.fromRGB(8, 8, 12)
+	vaultOverlay.BackgroundTransparency = 0.35
+	vaultOverlay.BorderSizePixel = 0
+	vaultOverlay.Size = UDim2.fromScale(1, 1)
+	vaultOverlay.Visible = false
+	vaultOverlay.ZIndex = VAULT_BASE_Z_INDEX
+	vaultOverlay.Parent = screenGui
+
+	local vaultPanel = Instance.new("Frame")
+	vaultPanel.Name = "VaultPanel"
+	vaultPanel.AnchorPoint = Vector2.new(0.5, 0.5)
+	vaultPanel.BackgroundColor3 = Color3.fromRGB(255, 249, 224)
+	vaultPanel.BorderSizePixel = 0
+	vaultPanel.Position = UDim2.fromScale(0.5, 0.5)
+	vaultPanel.Size = UDim2.new(0.9, 0, 0.78, 0)
+	vaultPanel.ZIndex = VAULT_BASE_Z_INDEX + 1
+	vaultPanel.Parent = vaultOverlay
+
+	local vaultPanelCorner = Instance.new("UICorner")
+	vaultPanelCorner.CornerRadius = UDim.new(0, 18)
+	vaultPanelCorner.Parent = vaultPanel
+
+	local vaultPanelStroke = Instance.new("UIStroke")
+	vaultPanelStroke.Color = Color3.fromRGB(255, 207, 72)
+	vaultPanelStroke.Thickness = 5
+	vaultPanelStroke.Parent = vaultPanel
+
+	local vaultConstraint = Instance.new("UISizeConstraint")
+	vaultConstraint.MinSize = Vector2.new(320, 360)
+	vaultConstraint.MaxSize = Vector2.new(620, 700)
+	vaultConstraint.Parent = vaultPanel
+
+	local vaultPadding = Instance.new("UIPadding")
+	vaultPadding.PaddingTop = UDim.new(0, 18)
+	vaultPadding.PaddingBottom = UDim.new(0, 18)
+	vaultPadding.PaddingLeft = UDim.new(0, 18)
+	vaultPadding.PaddingRight = UDim.new(0, 18)
+	vaultPadding.Parent = vaultPanel
+
+	local vaultHeader = Instance.new("Frame")
+	vaultHeader.Name = "VaultHeader"
+	vaultHeader.BackgroundTransparency = 1
+	vaultHeader.Size = UDim2.new(1, 0, 0, 58)
+	vaultHeader.ZIndex = VAULT_BASE_Z_INDEX + 2
+	vaultHeader.Parent = vaultPanel
+
+	local vaultTitle = Instance.new("TextLabel")
+	vaultTitle.BackgroundTransparency = 1
+	vaultTitle.Size = UDim2.new(1, -52, 1, 0)
+	vaultTitle.Font = Enum.Font.FredokaOne
+	vaultTitle.Text = "Vault"
+	vaultTitle.TextColor3 = Color3.fromRGB(82, 52, 18)
+	vaultTitle.TextSize = 36
+	vaultTitle.TextXAlignment = Enum.TextXAlignment.Left
+	vaultTitle.ZIndex = VAULT_BASE_Z_INDEX + 2
+	vaultTitle.Parent = vaultHeader
+
+	local vaultClose = Instance.new("TextButton")
+	vaultClose.Name = "CloseVaultButton"
+	vaultClose.AnchorPoint = Vector2.new(1, 0)
+	vaultClose.BackgroundColor3 = Color3.fromRGB(255, 116, 116)
+	vaultClose.BorderSizePixel = 0
+	vaultClose.Position = UDim2.new(1, 0, 0, 6)
+	vaultClose.Size = UDim2.new(0, 44, 0, 40)
+	vaultClose.Font = Enum.Font.FredokaOne
+	vaultClose.Text = "X"
+	vaultClose.TextColor3 = Color3.fromRGB(82, 24, 24)
+	vaultClose.TextSize = 24
+	vaultClose.ZIndex = VAULT_BASE_Z_INDEX + 3
+	vaultClose.Parent = vaultHeader
+
+	local vaultCloseCorner = Instance.new("UICorner")
+	vaultCloseCorner.CornerRadius = UDim.new(0, 12)
+	vaultCloseCorner.Parent = vaultClose
+
+	local vaultItems = Instance.new("ScrollingFrame")
+	vaultItems.Name = "VaultItems"
+	vaultItems.BackgroundTransparency = 1
+	vaultItems.BorderSizePixel = 0
+	vaultItems.Position = UDim2.new(0, 0, 0, 66)
+	vaultItems.Size = UDim2.new(1, 0, 1, -66)
+	vaultItems.ScrollBarThickness = 8
+	vaultItems.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	vaultItems.CanvasSize = UDim2.new(0, 0, 0, 0)
+	vaultItems.ZIndex = VAULT_BASE_Z_INDEX + 2
+	vaultItems.Parent = vaultPanel
+
+	local vaultItemsLayout = Instance.new("UIListLayout")
+	vaultItemsLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	vaultItemsLayout.Padding = UDim.new(0, 12)
+	vaultItemsLayout.Parent = vaultItems
 
 	local shopOverlay = Instance.new("Frame")
 	shopOverlay.Name = "ShopOverlay"
@@ -8843,6 +9873,13 @@ function RootScreen.new(context)
 			rarityLabels = rarityLabels,
 			closeButton = shopClose,
 		},
+		vault = {
+			overlay = vaultOverlay,
+			items = vaultItems,
+			button = vaultButton,
+			closeButton = vaultClose,
+			coinLabel = coinLabel,
+		},
 		miningPopupContainer = miningPopupContainer,
 		labels = {
 			status = status,
@@ -8891,6 +9928,14 @@ function RootScreen.new(context)
 		shopOverlay.Visible = false
 	end)
 
+	vaultButton.Activated:Connect(function()
+		vaultOverlay.Visible = true
+	end)
+
+	vaultClose.Activated:Connect(function()
+		vaultOverlay.Visible = false
+	end)
+
 	self:setShopMenuVisible(false)
 	self:setOpenReadyGeodeButton(false, "Open Ready Geode")
 	self:setOfflineButtonState(false, "Claim Offline Cache")
@@ -8904,6 +9949,10 @@ end
 
 function RootScreen:setOverviewText(text)
 	self.labels.overview.Text = text
+end
+
+function RootScreen:setCoinCounterText(text)
+	self.vault.coinLabel.Text = text
 end
 
 function RootScreen:setShopText(text)
@@ -9006,6 +10055,18 @@ function RootScreen:setShopMenuVisible(visible)
 	self.shop.overlay.Visible = visible
 end
 
+function RootScreen:setVaultVisible(visible)
+	self.vault.overlay.Visible = visible
+end
+
+function RootScreen:getVaultItemContainer()
+	return self.vault.items
+end
+
+function RootScreen:clearVaultRows()
+	clearContainer(self.vault.items)
+end
+
 function RootScreen:getShopOfferContainer()
 	return self.shop.offers
 end
@@ -9058,11 +10119,11 @@ return RootScreen
               </Properties>
             </Item>
           </Item>
-          <Item class="Folder" referent="84">
+          <Item class="Folder" referent="88">
             <Properties>
               <string name="Name">Theme</string>
             </Properties>
-            <Item class="ModuleScript" referent="85">
+            <Item class="ModuleScript" referent="89">
               <Properties>
                 <string name="Name">Palette</string>
                 <string name="Source"><![CDATA[--!strict
@@ -9092,13 +10153,13 @@ return Palette
       </Item>
     </Item>
   </Item>
-  <Item class="Workspace" referent="86">
+  <Item class="Workspace" referent="90">
     <Properties>
       <string name="Name">Workspace</string>
       <bool name="FilteringEnabled">true</bool>
       <bool name="NeedsPivotMigration">false</bool>
     </Properties>
-    <Item class="Part" referent="87">
+    <Item class="Part" referent="91">
       <Properties>
         <string name="Name">Baseplate</string>
         <bool name="Anchored">true</bool>

@@ -60,6 +60,10 @@ function StationAssignment.assignResourceToStation(profile, stationDefinitions, 
 		return false, "resource_not_found"
 	end
 
+	if resource.placement ~= nil then
+		return false, "resource_already_placed"
+	end
+
 	local station = profile.stationsById[stationId]
 	if station == nil then
 		return false, "station_not_found"

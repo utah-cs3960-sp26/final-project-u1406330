@@ -2,7 +2,7 @@
 
 ## Overview
 
-Gem Factory is a Roblox idle progression game about turning a rough cave plot into a glowing gem operation. Players mine for coins and geodes, wait for geodes to crack, reveal resources, place stations, and reinvest passive income into better pickaxes, rarer finds, and better production.
+Gem Factory is a Roblox idle progression game about turning a rough cave plot into a glowing gem operation. Players mine for coins and geodes, manage finds through a Vault, wait for placed geodes to crack, reveal resources, and reinvest coins into better pickaxes, rarer finds, and better production systems.
 
 The current implementation is a narrow MVP slice of this design. Anything listed as future direction should be treated as product intent, not current behavior. For current behavior, read [current_state.md](current_state.md).
 
@@ -15,25 +15,25 @@ The main emotional hooks are:
 1. Owning and improving a personal cave-factory.
 2. Anticipating a geode reveal.
 3. Chasing rare resources and traits.
-4. Seeing passive income grow from placed stations.
+4. Watching the plot fill with placed geodes, resources, and stations.
 5. Returning to timers, restocks, and offline rewards.
 
 ## Current MVP Loop
 
 1. Equip a pickaxe.
 2. Mine for coins or geodes.
-3. Place an owned geode on the player plot.
+3. Open the Vault to place or sell an owned geode.
 4. Wait for its timer to finish.
 5. Crack the ready geode in the world.
-6. Place a station.
-7. Auto-slot revealed resources into available station capacity.
-8. Earn passive income online and collect offline progress later.
+6. Store revealed resources in the Vault.
+7. Place or sell resources from the Vault.
+8. Use station and passive-income systems as those flows expand.
 
 ## Current MVP Systems
 
 ### Geodes
 
-Geodes are earned through mining, stored as owned items, placed on the plot, and opened after their timer completes. Players must stand inside the mine to mine.
+Geodes are earned through mining, stored in the Vault, placed on the plot, sold, and opened after their timer completes. Players must stand inside the mine to mine.
 
 ### Pickaxes
 
@@ -67,7 +67,7 @@ Implemented pickaxes:
 
 ### Resources
 
-Resources are revealed from geodes and generate value when assigned to stations.
+Resources are revealed from geodes and stored in the Vault. Players can place them on their own plot or sell them for coins. Station assignment remains the route for passive income when a station flow claims a resource.
 
 Implemented resources:
 
@@ -79,7 +79,7 @@ Implemented resources:
 
 ### Stations
 
-Stations hold revealed resources and multiply or enable passive income.
+Stations hold resources and multiply or enable passive income. In the current slice, station systems exist, but the player-facing reveal path now sends resources to the Vault before any later station flow uses them.
 
 Implemented stations:
 
@@ -88,7 +88,7 @@ Implemented stations:
 
 ### Passive And Offline Progress
 
-Passive income should continue to matter even when the player is away. The current slice supports online passive income and offline reward summaries. Finished offline geodes remain ready to open instead of being auto-opened.
+Passive income should continue to matter even when the player is away. The current slice supports online passive income and offline reward summaries through the existing station economy. Finished offline geodes remain ready to open instead of being auto-opened.
 
 ### Mine, Shop, And Daily Hooks
 
@@ -110,7 +110,7 @@ Hourly rotations, daily rewards, and future event geodes should give players rea
 
 ### Visible Growth
 
-The cave should physically improve as the player gains better resources, stations, and production capacity.
+The cave should physically improve as the player gains better geodes, resources, stations, and production capacity. Placed Vault resources should make progress visible even before deeper station flows are polished.
 
 ### Server Authority
 
@@ -162,7 +162,7 @@ The following systems are design targets, not all current implementation:
 
 The most important near-term work is:
 
-1. Make the first geode-to-income loop stable and easy to understand.
+1. Make the first mine-to-Vault-to-reveal loop stable and easy to understand.
 2. Improve placement clarity.
 3. Make geode reveals feel rewarding.
 4. Add repeatable automated verification for deterministic specs.

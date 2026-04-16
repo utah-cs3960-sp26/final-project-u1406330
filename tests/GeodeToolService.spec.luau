@@ -108,11 +108,11 @@ return function()
 
 	service:syncPlayerTools(player)
 
-	assert(countGeodeTools(backpack) == 1, "only one visible tool should remain for each unplaced geode")
-	assert(hasGeodeTool(backpack, "geode_1") == true, "backpack should keep the unplaced geode")
-	assert(countGeodeTools(starterGear) == 2, "starter gear should mirror every unplaced geode for respawns")
-	assert(#character:GetChildren() == 1, "placed geodes should be removed from the equipped inventory")
-	assert(hasGeodeTool(character, "geode_3") == true, "equipped unplaced geodes should stay attached to the character")
+	assert(countGeodeTools(backpack) == 0, "vault geodes should not appear in the backpack")
+	assert(hasGeodeTool(backpack, "geode_1") == false, "stored geodes should stay in the vault")
+	assert(countGeodeTools(starterGear) == 0, "vault geodes should not mirror into starter gear")
+	assert(#character:GetChildren() == 0, "equipped geode tools should be cleaned up")
+	assert(hasGeodeTool(character, "geode_3") == false, "vault geodes should not stay equipped")
 
 	profile.geodesById.geode_1.placement = {
 		plotId = "plot_1",
@@ -123,9 +123,9 @@ return function()
 	}
 	service:syncPlayerTools(player)
 
-	assert(countGeodeTools(backpack) == 1, "only the remaining unplaced geode should stay in the backpack")
-	assert(hasGeodeTool(backpack, "geode_3") == true, "the other unplaced geode should move into the backpack once the first is placed")
-	assert(countGeodeTools(starterGear) == 1, "starter gear should drop placed geodes")
+	assert(countGeodeTools(backpack) == 0, "placing one geode should not create tools for another")
+	assert(hasGeodeTool(backpack, "geode_3") == false, "remaining geodes should stay in the vault")
+	assert(countGeodeTools(starterGear) == 0, "starter gear should remain clear of geodes")
 
 	profile.geodesById.geode_3.placement = {
 		plotId = "plot_1",
@@ -151,6 +151,6 @@ return function()
 	}
 	service:syncPlayerTools(player)
 
-	assert(hasGeodeTool(backpack, "geode_4") == true, "newly owned geodes should be mirrored into the backpack")
-	assert(hasGeodeTool(starterGear, "geode_4") == true, "newly owned geodes should be mirrored into starter gear")
+	assert(hasGeodeTool(backpack, "geode_4") == false, "newly owned geodes should stay in the vault")
+	assert(hasGeodeTool(starterGear, "geode_4") == false, "newly owned geodes should not mirror into starter gear")
 end

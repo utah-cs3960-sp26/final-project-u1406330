@@ -44,6 +44,7 @@ local function applyReward(profile, reward, nowUnix)
 					level = 1,
 					stationId = nil,
 					obtainedAt = nowUnix,
+					placement = nil,
 				}
 				table.insert(profile.resourceOrder, resourceId)
 			end

@@ -9,6 +9,7 @@ local RootScreen = {}
 RootScreen.__index = RootScreen
 
 local SHOP_BASE_Z_INDEX = 60
+local VAULT_BASE_Z_INDEX = 55
 local POPUP_Z_INDEX = 80
 
 local function applyGuiZIndex(root, zIndex)
@@ -198,6 +199,176 @@ function RootScreen.new(context)
 	reopenStroke.Thickness = 1
 	reopenStroke.Transparency = 0.15
 	reopenStroke.Parent = reopenButton
+
+	local hudDock = Instance.new("Frame")
+	hudDock.Name = "BubblyHudDock"
+	hudDock.AnchorPoint = Vector2.new(0, 1)
+	hudDock.BackgroundTransparency = 1
+	hudDock.BorderSizePixel = 0
+	hudDock.Position = UDim2.new(0, 20, 1, -20)
+	hudDock.Size = UDim2.new(0, 260, 0, 132)
+	hudDock.Parent = screenGui
+
+	local dockLayout = Instance.new("UIListLayout")
+	dockLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	dockLayout.Padding = UDim.new(0, 10)
+	dockLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+	dockLayout.Parent = hudDock
+
+	local vaultButton = Instance.new("TextButton")
+	vaultButton.Name = "VaultButton"
+	vaultButton.AutoButtonColor = true
+	vaultButton.BackgroundColor3 = Color3.fromRGB(255, 210, 82)
+	vaultButton.BorderSizePixel = 0
+	vaultButton.LayoutOrder = 1
+	vaultButton.Size = UDim2.new(0, 210, 0, 54)
+	vaultButton.Font = Enum.Font.FredokaOne
+	vaultButton.Text = "Vault"
+	vaultButton.TextColor3 = Color3.fromRGB(80, 45, 10)
+	vaultButton.TextSize = 32
+	vaultButton.Parent = hudDock
+
+	local vaultButtonCorner = Instance.new("UICorner")
+	vaultButtonCorner.CornerRadius = UDim.new(0, 16)
+	vaultButtonCorner.Parent = vaultButton
+
+	local vaultButtonStroke = Instance.new("UIStroke")
+	vaultButtonStroke.Color = Color3.fromRGB(255, 246, 174)
+	vaultButtonStroke.Thickness = 4
+	vaultButtonStroke.Parent = vaultButton
+
+	local coinCounter = Instance.new("Frame")
+	coinCounter.Name = "CoinCounter"
+	coinCounter.BackgroundColor3 = Color3.fromRGB(255, 238, 123)
+	coinCounter.BorderSizePixel = 0
+	coinCounter.LayoutOrder = 2
+	coinCounter.Size = UDim2.new(0, 250, 0, 68)
+	coinCounter.Parent = hudDock
+
+	local coinCorner = Instance.new("UICorner")
+	coinCorner.CornerRadius = UDim.new(0, 18)
+	coinCorner.Parent = coinCounter
+
+	local coinStroke = Instance.new("UIStroke")
+	coinStroke.Color = Color3.fromRGB(255, 255, 230)
+	coinStroke.Thickness = 5
+	coinStroke.Parent = coinCounter
+
+	local coinIcon = Instance.new("TextLabel")
+	coinIcon.BackgroundTransparency = 1
+	coinIcon.Position = UDim2.new(0, 12, 0, 8)
+	coinIcon.Size = UDim2.new(0, 52, 0, 52)
+	coinIcon.Font = Enum.Font.FredokaOne
+	coinIcon.Text = "$"
+	coinIcon.TextColor3 = Color3.fromRGB(246, 143, 42)
+	coinIcon.TextSize = 44
+	coinIcon.Parent = coinCounter
+
+	local coinLabel = Instance.new("TextLabel")
+	coinLabel.Name = "CoinLabel"
+	coinLabel.BackgroundTransparency = 1
+	coinLabel.Position = UDim2.new(0, 66, 0, 4)
+	coinLabel.Size = UDim2.new(1, -78, 1, -8)
+	coinLabel.Font = Enum.Font.FredokaOne
+	coinLabel.Text = "0"
+	coinLabel.TextColor3 = Color3.fromRGB(76, 49, 16)
+	coinLabel.TextScaled = true
+	coinLabel.TextXAlignment = Enum.TextXAlignment.Left
+	coinLabel.Parent = coinCounter
+
+	local vaultOverlay = Instance.new("Frame")
+	vaultOverlay.Name = "VaultOverlay"
+	vaultOverlay.BackgroundColor3 = Color3.fromRGB(8, 8, 12)
+	vaultOverlay.BackgroundTransparency = 0.35
+	vaultOverlay.BorderSizePixel = 0
+	vaultOverlay.Size = UDim2.fromScale(1, 1)
+	vaultOverlay.Visible = false
+	vaultOverlay.ZIndex = VAULT_BASE_Z_INDEX
+	vaultOverlay.Parent = screenGui
+
+	local vaultPanel = Instance.new("Frame")
+	vaultPanel.Name = "VaultPanel"
+	vaultPanel.AnchorPoint = Vector2.new(0.5, 0.5)
+	vaultPanel.BackgroundColor3 = Color3.fromRGB(255, 249, 224)
+	vaultPanel.BorderSizePixel = 0
+	vaultPanel.Position = UDim2.fromScale(0.5, 0.5)
+	vaultPanel.Size = UDim2.new(0.9, 0, 0.78, 0)
+	vaultPanel.ZIndex = VAULT_BASE_Z_INDEX + 1
+	vaultPanel.Parent = vaultOverlay
+
+	local vaultPanelCorner = Instance.new("UICorner")
+	vaultPanelCorner.CornerRadius = UDim.new(0, 18)
+	vaultPanelCorner.Parent = vaultPanel
+
+	local vaultPanelStroke = Instance.new("UIStroke")
+	vaultPanelStroke.Color = Color3.fromRGB(255, 207, 72)
+	vaultPanelStroke.Thickness = 5
+	vaultPanelStroke.Parent = vaultPanel
+
+	local vaultConstraint = Instance.new("UISizeConstraint")
+	vaultConstraint.MinSize = Vector2.new(320, 360)
+	vaultConstraint.MaxSize = Vector2.new(620, 700)
+	vaultConstraint.Parent = vaultPanel
+
+	local vaultPadding = Instance.new("UIPadding")
+	vaultPadding.PaddingTop = UDim.new(0, 18)
+	vaultPadding.PaddingBottom = UDim.new(0, 18)
+	vaultPadding.PaddingLeft = UDim.new(0, 18)
+	vaultPadding.PaddingRight = UDim.new(0, 18)
+	vaultPadding.Parent = vaultPanel
+
+	local vaultHeader = Instance.new("Frame")
+	vaultHeader.Name = "VaultHeader"
+	vaultHeader.BackgroundTransparency = 1
+	vaultHeader.Size = UDim2.new(1, 0, 0, 58)
+	vaultHeader.ZIndex = VAULT_BASE_Z_INDEX + 2
+	vaultHeader.Parent = vaultPanel
+
+	local vaultTitle = Instance.new("TextLabel")
+	vaultTitle.BackgroundTransparency = 1
+	vaultTitle.Size = UDim2.new(1, -52, 1, 0)
+	vaultTitle.Font = Enum.Font.FredokaOne
+	vaultTitle.Text = "Vault"
+	vaultTitle.TextColor3 = Color3.fromRGB(82, 52, 18)
+	vaultTitle.TextSize = 36
+	vaultTitle.TextXAlignment = Enum.TextXAlignment.Left
+	vaultTitle.ZIndex = VAULT_BASE_Z_INDEX + 2
+	vaultTitle.Parent = vaultHeader
+
+	local vaultClose = Instance.new("TextButton")
+	vaultClose.Name = "CloseVaultButton"
+	vaultClose.AnchorPoint = Vector2.new(1, 0)
+	vaultClose.BackgroundColor3 = Color3.fromRGB(255, 116, 116)
+	vaultClose.BorderSizePixel = 0
+	vaultClose.Position = UDim2.new(1, 0, 0, 6)
+	vaultClose.Size = UDim2.new(0, 44, 0, 40)
+	vaultClose.Font = Enum.Font.FredokaOne
+	vaultClose.Text = "X"
+	vaultClose.TextColor3 = Color3.fromRGB(82, 24, 24)
+	vaultClose.TextSize = 24
+	vaultClose.ZIndex = VAULT_BASE_Z_INDEX + 3
+	vaultClose.Parent = vaultHeader
+
+	local vaultCloseCorner = Instance.new("UICorner")
+	vaultCloseCorner.CornerRadius = UDim.new(0, 12)
+	vaultCloseCorner.Parent = vaultClose
+
+	local vaultItems = Instance.new("ScrollingFrame")
+	vaultItems.Name = "VaultItems"
+	vaultItems.BackgroundTransparency = 1
+	vaultItems.BorderSizePixel = 0
+	vaultItems.Position = UDim2.new(0, 0, 0, 66)
+	vaultItems.Size = UDim2.new(1, 0, 1, -66)
+	vaultItems.ScrollBarThickness = 8
+	vaultItems.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	vaultItems.CanvasSize = UDim2.new(0, 0, 0, 0)
+	vaultItems.ZIndex = VAULT_BASE_Z_INDEX + 2
+	vaultItems.Parent = vaultPanel
+
+	local vaultItemsLayout = Instance.new("UIListLayout")
+	vaultItemsLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	vaultItemsLayout.Padding = UDim.new(0, 12)
+	vaultItemsLayout.Parent = vaultItems
 
 	local shopOverlay = Instance.new("Frame")
 	shopOverlay.Name = "ShopOverlay"
@@ -476,6 +647,13 @@ function RootScreen.new(context)
 			rarityLabels = rarityLabels,
 			closeButton = shopClose,
 		},
+		vault = {
+			overlay = vaultOverlay,
+			items = vaultItems,
+			button = vaultButton,
+			closeButton = vaultClose,
+			coinLabel = coinLabel,
+		},
 		miningPopupContainer = miningPopupContainer,
 		labels = {
 			status = status,
@@ -524,6 +702,14 @@ function RootScreen.new(context)
 		shopOverlay.Visible = false
 	end)
 
+	vaultButton.Activated:Connect(function()
+		vaultOverlay.Visible = true
+	end)
+
+	vaultClose.Activated:Connect(function()
+		vaultOverlay.Visible = false
+	end)
+
 	self:setShopMenuVisible(false)
 	self:setOpenReadyGeodeButton(false, "Open Ready Geode")
 	self:setOfflineButtonState(false, "Claim Offline Cache")
@@ -537,6 +723,10 @@ end
 
 function RootScreen:setOverviewText(text)
 	self.labels.overview.Text = text
+end
+
+function RootScreen:setCoinCounterText(text)
+	self.vault.coinLabel.Text = text
 end
 
 function RootScreen:setShopText(text)
@@ -637,6 +827,18 @@ end
 
 function RootScreen:setShopMenuVisible(visible)
 	self.shop.overlay.Visible = visible
+end
+
+function RootScreen:setVaultVisible(visible)
+	self.vault.overlay.Visible = visible
+end
+
+function RootScreen:getVaultItemContainer()
+	return self.vault.items
+end
+
+function RootScreen:clearVaultRows()
+	clearContainer(self.vault.items)
 end
 
 function RootScreen:getShopOfferContainer()

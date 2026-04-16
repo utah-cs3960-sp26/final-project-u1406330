@@ -167,8 +167,8 @@ function GeodeController:start()
 				summary.crackingCount,
 				summary.readyCount
 			),
-			"Mine geodes in the cave and they will appear in your Roblox backpack.",
-			"Equip a geode from your Roblox backpack to place it.",
+			"Mine geodes in the cave and they will appear in your Vault.",
+			"Open the Vault to place or sell stored geodes.",
 			"Click a ready geode on the plot to crack it open.",
 		}
 
@@ -181,7 +181,7 @@ function GeodeController:start()
 		end
 
 		if summary.totalCount == 0 then
-			screen:setGeodeText("No geodes are active yet.\nMine inside the cave and they will appear in your Roblox backpack.")
+			screen:setGeodeText("No geodes are active yet.\nMine inside the cave and they will appear in your Vault.")
 			latestPlaceGeodeId = nil
 			latestOpenGeodeId = nil
 			latestCanPlaceGeode = false

@@ -4,6 +4,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
 local Geodes = require(Shared.Config.Geodes)
+local Resources = require(Shared.Config.Resources)
 local World = require(Shared.Config.World)
 local PlacementRules = require(Shared.Domain.PlacementRules)
 local Id = require(Shared.Util.Id)
@@ -185,6 +186,45 @@ function PlacementService:placeGeode(profile, geodeInstance, x, y)
 	return geodeInstance, placement
 end
 
+function PlacementService:placeResource(profile, resourceInstance, x, y)
+	local resourceDefinition = Resources[resourceInstance.resourceTypeId]
+	if resourceDefinition == nil then
+		return nil, "unknown_resource"
+	end
+
+	if resourceInstance.placement ~= nil then
+		return nil, "resource_already_placed"
+	end
+
+	local gridSize = resourceDefinition.gridSize or { width = 1, height = 1 }
+	local targetX = x
+	local targetY = y
+	if targetX == nil or targetY == nil then
+		local placementTarget, placementReason = self:findFirstOpenCell(profile, gridSize.width, gridSize.height)
+		if placementTarget == nil then
+			return nil, placementReason
+		end
+
+		targetX = placementTarget.x
+		targetY = placementTarget.y
+	end
+
+	local placement, reason = self:place(profile, "resource", resourceInstance.id, targetX, targetY, gridSize.width, gridSize.height)
+	if placement == nil then
+		return nil, reason
+	end
+
+	resourceInstance.placement = {
+		plotId = placement.plotId,
+		x = placement.x,
+		y = placement.y,
+		width = placement.width,
+		height = placement.height,
+	}
+
+	return resourceInstance, placement
+end
+
 function PlacementService:removeObjectByObjectId(profile, objectType, objectId)
 	for placementId, record in pairs(profile.placedObjects) do
 		if record.objectType == objectType and record.objectId == objectId then
@@ -211,6 +251,11 @@ function PlacementService:remove(profile, placementId)
 	local geodeInstance = profile.geodesById[record.objectId]
 	if geodeInstance ~= nil and geodeInstance.placement ~= nil then
 		geodeInstance.placement = nil
+	end
+
+	local resource = profile.resourcesById[record.objectId]
+	if resource ~= nil and resource.placement ~= nil then
+		resource.placement = nil
 	end
 
 	profile.placedObjects[placementId] = nil
@@ -249,6 +294,12 @@ function PlacementService:move(profile, placementId, x, y)
 	if geodeInstance ~= nil and geodeInstance.placement ~= nil then
 		geodeInstance.placement.x = x
 		geodeInstance.placement.y = y
+	end
+
+	local resource = profile.resourcesById[record.objectId]
+	if resource ~= nil and resource.placement ~= nil then
+		resource.placement.x = x
+		resource.placement.y = y
 	end
 
 	for dx = 0, record.width - 1 do

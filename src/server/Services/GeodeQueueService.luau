@@ -155,7 +155,10 @@ function GeodeQueueService:claimEntries(profile, nowUnix, rng, geodeId, playerNa
 	local stationService = self.dependencies.stationService
 	local autoAssignment = nil
 	if stationService ~= nil and #createdResourceIds > 0 then
-		autoAssignment = stationService:autoAssignResources(profile, createdResourceIds)
+		autoAssignment = {
+			assignedResourceIds = {},
+			unassignedResourceIds = createdResourceIds,
+		}
 	end
 
 	self:syncQueueCache(profile, nowUnix)
