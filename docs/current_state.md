@@ -25,6 +25,8 @@ The project is still a prototype. The backend gameplay slice is more complete th
 - Owned pickaxes mirror into server-owned Roblox `Tool` instances in `Backpack` and `StarterGear`.
 - Mining is server-authoritative through `RequestMine`; the server requires the player to be standing inside the mine zone before valid mining rolls grant either coins or an owned geode instance.
 - Pickaxes are permanent one-time purchases and all current pickaxes cost coins.
+- Pickaxe tools now include a centered held pickaxe model with a wooden handle and connected catalog-tinted metal head, matching the shop display style.
+- Equipped pickaxes play a short local swing animation when the player clicks with one held.
 - Unplaced geodes mirror into server-owned Roblox `Tool` instances in `Backpack`, with one tool per geode instance.
 - Players can equip a geode tool, see a transparent placement ghost, and place geodes onto their own plot grid.
 - Placed geodes render in the world and progress toward ready state.
@@ -73,7 +75,7 @@ The project is still a prototype. The backend gameplay slice is more complete th
 ## Next Up
 
 - Playtest the full mine-to-geode-to-income lifecycle in Studio and record reproducible edge cases.
-- Playtest pickaxe Tool sync across respawn.
+- Playtest pickaxe Tool sync and held model alignment across respawn.
 - Playtest mine standing-zone validation, mine target hit detection, and reward messages.
 - Continue tuning mining feedback timing and presentation after Studio playtests.
 - Improve geode cracking feedback so reveals feel more rewarding and readable.

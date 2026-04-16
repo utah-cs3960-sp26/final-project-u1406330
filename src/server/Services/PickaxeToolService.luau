@@ -2,9 +2,12 @@
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Server = ServerScriptService:WaitForChild("Server")
 
 local Pickaxes = require(Shared.Config.Pickaxes)
+local PickaxeModelBuilder = require(Server.Util.PickaxeModelBuilder)
 
 local PickaxeToolService = {}
 PickaxeToolService.__index = PickaxeToolService
@@ -65,7 +68,6 @@ function PickaxeToolService:createPickaxeTool(pickaxeId: string)
 	local definition = Pickaxes.catalog[pickaxeId]
 	local tool = Instance.new("Tool")
 	tool.Name = if definition ~= nil then definition.displayName else pickaxeId
-	tool.RequiresHandle = false
 	tool.CanBeDropped = false
 	tool.ToolTip = tool.Name
 	tool:SetAttribute("GemFactoryPickaxeTool", true)
@@ -74,7 +76,20 @@ function PickaxeToolService:createPickaxeTool(pickaxeId: string)
 	if definition ~= nil then
 		tool:SetAttribute("PickaxeRarity", definition.rarity)
 	end
+	PickaxeModelBuilder.addHeldPickaxe(tool, definition)
 	return tool
+end
+
+function PickaxeToolService:ensurePickaxeToolModel(tool: Tool, pickaxeId: string)
+	local definition = Pickaxes.catalog[pickaxeId]
+	tool.CanBeDropped = false
+	tool.RequiresHandle = true
+	if
+		tool:FindFirstChild("Handle") == nil
+		or tool:GetAttribute("PickaxeModelVersion") ~= PickaxeModelBuilder.getModelVersion()
+	then
+		PickaxeModelBuilder.addHeldPickaxe(tool, definition)
+	end
 end
 
 function PickaxeToolService:syncPlayerTools(player)
@@ -105,6 +120,7 @@ function PickaxeToolService:syncPlayerTools(player)
 				if ownedMap[pickaxeId] ~= true or equippedById[pickaxeId] == true then
 					child:Destroy()
 				else
+					self:ensurePickaxeToolModel(child :: Tool, pickaxeId)
 					equippedById[pickaxeId] = true
 				end
 			end

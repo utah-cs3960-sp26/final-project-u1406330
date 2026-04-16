@@ -3,6 +3,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
@@ -16,6 +17,13 @@ local MINE_TARGET_ATTRIBUTE = "GemFactoryMineTarget"
 local PICKAXE_TOOL_ATTRIBUTE = "GemFactoryPickaxeTool"
 local MINE_COOLDOWN_SECONDS = 0.35
 local MINE_REMOTE_NAME = (RemoteNames :: any).RequestMine or "RequestMine"
+local SWING_WINDUP_TIME = 0.07
+local SWING_STRIKE_TIME = 0.11
+local SWING_RECOVER_TIME = 0.16
+local SWING_WINDUP_OFFSET = CFrame.new(0.02, -0.05, 0.04) * CFrame.Angles(math.rad(-18), math.rad(-8), math.rad(20))
+local SWING_STRIKE_OFFSET = CFrame.new(-0.04, 0.08, -0.1) * CFrame.Angles(math.rad(42), math.rad(10), math.rad(-34))
+
+local activeSwingByTool = setmetatable({}, { __mode = "k" })
 
 local function getPickaxeDisplayName(tool: Tool): string
 	local pickaxeTypeId = tool:GetAttribute("PickaxeTypeId")
@@ -51,6 +59,70 @@ local function isMineTarget(target: Instance?): BasePart?
 	end
 
 	return nil
+end
+
+local function playPickaxeSwing(tool: Tool)
+	local baseGrip = tool:GetAttribute("GemFactoryBaseGrip")
+	if typeof(baseGrip) ~= "CFrame" then
+		baseGrip = tool.Grip
+		tool:SetAttribute("GemFactoryBaseGrip", baseGrip)
+	end
+
+	local activeSwing = activeSwingByTool[tool]
+	if activeSwing ~= nil then
+		for _, tween in ipairs(activeSwing.tweens) do
+			tween:Cancel()
+		end
+	end
+
+	local swingToken = {}
+	local windupGrip = baseGrip * SWING_WINDUP_OFFSET
+	local strikeGrip = baseGrip * SWING_STRIKE_OFFSET
+	local windupTween = TweenService:Create(
+		tool,
+		TweenInfo.new(SWING_WINDUP_TIME, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+		{ Grip = windupGrip }
+	)
+	local strikeTween = TweenService:Create(
+		tool,
+		TweenInfo.new(SWING_STRIKE_TIME, Enum.EasingStyle.Back, Enum.EasingDirection.In),
+		{ Grip = strikeGrip }
+	)
+	local recoverTween = TweenService:Create(
+		tool,
+		TweenInfo.new(SWING_RECOVER_TIME, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+		{ Grip = baseGrip }
+	)
+
+	activeSwingByTool[tool] = {
+		token = swingToken,
+		tweens = { windupTween, strikeTween, recoverTween },
+	}
+
+	windupTween.Completed:Connect(function(playbackState)
+		local currentSwing = activeSwingByTool[tool]
+		if playbackState == Enum.PlaybackState.Completed and currentSwing ~= nil and currentSwing.token == swingToken then
+			strikeTween:Play()
+		end
+	end)
+
+	strikeTween.Completed:Connect(function(playbackState)
+		local currentSwing = activeSwingByTool[tool]
+		if playbackState == Enum.PlaybackState.Completed and currentSwing ~= nil and currentSwing.token == swingToken then
+			recoverTween:Play()
+		end
+	end)
+
+	recoverTween.Completed:Connect(function()
+		local currentSwing = activeSwingByTool[tool]
+		if currentSwing ~= nil and currentSwing.token == swingToken then
+			activeSwingByTool[tool] = nil
+			tool.Grip = baseGrip
+		end
+	end)
+
+	tool.Grip = baseGrip
+	windupTween:Play()
 end
 
 function MiningController.new(context)
@@ -116,6 +188,7 @@ function MiningController:start()
 			end
 			return
 		end
+		playPickaxeSwing(equippedTool)
 
 		local mineTarget = isMineTarget(mouse.Target)
 		if mineTarget == nil then
