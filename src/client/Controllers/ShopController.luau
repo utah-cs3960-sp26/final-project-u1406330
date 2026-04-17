@@ -6,6 +6,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
 local Pickaxes = require(Shared.Config.Pickaxes)
+local PickaxeRules = require(Shared.Domain.PickaxeRules)
 local RemoteNames = require(Shared.Net.RemoteNames)
 
 local ShopController = {}
@@ -59,7 +60,7 @@ local function collectRarityLabels()
 	return labels
 end
 
-local function createOfferRow(parent: Instance, palette, offer, isOwned: boolean, isEquipped: boolean, canAfford: boolean, onBuy, onEquip)
+local function createOfferRow(parent: Instance, palette, offer, isOwned: boolean, isEquipped: boolean, canBuy: boolean, actionText: string, onBuy, onEquip)
 	local row = Instance.new("Frame")
 	row.Name = offer.displayName .. "Row"
 	row.BackgroundColor3 = palette.background.panelAlt
@@ -131,14 +132,14 @@ local function createOfferRow(parent: Instance, palette, offer, isOwned: boolean
 	local action = Instance.new("TextButton")
 	action.Name = "ActionButton"
 	action.AnchorPoint = Vector2.new(1, 0.5)
-	action.AutoButtonColor = not isEquipped and (isOwned or canAfford)
-	action.Active = not isEquipped and (isOwned or canAfford)
-	action.BackgroundColor3 = if isEquipped then Color3.fromRGB(120, 120, 120) elseif isOwned or canAfford then palette.accent else Color3.fromRGB(110, 110, 110)
+	action.AutoButtonColor = not isEquipped and (isOwned or canBuy)
+	action.Active = not isEquipped and (isOwned or canBuy)
+	action.BackgroundColor3 = if isEquipped then Color3.fromRGB(120, 120, 120) elseif isOwned or canBuy then palette.accent else Color3.fromRGB(110, 110, 110)
 	action.BorderSizePixel = 0
 	action.Position = UDim2.new(1, 0, 0.5, 0)
 	action.Size = UDim2.new(0, 112, 0, 40)
 	action.Font = Enum.Font.GothamBold
-	action.Text = if isEquipped then "Equipped" elseif isOwned then "Equip" else if canAfford then "Buy" else "Need coins"
+	action.Text = actionText
 	action.TextColor3 = palette.shadow
 	action.TextSize = 14
 	action.ZIndex = SHOP_BUTTON_Z_INDEX
@@ -155,7 +156,7 @@ local function createOfferRow(parent: Instance, palette, offer, isOwned: boolean
 
 		if isOwned then
 			onEquip(offer)
-		elseif canAfford then
+		elseif canBuy then
 			onBuy(offer)
 		end
 	end)
@@ -193,17 +194,30 @@ function ShopController:_refresh(state)
 	for _, offer in ipairs(collectOffers()) do
 		local isOwned = ownedPickaxes[offer.id] == true
 		local isEquipped = equippedPickaxeId == offer.id
+		local isUpgrade = PickaxeRules.isStrictUpgrade(equippedPickaxeId, offer.id)
+		local canBuy = not isOwned and isUpgrade and coinBalance >= offer.price
+		local actionText = "Need coins"
+		if isEquipped then
+			actionText = "Equipped"
+		elseif isOwned then
+			actionText = "Equip"
+		elseif not isUpgrade then
+			actionText = "Old tier"
+		elseif coinBalance >= offer.price then
+			actionText = "Buy"
+		end
 		createOfferRow(
 			offerContainer,
 			app.context.palette,
 			offer,
 			isOwned,
 			isEquipped,
-			coinBalance >= offer.price,
+			canBuy,
+			actionText,
 			function(selectedOffer)
 				local ok, result = app:invokeRemote(RemoteNames.RequestBuyPickaxe, selectedOffer.id)
 				if ok and type(result) == "table" and result.ok == true then
-					app:setStatus(string.format("%s bought and added to your backpack.", selectedOffer.displayName))
+					app:setStatus(string.format("%s bought and replaced your current pickaxe.", selectedOffer.displayName))
 				else
 					local errorText = type(result) == "table" and result.errorCode or result
 					app:setStatus("Pickaxe purchase failed: " .. tostring(errorText))

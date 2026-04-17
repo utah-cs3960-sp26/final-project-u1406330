@@ -33,11 +33,11 @@ The main emotional hooks are:
 
 ### Geodes
 
-Geodes are earned through mining, stored in the Vault, placed on the plot, sold, and opened after their timer completes. Players must stand inside the mine to mine.
+Geodes are earned through mining, stored in the Vault, placed on the plot, sold, and opened after their timer completes. Players must stand inside the mine to mine. Each geode receives a random numeric size scale when mined. That scale falls into the existing size categories (Tiny, Small, Medium, Large, Huge, or Colossal), with larger ranges being rarer. Size carries over to the revealed resource on cracking and should be visible physically in placement previews, placed world models, and player-facing descriptions. While a geode is cracking on the plot, its world label should show a live countdown until it becomes ready.
 
 ### Pickaxes
 
-Pickaxes are permanent one-time purchases from the pickaxe shop. All current pickaxes cost coins. Better pickaxes improve coin payouts and shift mining geode weights toward rarer geodes.
+Pickaxes are purchased from the pickaxe shop as strict upgrades. All current pickaxes cost coins. Better pickaxes improve coin payouts and shift mining geode weights toward rarer geodes, and buying a higher-tier pickaxe replaces the player's current one instead of stacking owned tools. Geode buying through the shop has been removed — geodes now come exclusively from mining. The `RequestBuyGeode` remote returns `geode_shop_removed`.
 
 Implemented geodes:
 
@@ -67,17 +67,47 @@ Implemented pickaxes:
 
 ### Resources
 
-Resources are revealed from geodes and stored in the Vault. Players can place them on their own plot or sell them for coins. Station assignment remains the route for passive income when a station flow claims a resource.
+Resources are revealed from geodes and stored in the Vault. Players can place them on their own plot or sell them for coins. Resources enter the Vault first from geode reveals, before any station interaction. Station assignment remains the route for passive income when a station flow claims a resource. The current reveal presentation uses sequential reels: first the base resource, then the attribute if one was rolled, and those labels should stay hidden until each reel resolves.
 
 Resources can also roll an independent attribute. Attributes create distinct collectible finds such as Fiery Quartz or Singularity Star Shard, add a visible effect, and currently increase sell value through a multiplier. Attribute rarity is independent from base resource rarity so even common resources can occasionally become special.
+
+Resources also inherit a numeric size scale from the geode they came from. Six display categories exist — Tiny, Small, Medium, Large, Huge, and Colossal — and each category maps to a numeric scale range defined in `src/shared/Config/Sizes.luau`. Bigger sizes are rarer (Small is the most common, Colossal is the rarest). Size affects placed resource visual scale and sell value through the resolved category multiplier, and size information is surfaced in player-facing descriptions.
 
 Implemented resources:
 
 1. Quartz.
-2. Amethyst.
-3. Emerald Cluster.
-4. Diamond Core.
-5. Star Shard.
+2. Rose Quartz.
+3. Smoky Quartz.
+4. Jade Fragment.
+5. Copper Nugget.
+6. Amethyst.
+7. Moonstone.
+8. Garnet Node.
+9. Topaz Vein.
+10. Silver Ingot.
+11. Emerald Cluster.
+12. Ruby Cluster.
+13. Sapphire Spire.
+14. Peridot Bloom.
+15. Gold Ingot.
+16. Diamond Core.
+17. Black Opal.
+18. Aetherite Relic.
+19. Mythril Ingot.
+20. Voidglass Core.
+21. Star Shard.
+22. Phoenix Amber.
+23. Astral Reliquary.
+24. Worldseed.
+25. Celestium Ingot.
+
+Implemented visual families:
+
+1. Gemstone.
+2. Cluster.
+3. Artifact.
+4. Ingot.
+5. Eldritch.
 
 Implemented resource attributes:
 
@@ -108,7 +138,7 @@ Passive income should continue to matter even when the player is away. The curre
 
 ### Mine, Shop, And Daily Hooks
 
-The current project includes a geode mine, pickaxe shop, shop rotation data, and daily reward systems. These are meant to create recurring reasons to check in without requiring deep mechanics yet.
+The current project includes a geode mine, pickaxe shop, shop rotation data, and daily reward systems. Daily rewards include coins, geodes, boosts, tokens, gems, and resources across a 7-day streak cycle with a 48-hour reset window. These are meant to create recurring reasons to check in without requiring deep mechanics yet.
 
 ## Design Principles
 
@@ -157,6 +187,7 @@ The following systems are design targets, not all current implementation:
 5. Maintain plot assignment.
 6. Replicate authoritative world state.
 7. Prevent duplication exploits.
+8. Manage geode queue lifecycle and timed geode completion.
 
 ### Client Responsibilities
 
@@ -165,6 +196,7 @@ The following systems are design targets, not all current implementation:
 3. Request actions through remotes.
 4. Render local presentation effects.
 5. Display timers, rewards, announcements, and shop state.
+6. Handle sprint input.
 
 ### Shared Responsibilities
 

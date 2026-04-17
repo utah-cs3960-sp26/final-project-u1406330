@@ -11,6 +11,8 @@ export type GridPlacement = {
 export type GeodeInstance = {
 	id: string,
 	geodeTypeId: string,
+	sizeId: string?,
+	sizeValue: number?,
 	status: string,
 	startedAt: number,
 	endsAt: number,

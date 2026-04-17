@@ -7,6 +7,7 @@ local Geodes = require(Shared.Config.Geodes)
 local Resources = require(Shared.Config.Resources)
 local Traits = require(Shared.Config.Traits)
 local GeodeState = require(Shared.Domain.GeodeState)
+local SizeRules = require(Shared.Domain.SizeRules)
 local VaultMath = require(Shared.Domain.VaultMath)
 
 local VaultService = {}
@@ -35,7 +36,8 @@ end
 function VaultService:getResourceSellValue(resource)
 	local resourceDefinition = resource ~= nil and Resources[resource.resourceTypeId] or nil
 	local traitDefinition = resource ~= nil and Traits[resource.traitId or "none"] or Traits.none
-	return VaultMath.getResourceSellValue(resourceDefinition, traitDefinition)
+	local sizeDefinition = if resource ~= nil then SizeRules.resolveDefinition(resource.sizeId, resource.sizeValue) else nil
+	return VaultMath.getResourceSellValue(resourceDefinition, traitDefinition, sizeDefinition)
 end
 
 function VaultService:getGeodeSellValue(geode)

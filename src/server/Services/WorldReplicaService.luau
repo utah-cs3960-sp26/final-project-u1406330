@@ -8,6 +8,10 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Geodes = require(Shared.Config.Geodes)
 local Resources = require(Shared.Config.Resources)
 local Traits = require(Shared.Config.Traits)
+local GeodePresentation = require(Shared.Domain.GeodePresentation)
+local ResourceVisuals = require(Shared.Domain.ResourceVisuals)
+local SizeRules = require(Shared.Domain.SizeRules)
+local WorldLabelPresentation = require(Shared.Domain.WorldLabelPresentation)
 local Stations = require(Shared.Config.Stations)
 local World = require(Shared.Config.World)
 
@@ -164,14 +168,7 @@ local function titleCaseLabel(value)
 end
 
 local function getStringHash(value)
-	local hash = 0
-	local text = tostring(value or "")
-
-	for index = 1, #text do
-		hash = (hash * 33 + string.byte(text, index)) % 2147483647
-	end
-
-	return hash
+	return ResourceVisuals.getStringHash(value)
 end
 
 local function blendColor(baseColor, targetColor, alpha)
@@ -315,27 +312,10 @@ end
 
 local getResourceVariantShape
 
-local function resolveResourceVisualProfile(resourceTypeId, resourceDefinition)
-	local rarity = if resourceDefinition ~= nil and resourceDefinition.rarity ~= nil then resourceDefinition.rarity else "Common"
-	local variantId = getResourceVariantShape(resourceTypeId, resourceDefinition)
-	local rarityRank = getRarityRank(rarity)
-
-	local baseColor = if resourceDefinition ~= nil and resourceDefinition.color ~= nil
-		then resourceDefinition.color
-		else RESOURCE_RARITY_ACCENTS[rarity] or Color3.fromRGB(240, 240, 255)
-	local accentColor = getResourceRarityAccent(rarity, baseColor)
-	local glowColor = blendColor(accentColor, Color3.fromRGB(255, 255, 255), 0.25)
-
-	return {
-		baseColor = baseColor,
-		accentColor = accentColor,
-		glowColor = glowColor,
-		displayName = if resourceDefinition ~= nil and resourceDefinition.displayName ~= nil then resourceDefinition.displayName else "Resource",
-		rarity = rarity,
-		rarityRank = rarityRank,
-		scale = getResourceRarityScale(rarity),
-		variantId = variantId,
-	}
+local function resolveResourceVisualProfile(resourceTypeId, resourceDefinition, sizeId, sizeValue)
+	local profile = ResourceVisuals.resolveRevealProfile(resourceTypeId, nil, sizeId, sizeValue)
+	profile.sizeDisplayName = SizeRules.getDisplayName(sizeId, sizeValue)
+	return profile
 end
 
 local function createVisualBasePart(parent, className, name, size, position, color, material)
@@ -393,6 +373,7 @@ local function createResourceBillboard(parentPart, titleText, subtitleText, acce
 	billboard.Size = UDim2.fromOffset(188 + (rarityRank * 4), 54 + (rarityRank > 3 and 6 or 0))
 	billboard.StudsOffset = Vector3.new(0, 2.8 + (rarityRank * 0.08), 0)
 	billboard.AlwaysOnTop = true
+	billboard.Enabled = false
 	billboard.Parent = parentPart
 
 	local frame = Instance.new("Frame")
@@ -592,238 +573,268 @@ local function applyTraitEffects(parentPart, profile, traitId)
 end
 
 getResourceVariantShape = function(resourceTypeId, resourceDefinition)
-	local resourceKey = normalizeVisualKey(resourceTypeId)
-	local rarity = if resourceDefinition ~= nil and resourceDefinition.rarity ~= nil then resourceDefinition.rarity else "Common"
-	local rarityRank = getRarityRank(rarity)
-	local variantId = RESOURCE_TYPE_VARIANTS[resourceKey] or "gemstone"
-
-	if variantId == "gemstone" then
-		if resourceKey:find("cluster", 1, true) ~= nil or rarityRank == 3 then
-			variantId = "cluster"
-		end
-
-		if resourceKey:find("core", 1, true) ~= nil
-			or resourceKey:find("shard", 1, true) ~= nil
-			or rarityRank >= 4
-		then
-			variantId = "artifact"
-		end
-	end
-
-	return variantId
+	return ResourceVisuals.getResourceVariantShape(resourceTypeId, resourceDefinition)
 end
 
-local function buildPolishedGemstone(resourcePart, profile, rootYaw)
+local function getOreCrystalDefinitions(variantId)
+	return ResourceVisuals.getOreCrystalDefinitions(variantId)
+end
+
+local function buildOreShard(parentPart, profile, rootCFrame, baseTopY, shard, index)
 	local scale = profile.scale
-	local baseColor = profile.baseColor
-	local accentColor = profile.accentColor
-	local glowColor = profile.glowColor
-	local centerSize = Vector3.new(1.65, 2.2, 1.65) * scale
+	local height = shard.height * scale
+	local width = shard.width * scale
+	local depth = shard.depth * scale
+	local shardColor = blendColor(profile.baseColor, profile.glowColor, shard.tint or 0.18)
+	local shardCFrame = rootCFrame
+		* CFrame.new((shard.x or 0) * scale, baseTopY + (height * 0.5) - (0.04 * scale), (shard.z or 0) * scale)
+		* CFrame.Angles(math.rad(shard.pitch or 0), math.rad(shard.yaw or 0), math.rad(shard.roll or 0))
 
-	resourcePart.Size = centerSize
-	resourcePart.Color = blendColor(baseColor, Color3.fromRGB(255, 255, 255), 0.1)
-	resourcePart.Material = Enum.Material.Glass
-	resourcePart.Transparency = 0.12
-	resourcePart.Reflectance = 0.16
-	orientPart(resourcePart, rootYaw, math.rad(0), math.rad(34))
-
-	local topTip = createVisualBasePart(
-		resourcePart,
+	local body = createVisualBasePart(
+		parentPart,
 		"Part",
-		"GemTopTip",
-		Vector3.new(centerSize.X * 0.72, centerSize.Y * 0.34, centerSize.Z * 0.72),
-		resourcePart.Position + Vector3.new(0, centerSize.Y * 0.48, 0),
-		accentColor,
+		string.format("OreShard_%d", index),
+		Vector3.new(width, height, depth),
+		parentPart.Position,
+		shardColor,
+		Enum.Material.Glass
+	)
+	body.CFrame = shardCFrame
+	body.Transparency = 0.08
+	body.Reflectance = 0.12
+
+	local capHeight = math.max(0.22, height * 0.22)
+	local cap = createVisualBasePart(
+		parentPart,
+		"WedgePart",
+		string.format("OreShardTip_%d", index),
+		Vector3.new(width * 1.05, capHeight, depth * 1.06),
+		parentPart.Position,
+		blendColor(shardColor, profile.glowColor, 0.28),
+		Enum.Material.Glass
+	)
+	cap.CFrame = shardCFrame * CFrame.new(0, (height * 0.5) + (capHeight * 0.28), 0)
+	cap.Transparency = 0.02
+	cap.Reflectance = 0.16
+
+	local frontFacet = createVisualBasePart(
+		parentPart,
+		"Part",
+		string.format("OreFacetFront_%d", index),
+		Vector3.new(width * 0.18, height * 0.70, 0.035 * scale),
+		parentPart.Position,
+		blendColor(profile.accentColor, profile.glowColor, 0.34),
 		Enum.Material.Neon
 	)
-	orientPart(topTip, rootYaw, math.rad(-8), math.rad(45))
-	topTip.Transparency = 0.08
+	frontFacet.CFrame = shardCFrame * CFrame.new(width * -0.24, height * 0.02, -(depth * 0.51))
+	frontFacet.Transparency = 0.38
 
-	local bottomTip = createVisualBasePart(
-		resourcePart,
+	local sideFacet = createVisualBasePart(
+		parentPart,
 		"Part",
-		"GemBottomTip",
-		Vector3.new(centerSize.X * 0.72, centerSize.Y * 0.34, centerSize.Z * 0.72),
-		resourcePart.Position + Vector3.new(0, -centerSize.Y * 0.48, 0),
-		blendColor(baseColor, Color3.fromRGB(10, 10, 16), 0.2),
-		Enum.Material.SmoothPlastic
+		string.format("OreFacetSide_%d", index),
+		Vector3.new(0.035 * scale, height * 0.58, depth * 0.42),
+		parentPart.Position,
+		blendColor(profile.baseColor, Color3.fromRGB(255, 255, 255), 0.20),
+		Enum.Material.Neon
 	)
-	orientPart(bottomTip, rootYaw, math.rad(8), math.rad(225))
-	bottomTip.Transparency = 0.18
-
-	local sideBand = createVisualBasePart(
-		resourcePart,
-		"Part",
-		"GemBand",
-		Vector3.new(centerSize.X * 1.08, centerSize.Y * 0.16, centerSize.Z * 1.08),
-		resourcePart.Position + Vector3.new(0, 0, 0),
-		blendColor(baseColor, Color3.fromRGB(18, 15, 26), 0.22),
-		Enum.Material.SmoothPlastic
-	)
-	orientPart(sideBand, rootYaw, 0, math.rad(45))
-	sideBand.Transparency = 0.08
-
-	for index, yOffset in ipairs({ 0.2, -0.12, 0.05, -0.26 }) do
-		local accentShard = createVisualBasePart(
-			resourcePart,
-			"Part",
-			string.format("GemFacet_%d", index),
-			Vector3.new(centerSize.X * 0.2, centerSize.Y * 0.7, centerSize.Z * 0.12),
-			resourcePart.Position
-				+ Vector3.new(
-					math.cos(rootYaw + (math.rad(90) * (index - 1))) * centerSize.X * 0.42,
-					yOffset,
-					math.sin(rootYaw + (math.rad(90) * (index - 1))) * centerSize.Z * 0.42
-				),
-			glowColor,
-			Enum.Material.Neon
-		)
-		orientPart(accentShard, rootYaw + math.rad((index - 1) * 45), math.rad(10), math.rad(12))
-		accentShard.Transparency = 0.2
-	end
+	sideFacet.CFrame = shardCFrame * CFrame.new(width * 0.51, height * -0.02, depth * 0.08)
+	sideFacet.Transparency = 0.48
 end
 
-local function buildCrystalCluster(resourcePart, profile, rootYaw)
+local function buildCrystalOreCluster(resourcePart, profile, rootYaw)
 	local scale = profile.scale
-	local baseColor = profile.baseColor
-	local accentColor = profile.accentColor
-	local glowColor = profile.glowColor
-	local coreSize = Vector3.new(1.25, 2.45, 1.25) * scale
+	local baseSize = Vector3.new(2.35, 0.36, 1.85) * scale
+	local rootCFrame = CFrame.new(resourcePart.Position) * CFrame.Angles(0, rootYaw, 0)
 
-	resourcePart.Size = coreSize
-	resourcePart.Color = blendColor(baseColor, Color3.fromRGB(255, 255, 255), 0.08)
-	resourcePart.Material = Enum.Material.Crystal
-	resourcePart.Transparency = 0.08
-	resourcePart.Reflectance = 0.12
-	orientPart(resourcePart, rootYaw, math.rad(-5), math.rad(22))
+	resourcePart.Size = baseSize
+	resourcePart.Color = blendColor(profile.baseColor, Color3.fromRGB(26, 24, 32), 0.70)
+	resourcePart.Material = Enum.Material.Slate
+	resourcePart.Transparency = 0
+	resourcePart.Reflectance = 0.02
+	resourcePart.CFrame = rootCFrame
 
-	local baseRock = createVisualBasePart(
+	local baseTopY = baseSize.Y * 0.5
+	local lip = createVisualBasePart(
 		resourcePart,
 		"Part",
-		"ClusterBase",
-		Vector3.new(coreSize.X * 1.55, coreSize.Y * 0.28, coreSize.Z * 1.55),
-		resourcePart.Position + Vector3.new(0, -coreSize.Y * 0.5, 0),
-		blendColor(baseColor, Color3.fromRGB(20, 18, 28), 0.42),
+		"OreBaseHighlight",
+		Vector3.new(1.65, 0.08, 1.12) * scale,
+		resourcePart.Position,
+		blendColor(profile.baseColor, profile.accentColor, 0.18),
 		Enum.Material.Slate
 	)
-	orientPart(baseRock, rootYaw, 0, math.rad(4))
-	baseRock.Transparency = 0.1
+	lip.CFrame = rootCFrame * CFrame.new(0, baseTopY + (0.035 * scale), 0)
+	lip.Transparency = 0.18
 
-	local shardOffsets = {
-		{ x = -0.46, y = 0.22, z = -0.08, yaw = 12, roll = 10 },
-		{ x = 0.34, y = 0.38, z = 0.12, yaw = -16, roll = -8 },
-		{ x = 0.08, y = -0.02, z = -0.42, yaw = 24, roll = 14 },
-		{ x = -0.1, y = 0.58, z = 0.34, yaw = 38, roll = 18 },
-	}
-
-	for index, shard in ipairs(shardOffsets) do
-		local shardPart = createVisualBasePart(
-			resourcePart,
-			"Part",
-			string.format("ClusterShard_%d", index),
-			Vector3.new(coreSize.X * (0.35 + (index * 0.05)), coreSize.Y * (0.55 + (index * 0.08)), coreSize.Z * 0.22),
-			resourcePart.Position
-				+ Vector3.new(
-					shard.x * coreSize.X,
-					shard.y * coreSize.Y,
-					shard.z * coreSize.Z
-				),
-			if index % 2 == 0 then accentColor else glowColor,
-			Enum.Material.Neon
-		)
-		orientPart(shardPart, rootYaw + math.rad(shard.yaw), math.rad(4 + (index * 3)), math.rad(shard.roll))
-		shardPart.Transparency = 0.12 + (index * 0.03)
+	for index, shard in ipairs(getOreCrystalDefinitions(profile.variantId)) do
+		buildOreShard(resourcePart, profile, rootCFrame, baseTopY, shard, index)
 	end
 end
 
-local function buildArtifactCore(resourcePart, profile, rootYaw)
+local function buildIngotResource(resourcePart, profile, rootYaw)
 	local scale = profile.scale
-	local baseColor = profile.baseColor
-	local accentColor = profile.accentColor
-	local glowColor = profile.glowColor
-	local coreSize = Vector3.new(1.55, 2.0, 1.55) * scale
+	local rootCFrame = CFrame.new(resourcePart.Position) * CFrame.Angles(0, rootYaw, 0)
+	local baseSize = Vector3.new(2.5, 0.62, 1.65) * scale
 
-	resourcePart.Size = coreSize
-	resourcePart.Color = blendColor(baseColor, Color3.fromRGB(255, 255, 255), 0.18)
-	resourcePart.Material = Enum.Material.Neon
-	resourcePart.Transparency = 0.09
-	resourcePart.Reflectance = 0.05
-	orientPart(resourcePart, rootYaw, math.rad(0), math.rad(45))
+	resourcePart.Size = baseSize
+	resourcePart.Color = blendColor(profile.baseColor, Color3.fromRGB(52, 46, 40), 0.20)
+	resourcePart.Material = Enum.Material.Metal
+	resourcePart.Transparency = 0
+	resourcePart.Reflectance = 0.10 + (profile.rarityRank * 0.012)
+	resourcePart.CFrame = rootCFrame
+
+	local roughBase = createVisualBasePart(
+		resourcePart,
+		"Part",
+		"IngotBase",
+		Vector3.new(2.9, 0.22, 1.95) * scale,
+		resourcePart.Position,
+		blendColor(profile.baseColor, Color3.fromRGB(46, 40, 38), 0.58),
+		Enum.Material.Slate
+	)
+	roughBase.CFrame = rootCFrame * CFrame.new(0, -(baseSize.Y * 0.42), 0)
+	roughBase.Transparency = 0.04
 
 	local crown = createVisualBasePart(
 		resourcePart,
 		"Part",
-		"ArtifactCrown",
-		Vector3.new(coreSize.X * 0.72, coreSize.Y * 0.42, coreSize.Z * 0.72),
-		resourcePart.Position + Vector3.new(0, coreSize.Y * 0.42, 0),
-		accentColor,
-		Enum.Material.ForceField
+		"IngotCrown",
+		Vector3.new(1.82, 0.16, 1.02) * scale,
+		resourcePart.Position,
+		blendColor(profile.baseColor, profile.glowColor, 0.14),
+		Enum.Material.Metal
 	)
-	orientPart(crown, rootYaw + math.rad(22), math.rad(-10), math.rad(34))
-	crown.Transparency = 0.16
+	crown.CFrame = rootCFrame * CFrame.new(0, (baseSize.Y * 0.34), 0)
+	crown.Reflectance = 0.18
 
-	local coreCap = createVisualBasePart(
+	local leftBevel = createVisualBasePart(
+		resourcePart,
+		"WedgePart",
+		"IngotLeftBevel",
+		Vector3.new(0.62, 0.18, 1.08) * scale,
+		resourcePart.Position,
+		blendColor(profile.baseColor, Color3.fromRGB(255, 255, 255), 0.10),
+		Enum.Material.Metal
+	)
+	leftBevel.CFrame = rootCFrame
+		* CFrame.new(-(crown.Size.X * 0.5), (baseSize.Y * 0.30), 0)
+		* CFrame.Angles(0, math.rad(180), math.rad(90))
+
+	local rightBevel = createVisualBasePart(
+		resourcePart,
+		"WedgePart",
+		"IngotRightBevel",
+		Vector3.new(0.62, 0.18, 1.08) * scale,
+		resourcePart.Position,
+		blendColor(profile.baseColor, profile.glowColor, 0.16),
+		Enum.Material.Metal
+	)
+	rightBevel.CFrame = rootCFrame
+		* CFrame.new(crown.Size.X * 0.5, (baseSize.Y * 0.30), 0)
+		* CFrame.Angles(0, 0, -math.rad(90))
+
+	local accentStrip = createVisualBasePart(
 		resourcePart,
 		"Part",
-		"ArtifactCoreCap",
-		Vector3.new(coreSize.X * 0.88, coreSize.Y * 0.18, coreSize.Z * 0.88),
+		"IngotAccent",
+		Vector3.new(1.28, 0.05, 0.14) * scale,
 		resourcePart.Position,
-		blendColor(baseColor, Color3.fromRGB(22, 18, 34), 0.15),
-		Enum.Material.SmoothPlastic
+		blendColor(profile.accentColor, profile.glowColor, 0.24),
+		if profile.rarityRank >= 4 then Enum.Material.Neon else Enum.Material.Metal
 	)
-	orientPart(coreCap, rootYaw, 0, math.rad(45))
-	coreCap.Transparency = 0.12
+	accentStrip.CFrame = rootCFrame * CFrame.new(0, (baseSize.Y * 0.42), 0)
+	accentStrip.Transparency = if profile.rarityRank >= 4 then 0.18 else 0.42
 
-	local haloBars = {
-		{ name = "ArtifactHaloEast", size = Vector3.new(coreSize.X * 1.35, 0.14, 0.14), offset = Vector3.new(coreSize.X * 0.1, 0, 0), yaw = 0 },
-		{ name = "ArtifactHaloNorth", size = Vector3.new(0.14, 0.14, coreSize.Z * 1.35), offset = Vector3.new(0, 0, coreSize.Z * 0.1), yaw = 0 },
-		{ name = "ArtifactHaloSlashOne", size = Vector3.new(coreSize.X * 1.28, 0.12, 0.12), offset = Vector3.new(0, 0, 0), yaw = 45 },
-		{ name = "ArtifactHaloSlashTwo", size = Vector3.new(coreSize.X * 1.28, 0.12, 0.12), offset = Vector3.new(0, 0, 0), yaw = -45 },
-	}
+	local edgeGlint = createVisualBasePart(
+		resourcePart,
+		"Part",
+		"IngotEdgeGlint",
+		Vector3.new(0.08, 0.30, 1.18) * scale,
+		resourcePart.Position,
+		Color3.fromRGB(255, 248, 220),
+		Enum.Material.Neon
+	)
+	edgeGlint.CFrame = rootCFrame * CFrame.new(baseSize.X * 0.34, 0.04 * scale, 0)
+	edgeGlint.Transparency = 0.62
+end
 
-	for index, halo in ipairs(haloBars) do
-		local haloBar = createVisualBasePart(
-			resourcePart,
-			"Part",
-			halo.name,
-			halo.size,
-			resourcePart.Position + halo.offset,
-			if index % 2 == 0 then glowColor else accentColor,
-			Enum.Material.Neon
-		)
-		orientPart(haloBar, rootYaw + math.rad(halo.yaw), 0, 0)
-		haloBar.Transparency = 0.2
+local function buildEldritchResource(resourcePart, profile, rootYaw)
+	local scale = profile.scale
+	local rootCFrame = CFrame.new(resourcePart.Position) * CFrame.Angles(0, rootYaw, 0)
+	local pedestalSize = Vector3.new(1.82, 0.28, 1.82) * scale
+
+	resourcePart.Size = pedestalSize
+	resourcePart.Color = blendColor(profile.baseColor, Color3.fromRGB(18, 18, 28), 0.62)
+	resourcePart.Material = Enum.Material.Slate
+	resourcePart.Transparency = 0
+	resourcePart.Reflectance = 0.03
+	resourcePart.CFrame = rootCFrame
+
+	local innerCore = createVisualBasePart(
+		resourcePart,
+		"Part",
+		"EldritchCore",
+		Vector3.new(0.64, 2.4, 0.64) * scale,
+		resourcePart.Position,
+		blendColor(profile.baseColor, profile.glowColor, 0.18),
+		Enum.Material.Glass
+	)
+	innerCore.CFrame = rootCFrame * CFrame.new(0, 1.26 * scale, 0) * CFrame.Angles(math.rad(-4), math.rad(18), math.rad(3))
+	innerCore.Transparency = 0.10
+	innerCore.Reflectance = 0.18
+
+	local heart = createVisualBasePart(
+		resourcePart,
+		"Part",
+		"EldritchHeart",
+		Vector3.new(0.42, 0.42, 0.42) * scale,
+		resourcePart.Position,
+		blendColor(profile.accentColor, profile.glowColor, 0.44),
+		Enum.Material.Neon
+	)
+	heart.Shape = Enum.PartType.Ball
+	heart.CFrame = rootCFrame * CFrame.new(0, 1.18 * scale, 0)
+	heart.Transparency = 0.10
+
+	local orbitDefs = getOreCrystalDefinitions("eldritch")
+	for index, shard in ipairs(orbitDefs) do
+		if index > 1 then
+			buildOreShard(resourcePart, profile, rootCFrame, 0.90 * scale, shard, index)
+		end
 	end
 
-	local shardOffsets = {
-		{ x = 0.34, y = 0.44, z = -0.1, yaw = 0, roll = 18 },
-		{ x = -0.3, y = -0.34, z = 0.14, yaw = 140, roll = -16 },
-		{ x = 0.02, y = 0.1, z = 0.42, yaw = 70, roll = 4 },
-	}
+	local seam = createVisualBasePart(
+		resourcePart,
+		"Part",
+		"EldritchSeam",
+		Vector3.new(0.10, 1.96, 0.12) * scale,
+		resourcePart.Position,
+		blendColor(profile.accentColor, Color3.fromRGB(255, 255, 255), 0.24),
+		Enum.Material.Neon
+	)
+	seam.CFrame = rootCFrame * CFrame.new(0.08 * scale, 1.24 * scale, -0.22 * scale) * CFrame.Angles(math.rad(-8), math.rad(14), math.rad(6))
+	seam.Transparency = 0.26
 
-	for index, shard in ipairs(shardOffsets) do
-		local shardPart = createVisualBasePart(
+	if profile.rarityRank >= 5 then
+		local halo = createVisualBasePart(
 			resourcePart,
 			"Part",
-			string.format("ArtifactShard_%d", index),
-			Vector3.new(coreSize.X * 0.25, coreSize.Y * (0.62 + (index * 0.06)), coreSize.Z * 0.14),
-			resourcePart.Position
-				+ Vector3.new(
-					shard.x * coreSize.X,
-					shard.y * coreSize.Y,
-					shard.z * coreSize.Z
-				),
-			if index == 1 then glowColor else accentColor,
+			"EldritchHalo",
+			Vector3.new(0.14, 1.75, 1.75) * scale,
+			resourcePart.Position,
+			blendColor(profile.glowColor, Color3.fromRGB(255, 255, 255), 0.20),
 			Enum.Material.Neon
 		)
-		orientPart(shardPart, rootYaw + math.rad(shard.yaw), math.rad(8), math.rad(shard.roll))
-		shardPart.Transparency = 0.16
+		halo.Shape = Enum.PartType.Cylinder
+		halo.CFrame = rootCFrame * CFrame.new(0, 1.78 * scale, 0) * CFrame.Angles(0, 0, math.rad(90))
+		halo.Transparency = 0.42
 	end
 end
 
-local function buildResourceVisual(resourcePart, resourceTypeId, traitId)
+local function buildResourceVisual(resourcePart, resourceTypeId, traitId, sizeId, sizeValue)
 	local resourceDefinition = if resourceTypeId ~= nil then Resources[resourceTypeId] else nil
-	local profile = resolveResourceVisualProfile(resourceTypeId, resourceDefinition)
+	local profile = resolveResourceVisualProfile(resourceTypeId, resourceDefinition, sizeId, sizeValue)
 	local rootYaw = math.rad((getStringHash(resourcePart.Name) % 360) - 180)
 
 	resourcePart:SetAttribute("ResourceVisualVariant", profile.variantId)
@@ -831,12 +842,12 @@ local function buildResourceVisual(resourcePart, resourceTypeId, traitId)
 	resourcePart:SetAttribute("ResourceRarityRank", profile.rarityRank)
 	resourcePart:SetAttribute("TraitDisplayName", resolveTraitDisplayName(traitId) or "None")
 
-	if profile.variantId == "artifact" then
-		buildArtifactCore(resourcePart, profile, rootYaw)
-	elseif profile.variantId == "cluster" then
-		buildCrystalCluster(resourcePart, profile, rootYaw)
+	if profile.variantId == "ingot" then
+		buildIngotResource(resourcePart, profile, rootYaw)
+	elseif profile.variantId == "eldritch" then
+		buildEldritchResource(resourcePart, profile, rootYaw)
 	else
-		buildPolishedGemstone(resourcePart, profile, rootYaw)
+		buildCrystalOreCluster(resourcePart, profile, rootYaw)
 	end
 
 	createRarityEffects(resourcePart, profile, profile.variantId)
@@ -845,10 +856,20 @@ local function buildResourceVisual(resourcePart, resourceTypeId, traitId)
 		traitDisplayName = "None"
 	end
 
+	local displayTitle, displaySubtitle = WorldLabelPresentation.getPlacedResourceLabelText(
+		profile.displayName,
+		traitDisplayName,
+		profile.sizeDisplayName,
+		profile.rarity
+	)
+	resourcePart:SetAttribute("ResourceDisplayName", profile.displayName)
+	resourcePart:SetAttribute("ResourceLabelTitle", displayTitle)
+	resourcePart:SetAttribute("ResourceLabelSubtitle", displaySubtitle)
+
 	createResourceBillboard(
 		resourcePart,
-		if traitDisplayName ~= "None" then string.format("%s %s", traitDisplayName, profile.displayName) else profile.displayName,
-		if traitDisplayName ~= "None" then string.format("%s - %s", profile.rarity, traitDisplayName) else profile.rarity,
+		displayTitle,
+		displaySubtitle,
 		profile.accentColor,
 		profile.rarityRank
 	)
@@ -871,6 +892,8 @@ local function collectPlacedGeodes(profile, plotId, nowUnix)
 					table.insert(placedGeodes, {
 						id = geode.id or geodeId,
 						geodeTypeId = geode.geodeTypeId or geode.geodeId,
+						sizeId = geode.sizeId,
+						sizeValue = geode.sizeValue,
 						placement = placement,
 						readyState = readyState,
 						endsAt = endsAt,
@@ -1371,52 +1394,136 @@ local function addRockSpikes(parent, plot)
 	end
 end
 
-local function createGeodePart(parent, geodeName, geodeTypeId, stateLabel, position)
+local function createGeodePart(parent, geodeName, geodeTypeId, stateLabel, position, sizeId, sizeValue, endsAt)
+	local labelText = GeodePresentation.getWorldLabelText(stateLabel, endsAt, os.time())
+	local resolvedStateLabel = if labelText == "Ready!" then "ready" else "cracking"
 	local geodeDefinition = if geodeTypeId ~= nil then Geodes[geodeTypeId] else nil
-	local shellColor = if stateLabel == "ready" then Color3.fromRGB(208, 236, 255) else Color3.fromRGB(58, 52, 68)
+	local geodeColor = geodeDefinition and geodeDefinition.displayColor or getGeodeTint(geodeTypeId, resolvedStateLabel)
+	local isReady = resolvedStateLabel == "ready"
+	local geodeScale = SizeRules.getScaleValue(sizeId, sizeValue)
+	local shellSize = Vector3.new(4.5, 4.5, 4.5) * geodeScale
+	local coreSize = (if isReady then Vector3.new(3.35, 3.35, 3.35) else Vector3.new(3.95, 3.95, 3.95)) * geodeScale
+	local glossSize = (if isReady then Vector3.new(4.68, 4.68, 4.68) else Vector3.new(4.64, 4.64, 4.64)) * geodeScale
+	local highlightSize = (if isReady then Vector3.new(0.92, 0.92, 0.92) else Vector3.new(0.78, 0.78, 0.78)) * geodeScale
+	local highlightOffset = Vector3.new(1.0, 1.0, -0.8) * geodeScale
+
 	local geodePart = createDecorPart(
 		parent,
 		geodeName,
-		Vector3.new(4.5, 4.5, 4.5),
+		shellSize,
 		position,
-		geodeDefinition and geodeDefinition.displayColor or getGeodeTint(geodeTypeId, stateLabel),
-		if stateLabel == "ready" then Enum.Material.SmoothPlastic else Enum.Material.Slate
+		if isReady then blendColor(geodeColor, Color3.fromRGB(255, 255, 255), 0.12) else blendColor(geodeColor, Color3.fromRGB(32, 30, 38), 0.35),
+		if isReady then Enum.Material.SmoothPlastic else Enum.Material.Slate
 	)
 	geodePart.Shape = Enum.PartType.Ball
+	geodePart.Reflectance = if isReady then 0.08 else 0.02
 	geodePart:SetAttribute("GeodeId", geodeName)
 	geodePart:SetAttribute("GeodeTypeId", geodeTypeId)
-	geodePart:SetAttribute("ReadyState", stateLabel)
-	geodePart:SetAttribute("GeodeState", stateLabel)
+	geodePart:SetAttribute("SizeId", sizeId or "medium")
+	geodePart:SetAttribute("SizeValue", geodeScale)
+	geodePart:SetAttribute("ReadyState", resolvedStateLabel)
+	geodePart:SetAttribute("GeodeState", resolvedStateLabel)
+	geodePart:SetAttribute("EndsAt", if isReady then nil else endsAt)
 
-	local shell = createDecorPart(
-		parent,
-		geodeName .. "_Shell",
-		Vector3.new(3.2, 3.2, 3.2),
-		position + Vector3.new(0, 0.2, 0),
-		shellColor,
-		if stateLabel == "ready" then Enum.Material.Neon else Enum.Material.Slate
+	local coreColor = if isReady
+		then geodeColor
+		else blendColor(geodeColor, Color3.fromRGB(10, 10, 14), 0.28)
+	local core = createDecorPart(
+		geodePart,
+		"GeodeCore",
+		coreSize,
+		position + Vector3.new(0, 0.12 * geodeScale, 0),
+		coreColor,
+		if isReady then Enum.Material.Neon else Enum.Material.SmoothPlastic
 	)
-	shell.Shape = Enum.PartType.Ball
-	shell:SetAttribute("GeodeId", geodeName)
-	shell:SetAttribute("GeodeTypeId", geodeTypeId)
-	shell:SetAttribute("ReadyState", stateLabel)
-	shell:SetAttribute("GeodeState", stateLabel)
+	core.Shape = Enum.PartType.Ball
+	core.Transparency = if isReady then 0.08 else 0.04
+
+	local gloss = createDecorPart(
+		geodePart,
+		"GeodeGloss",
+		glossSize,
+		position,
+		if isReady then Color3.fromRGB(225, 235, 255) else Color3.fromRGB(175, 183, 196),
+		Enum.Material.Glass
+	)
+	gloss.Shape = Enum.PartType.Ball
+	gloss.Transparency = if isReady then 0.76 else 0.90
+
+	local highlight = createDecorPart(
+		geodePart,
+		"GeodeHighlight",
+		highlightSize,
+		position + highlightOffset,
+		if isReady then Color3.fromRGB(255, 255, 255) else Color3.fromRGB(235, 240, 248),
+		if isReady then Enum.Material.Neon else Enum.Material.SmoothPlastic
+	)
+	highlight.Shape = Enum.PartType.Ball
+	highlight.Transparency = if isReady then 0.42 else 0.78
+
+	if isReady then
+		local light = Instance.new("PointLight")
+		light.Color = geodeColor
+		light.Brightness = 1.2
+		light.Range = 6 + (geodeScale * 2)
+		light.Shadows = false
+		light.Parent = geodePart
+
+		local glowAttachment = Instance.new("Attachment")
+		glowAttachment.Name = "GeodeGlowAttachment"
+		glowAttachment.Position = Vector3.new(0, 1.2 * geodeScale, 0)
+		glowAttachment.Parent = geodePart
+
+		local sparkle = Instance.new("ParticleEmitter")
+		sparkle.Texture = "rbxasset://textures/particles/sparkles_main.dds"
+		sparkle.Color = ColorSequence.new(geodeColor, Color3.fromRGB(255, 255, 255))
+		sparkle.LightEmission = 1
+		sparkle.Rate = 4
+		sparkle.Lifetime = NumberRange.new(0.6, 1.0)
+		sparkle.Speed = NumberRange.new(0.25, 0.6)
+		sparkle.SpreadAngle = Vector2.new(180, 180)
+		sparkle.Size = NumberSequence.new(0.18, 0)
+		sparkle.Transparency = NumberSequence.new(0.05, 1)
+		sparkle.EmissionDirection = Enum.NormalId.Top
+		sparkle.Drag = 1
+		sparkle.Parent = glowAttachment
+	end
 
 	local marker = Instance.new("BillboardGui")
 	marker.Name = geodeName .. "_Marker"
-	marker.Size = UDim2.fromOffset(120, 26)
-	marker.StudsOffset = Vector3.new(0, 3.4, 0)
+	marker.Size = UDim2.fromOffset(140, 32)
+	marker.StudsOffset = Vector3.new(0, (shellSize.Y / 2) + 1.35, 0)
 	marker.AlwaysOnTop = true
 	marker.Parent = geodePart
+
+	local markerFrame = Instance.new("Frame")
+	markerFrame.BackgroundColor3 = Color3.fromRGB(30, 26, 40)
+	markerFrame.BackgroundTransparency = 0.15
+	markerFrame.Size = UDim2.fromScale(1, 1)
+	markerFrame.Parent = marker
+
+	local markerCorner = Instance.new("UICorner")
+	markerCorner.CornerRadius = UDim.new(0, 6)
+	markerCorner.Parent = markerFrame
+
+	local markerStroke = Instance.new("UIStroke")
+	markerStroke.Color = if isReady then geodeColor else Color3.fromRGB(120, 128, 140)
+	markerStroke.Thickness = 1.5
+	markerStroke.Transparency = 0.1
+	markerStroke.Parent = markerFrame
 
 	local label = Instance.new("TextLabel")
 	label.BackgroundTransparency = 1
 	label.Size = UDim2.fromScale(1, 1)
-	label.Font = Enum.Font.GothamBold
-	label.Text = stateLabel == "ready" and "Ready" or "Cracking"
-	label.TextColor3 = stateLabel == "ready" and Color3.fromRGB(233, 244, 255) or Color3.fromRGB(184, 196, 214)
+	label.Font = Enum.Font.FredokaOne
+	label.Text = labelText
+	label.TextColor3 = if isReady then Color3.fromRGB(255, 255, 255) else Color3.fromRGB(184, 196, 214)
+	label.TextStrokeColor3 = Color3.fromRGB(22, 18, 30)
+	label.TextStrokeTransparency = 0.6
 	label.TextScaled = true
-	label.Parent = marker
+	label.Parent = markerFrame
+
+	return geodePart
 end
 
 local function addGeodes(parent, plot, profile, nowUnix)
@@ -1433,20 +1540,32 @@ local function addGeodes(parent, plot, profile, nowUnix)
 		local placement = geode.placement
 		local footprintWidth = (placement.width or 1)
 		local footprintHeight = (placement.height or 1)
+		local geodeScale = SizeRules.getScaleValue(geode.sizeId, geode.sizeValue)
+		local geodeShellHeight = 4.5 * geodeScale
 		local geodePosition = Vector3.new(
 			gridOriginX + ((placement.x - 1) * cellSize) + (((footprintWidth - 1) * cellSize) / 2),
-			plot.position.y + 3.25,
+			plot.position.y + (World.plotBaseSize.height / 2) + (geodeShellHeight / 2),
 			gridOriginZ + ((placement.y - 1) * cellSize) + (((footprintHeight - 1) * cellSize) / 2)
 		)
-		createGeodePart(geodeFolder, tostring(geode.id), geode.geodeTypeId, geode.readyState, geodePosition)
+		createGeodePart(
+			geodeFolder,
+			tostring(geode.id),
+			geode.geodeTypeId,
+			geode.readyState,
+			geodePosition,
+			geode.sizeId,
+			geode.sizeValue,
+			geode.endsAt
+		)
 	end
 end
 
-local function createResourcePart(parent, resourceName, resourceTypeId, traitId, position)
+local function createResourcePart(parent, resourceName, resourceTypeId, traitId, sizeId, sizeValue, position)
+	local rootSize = ResourceVisuals.getPlacedRootSize(sizeId, sizeValue)
 	local resourcePart = createDecorPart(
 		parent,
 		resourceName,
-		Vector3.new(3, 3, 3),
+		rootSize,
 		position,
 		Color3.fromRGB(240, 240, 255),
 		Enum.Material.Neon
@@ -1454,7 +1573,9 @@ local function createResourcePart(parent, resourceName, resourceTypeId, traitId,
 	resourcePart:SetAttribute("ResourceId", resourceName)
 	resourcePart:SetAttribute("ResourceTypeId", resourceTypeId)
 	resourcePart:SetAttribute("TraitId", traitId or "none")
-	buildResourceVisual(resourcePart, resourceTypeId, traitId)
+	resourcePart:SetAttribute("SizeId", sizeId or "medium")
+	resourcePart:SetAttribute("SizeValue", SizeRules.getScaleValue(sizeId, sizeValue))
+	buildResourceVisual(resourcePart, resourceTypeId, traitId, sizeId, sizeValue)
 end
 
 local function addResources(parent, plot, profile)
@@ -1471,12 +1592,13 @@ local function addResources(parent, plot, profile)
 		local placement = resource.placement
 		local footprintWidth = placement.width or 1
 		local footprintHeight = placement.height or 1
+		local baseHeight = ResourceVisuals.getPlacedBaseHeight(resource.sizeId, resource.sizeValue)
 		local resourcePosition = Vector3.new(
 			gridOriginX + ((placement.x - 1) * cellSize) + (((footprintWidth - 1) * cellSize) / 2),
-			plot.position.y + 3,
+			plot.position.y + (World.plotBaseSize.height / 2) + (baseHeight / 2),
 			gridOriginZ + ((placement.y - 1) * cellSize) + (((footprintHeight - 1) * cellSize) / 2)
 		)
-		createResourcePart(resourceFolder, tostring(resource.id), resource.resourceTypeId, resource.traitId, resourcePosition)
+		createResourcePart(resourceFolder, tostring(resource.id), resource.resourceTypeId, resource.traitId, resource.sizeId, resource.sizeValue, resourcePosition)
 	end
 end
 

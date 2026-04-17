@@ -9,6 +9,9 @@ local Traits = require(Shared.Config.Traits)
 local GeodeState = require(Shared.Domain.GeodeState)
 local GeodeRoller = require(Shared.Domain.GeodeRoller)
 local TraitRoller = require(Shared.Domain.TraitRoller)
+local Sizes = require(Shared.Config.Sizes)
+local SizeRoller = require(Shared.Domain.SizeRoller)
+local SizeRules = require(Shared.Domain.SizeRules)
 local Id = require(Shared.Util.Id)
 local Time = require(Shared.Util.Time)
 
@@ -29,6 +32,10 @@ local function getTraitPool()
 		Traits.cosmic,
 		Traits.singularity,
 	}
+end
+
+local function getSizePool()
+	return Sizes.order
 end
 
 local function getCurrencyAmount(profile, currency)
@@ -93,13 +100,16 @@ function GeodeService:adjustInventoryCount(profile, geodeId, delta)
 	return adjustInventoryCount(profile, geodeId, delta)
 end
 
-function GeodeService:createGeodeInstance(profile, geodeId, nowUnix)
+function GeodeService:createGeodeInstance(profile, geodeId, nowUnix, rng)
 	local geodeDefinition = Geodes[geodeId]
 	if geodeDefinition == nil then
 		return nil, "unknown_geode"
 	end
 
-	local geodeInstance = GeodeState.createInstance(Id.new("geode"), geodeId, nowUnix, geodeDefinition.geodeSeconds)
+	local sizeRoll = SizeRoller.rollSize(getSizePool(), rng)
+	local sizeId = sizeRoll and sizeRoll.id or "medium"
+	local sizeValue = SizeRules.getScaleValue(sizeId, if sizeRoll ~= nil then sizeRoll.scaleValue else nil)
+	local geodeInstance = GeodeState.createInstance(Id.new("geode"), geodeId, nowUnix, geodeDefinition.geodeSeconds, sizeId, sizeValue)
 	profile.geodesById[geodeInstance.id] = geodeInstance
 	table.insert(profile.geodeOrder, geodeInstance.id)
 	adjustInventoryCount(profile, geodeId, 1)
@@ -230,7 +240,7 @@ function GeodeService:openGeode(userId, geodeInstanceId, nowUnix, rng, playerNam
 	return result
 end
 
-function GeodeService:createResourceInstance(geodeId, nowUnix, rng)
+function GeodeService:createResourceInstance(geodeId, nowUnix, rng, sizeId, sizeValue)
 	local geodeDefinition = Geodes[geodeId]
 	if geodeDefinition == nil then
 		return nil, "unknown_geode"
@@ -251,6 +261,8 @@ function GeodeService:createResourceInstance(geodeId, nowUnix, rng)
 		id = Id.new("resource"),
 		resourceTypeId = resourceDefinition.id,
 		traitId = traitRoll and traitRoll.id or "none",
+		sizeId = sizeId or "medium",
+		sizeValue = SizeRules.getScaleValue(sizeId, sizeValue),
 		level = 1,
 		stationId = nil,
 		obtainedAt = nowUnix,
@@ -268,6 +280,8 @@ function GeodeService:createRewardResourceInstance(resourceId, nowUnix)
 		id = Id.new("resource"),
 		resourceTypeId = resourceDefinition.id,
 		traitId = "none",
+		sizeId = "medium",
+		sizeValue = SizeRules.getScaleValue("medium", nil),
 		level = 1,
 		stationId = nil,
 		obtainedAt = nowUnix,
@@ -284,6 +298,5 @@ function GeodeService:start()
 end
 
 return GeodeService
-
 
 

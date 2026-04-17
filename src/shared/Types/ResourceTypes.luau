@@ -4,6 +4,8 @@ export type ResourceInstance = {
 	id: string,
 	resourceTypeId: string,
 	traitId: string?,
+	sizeId: string?,
+	sizeValue: number?,
 	level: number,
 	stationId: string?,
 	obtainedAt: number,

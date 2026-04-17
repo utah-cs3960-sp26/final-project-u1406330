@@ -3,12 +3,14 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
 local Geodes = require(Shared.Config.Geodes)
 local Resources = require(Shared.Config.Resources)
 local Traits = require(Shared.Config.Traits)
+local GeodePresentation = require(Shared.Domain.GeodePresentation)
 local RewardPresentation = require(Shared.Domain.RewardPresentation)
 local Panel = require(script.Parent.Parent.Components.Panel)
 
@@ -270,6 +272,7 @@ function RootScreen.new(context)
 	backdrop.BorderSizePixel = 0
 	backdrop.Position = UDim2.new(1, -20, 0, 20)
 	backdrop.Size = UDim2.new(0, 420, 1, -40)
+	backdrop.Visible = false
 	backdrop.Parent = screenGui
 
 	local backdropCorner = Instance.new("UICorner")
@@ -374,6 +377,7 @@ function RootScreen.new(context)
 	shop.frame.Visible = false
 
 	local geode = Panel.createCard(scroll, "Geode Inventory", palette, 3)
+	geode.frame.Visible = false
 	local geodeLabel = Panel.createLabel(geode.body, "Waiting for geode data...", palette, 1)
 	local placeGeode = Panel.createButton(geode.body, "Place Next Geode", palette, 2)
 	local openReadyGeodes = Panel.createButton(geode.body, "Open Ready Geode", palette, 3)
@@ -399,28 +403,8 @@ function RootScreen.new(context)
 
 	local reopenButton = Instance.new("TextButton")
 	reopenButton.Name = "OpenHudButton"
-	reopenButton.AnchorPoint = Vector2.new(1, 0)
-	reopenButton.AutoButtonColor = true
-	reopenButton.BackgroundColor3 = palette.accent
-	reopenButton.BorderSizePixel = 0
-	reopenButton.Position = UDim2.new(1, -20, 0, 20)
-	reopenButton.Size = UDim2.new(0, 170, 0, 44)
 	reopenButton.Visible = false
-	reopenButton.Font = Enum.Font.GothamBold
-	reopenButton.Text = "Open Gem HUD"
-	reopenButton.TextColor3 = palette.shadow
-	reopenButton.TextSize = 16
 	reopenButton.Parent = screenGui
-
-	local reopenCorner = Instance.new("UICorner")
-	reopenCorner.CornerRadius = UDim.new(0, 8)
-	reopenCorner.Parent = reopenButton
-
-	local reopenStroke = Instance.new("UIStroke")
-	reopenStroke.Color = palette.border
-	reopenStroke.Thickness = 1
-	reopenStroke.Transparency = 0.15
-	reopenStroke.Parent = reopenButton
 
 	local hudDock = Instance.new("Frame")
 	hudDock.Name = "BubblyHudDock"
@@ -586,6 +570,13 @@ function RootScreen.new(context)
 	vaultItems.CanvasSize = UDim2.new(0, 0, 0, 0)
 	vaultItems.ZIndex = VAULT_BASE_Z_INDEX + 2
 	vaultItems.Parent = vaultPanel
+
+	local vaultItemsPadding = Instance.new("UIPadding")
+	vaultItemsPadding.PaddingTop = UDim.new(0, 6)
+	vaultItemsPadding.PaddingBottom = UDim.new(0, 6)
+	vaultItemsPadding.PaddingLeft = UDim.new(0, 6)
+	vaultItemsPadding.PaddingRight = UDim.new(0, 6)
+	vaultItemsPadding.Parent = vaultItems
 
 	local vaultItemsLayout = Instance.new("UIListLayout")
 	vaultItemsLayout.SortOrder = Enum.SortOrder.LayoutOrder
@@ -838,13 +829,13 @@ function RootScreen.new(context)
 	miningPopupContainer.BackgroundTransparency = 1
 	miningPopupContainer.BorderSizePixel = 0
 	miningPopupContainer.Position = UDim2.new(0.5, 0, 0.22, 0)
-	miningPopupContainer.Size = UDim2.new(0, 460, 0, 260)
+	miningPopupContainer.Size = UDim2.new(0, 460, 0, 300)
 	miningPopupContainer.ZIndex = POPUP_Z_INDEX
 	miningPopupContainer.Parent = screenGui
 
 	local miningPopupConstraint = Instance.new("UISizeConstraint")
 	miningPopupConstraint.MinSize = Vector2.new(240, 120)
-	miningPopupConstraint.MaxSize = Vector2.new(540, 300)
+	miningPopupConstraint.MaxSize = Vector2.new(540, 360)
 	miningPopupConstraint.Parent = miningPopupContainer
 
 	local miningPopupLayout = Instance.new("UIListLayout")
@@ -908,26 +899,12 @@ function RootScreen.new(context)
 		isOpen = true,
 	}, RootScreen)
 
-	local function setOpen(isOpen)
-		self.isOpen = isOpen
-		self.backdrop.Visible = isOpen
-		self.reopenButton.Visible = not isOpen
-	end
-
-	collapseButton.Activated:Connect(function()
-		setOpen(false)
-	end)
-
-	reopenButton.Activated:Connect(function()
-		setOpen(true)
-	end)
-
 	shopClose.Activated:Connect(function()
 		shopOverlay.Visible = false
 	end)
 
 	vaultButton.Activated:Connect(function()
-		vaultOverlay.Visible = true
+		vaultOverlay.Visible = not vaultOverlay.Visible
 	end)
 
 	vaultClose.Activated:Connect(function()
@@ -975,9 +952,10 @@ local function normalizeCelebrationSpec(inputValue)
 		textColor = if typeof(inputValue.textColor) == "Color3" then inputValue.textColor else nil,
 		duration = if type(inputValue.duration) == "number" then inputValue.duration else nil,
 		reelWords = if type(inputValue.reelWords) == "table" then inputValue.reelWords else nil,
-		reelValues = if type(inputValue.reelValues) == "table" then inputValue.reelValues else nil,
+		reelFinal = if type(inputValue.reelFinal) == "string" then inputValue.reelFinal else nil,
 		showSlotMachine = inputValue.showSlotMachine == true,
 		compact = inputValue.compact == true,
+		waitForClick = inputValue.waitForClick == true,
 	}
 
 	if spec.rarityIndex == nil then
@@ -1014,15 +992,13 @@ local function normalizeCelebrationSpec(inputValue)
 		end
 	end
 
-	if spec.reelValues == nil then
-		spec.reelValues = {
-			spec.rarityLabel,
-			spec.primary,
-			if spec.detail ~= nil then tostring(spec.detail) else "BONUS",
-		}
+	if spec.reelFinal == nil then
+		spec.reelFinal = spec.primary
 	end
 
-	if spec.showSlotMachine ~= true then
+	if spec.kind == "geode_discovery" then
+		spec.showSlotMachine = false
+	elseif spec.showSlotMachine ~= true then
 		spec.showSlotMachine = (spec.kind == "geode" or spec.kind == "resource" or spec.kind == "attribute")
 			and (spec.rarityIndex or 1) > 1
 	end
@@ -1112,9 +1088,10 @@ local function createReel(parent: Instance, tone, initialText: string)
 	reelStroke.Thickness = 2
 	reelStroke.Parent = reel
 
-	local reelLabel = createTextLabel(reel, initialText, 16, tone.text, 28)
-	reelLabel.Position = UDim2.fromScale(0, 0.08)
-	reelLabel.Size = UDim2.new(1, 0, 1, -2)
+	local reelLabel = createTextLabel(reel, initialText, 14, tone.text, 38)
+	reelLabel.Position = UDim2.fromScale(0, 0)
+	reelLabel.Size = UDim2.new(1, -4, 1, -2)
+	reelLabel.TextScaled = true
 
 	return reel, reelLabel
 end
@@ -1136,17 +1113,46 @@ function RootScreen:_pumpCelebrationQueue()
 			end
 		end
 
-		local width = if spec.compact == true then 300 elseif spec.showSlotMachine == true then 420 else 360
-		local height = if spec.compact == true then 68 elseif spec.showSlotMachine == true then 144 else 104
-		if spec.kind == "attribute" then
-			height = 132
+		local isCoin = spec.kind == "coin"
+		local width = if isCoin then 160 elseif spec.compact == true then 300 elseif spec.showSlotMachine == true then 460 else 360
+		local height = if isCoin then 36 elseif spec.compact == true then 68 elseif spec.showSlotMachine == true then 190 else 104
+		if spec.kind == "geode_discovery" then
+			local ri = math.clamp(spec.rarityIndex or 1, 1, 10)
+			width = math.clamp(320 + (ri - 1) * 22, 320, 520)
+			height = math.clamp(110 + (ri - 1) * 18, 110, 280)
+		elseif spec.kind == "attribute" then
+			height = 210
 		elseif spec.kind == "resource" then
-			height = if spec.showSlotMachine == true then 146 else 112
+			height = if spec.showSlotMachine == true then 230 else 120
 		elseif spec.kind == "geode" then
-			height = if spec.showSlotMachine == true then 150 else 112
+			height = if spec.showSlotMachine == true then 230 else 120
+		end
+		if spec.waitForClick == true then
+			height += 34
 		end
 
 		local popup = makePopup(self.miningPopupContainer, tone.background, tone.accent, width, height)
+		if isCoin then
+			local popupStroke = popup:FindFirstChildWhichIsA("UIStroke")
+			if popupStroke ~= nil then
+				popupStroke:Destroy()
+			end
+			popup.BackgroundTransparency = 0.15
+			local randX = 0.5 + (math.random() - 0.5) * 0.3
+			local randY = math.random() * 0.08
+			popup.Position = UDim2.new(randX, 0, 0, randY)
+		end
+		if spec.kind == "geode_discovery" then
+			local ri = math.clamp(spec.rarityIndex or 1, 1, 10)
+			local popupStroke = popup:FindFirstChildWhichIsA("UIStroke")
+			if popupStroke ~= nil then
+				popupStroke.Thickness = math.clamp(3 + (ri - 1) * 0.5, 3, 7)
+			end
+			local popupCorner = popup:FindFirstChildWhichIsA("UICorner")
+			if popupCorner ~= nil then
+				popupCorner.CornerRadius = UDim.new(0, math.clamp(10 + (ri - 1) * 2, 10, 24))
+			end
+		end
 		local scale = Instance.new("UIScale")
 		scale.Scale = 0.86
 		scale.Parent = popup
@@ -1154,71 +1160,132 @@ function RootScreen:_pumpCelebrationQueue()
 		local layout = Instance.new("UIListLayout")
 		layout.SortOrder = Enum.SortOrder.LayoutOrder
 		layout.Padding = UDim.new(0, 6)
+		layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 		layout.VerticalAlignment = Enum.VerticalAlignment.Center
 		layout.Parent = popup
 
-		local titleText = if spec.kind == "coin" then "COINS!" else string.upper(spec.headline)
-		local titleFontSize = if spec.compact == true then 18 else 22
-		local title = createTextLabel(popup, titleText, titleFontSize, spec.textColor or tone.text, if spec.compact == true then 22 else 24)
+		local titleText = if isCoin then spec.headline else string.upper(spec.headline)
+		local titleFontSize = if isCoin then 16 elseif spec.compact == true then 18 else 22
+		if spec.kind == "geode_discovery" then
+			local ri = math.clamp(spec.rarityIndex or 1, 1, 10)
+			titleFontSize = math.clamp(24 + (ri - 1) * 3, 24, 48)
+		end
+		local titleHeight = if spec.compact == true then 22 else math.clamp(titleFontSize + 4, 24, 54)
+		local title = createTextLabel(popup, titleText, titleFontSize, spec.textColor or tone.text, titleHeight)
 		title.LayoutOrder = 1
 
 		local reelRow
+		local reelFinished = true
 		local primaryLabel
 		local detailLabel
 		local badgeLabel
+		local hideResolvedRevealText = GeodePresentation.shouldHideResolvedRevealText(spec.kind, spec.showSlotMachine, false)
+		local resolvedDetailText = if spec.detail ~= nil then tostring(spec.detail) else tostring(spec.rarityLabel or "")
+		local resolvedBadgeText = if spec.rarityLabel ~= nil then tostring(spec.rarityLabel):upper() else nil
 
-		if spec.compact ~= true then
+		local function revealResolvedPopupText()
+			if not hideResolvedRevealText then
+				return
+			end
+
+			if primaryLabel ~= nil then
+				primaryLabel.Text = spec.primary
+				primaryLabel.Visible = true
+			end
+
+			if detailLabel ~= nil then
+				detailLabel.Text = resolvedDetailText
+				detailLabel.Visible = true
+			end
+
+			if badgeLabel ~= nil then
+				badgeLabel.Text = resolvedBadgeText or ""
+				badgeLabel.Visible = true
+			end
+		end
+
+		if spec.kind == "geode_discovery" then
+			local ri = math.clamp(spec.rarityIndex or 1, 1, 10)
+			local nameFontSize = math.clamp(22 + (ri - 1) * 2, 22, 40)
+			primaryLabel = createTextLabel(popup, spec.primary, nameFontSize, spec.textColor or tone.text, nameFontSize + 6)
+			primaryLabel.LayoutOrder = 2
+
+			local badgeFontSize = math.clamp(14 + (ri - 1) * 1, 14, 24)
+			badgeLabel = Instance.new("TextLabel")
+			badgeLabel.BackgroundColor3 = tone.highlight
+			badgeLabel.BorderSizePixel = 0
+			badgeLabel.Size = UDim2.new(0, math.clamp(100 + ri * 10, 100, 200), 0, math.clamp(22 + (ri - 1) * 2, 22, 36))
+			badgeLabel.Font = Enum.Font.FredokaOne
+			badgeLabel.Text = tostring(spec.rarityLabel or ""):upper()
+			badgeLabel.TextColor3 = tone.text
+			badgeLabel.TextSize = badgeFontSize
+			badgeLabel.ZIndex = POPUP_Z_INDEX + 1
+			badgeLabel.LayoutOrder = 3
+			badgeLabel.Parent = popup
+
+			local badgeCorner = Instance.new("UICorner")
+			badgeCorner.CornerRadius = UDim.new(0, 10)
+			badgeCorner.Parent = badgeLabel
+
+			local badgeStroke = Instance.new("UIStroke")
+			badgeStroke.Color = tone.accent
+			badgeStroke.Thickness = math.clamp(2 + math.floor((ri - 1) * 0.4), 2, 5)
+			badgeStroke.Parent = badgeLabel
+
+			if ri >= 5 then
+				local subtitleText = if ri >= 8 then "INCREDIBLE FIND!" elseif ri >= 6 then "AMAZING!" else "RARE FIND!"
+				detailLabel = createTextLabel(popup, subtitleText, math.clamp(14 + (ri - 3), 14, 22), tone.text, math.clamp(18 + (ri - 3), 18, 28))
+				detailLabel.LayoutOrder = 4
+			end
+		elseif spec.compact ~= true then
 			if spec.showSlotMachine == true then
 				reelRow = Instance.new("Frame")
 				reelRow.BackgroundTransparency = 1
 				reelRow.BorderSizePixel = 0
 				reelRow.LayoutOrder = 2
-				reelRow.Size = UDim2.new(1, 0, 0, 34)
+				reelRow.Size = UDim2.new(0.85, 0, 0, 48)
 				reelRow.Parent = popup
 
-				local reelLayout = Instance.new("UIGridLayout")
-				reelLayout.CellPadding = UDim2.new(0, 6, 0, 0)
-				reelLayout.CellSize = UDim2.new(0.33, -4, 1, 0)
-				reelLayout.SortOrder = Enum.SortOrder.LayoutOrder
-				reelLayout.Parent = reelRow
+				local singleReel, singleReelLabel = createReel(reelRow, tone, "...")
+				singleReel.Size = UDim2.new(1, 0, 1, 0)
 
-				local reelTexts = spec.reelValues or {}
-				local reelLabels = {}
-				local reelCount = 3
-				for index = 1, reelCount do
-					local reelFrame, reelLabel = createReel(reelRow, tone, "ROLL")
-					reelFrame.LayoutOrder = index
-					table.insert(reelLabels, reelLabel)
-				end
-
+				reelFinished = false
 				task.spawn(function()
 					local spinWords = spec.reelWords or GEODE_RARITY_ORDER
-					local totalSteps = math.max(6, 2 + (spec.rarityIndex or 1) * 2)
-					local stepDelay = math.max(0.03, 0.08 - ((spec.rarityIndex or 1) * 0.004))
-					for reelIndex, reelLabel in ipairs(reelLabels) do
-						for spinStep = 1, totalSteps + reelIndex do
-							local wordIndex = ((spinStep + reelIndex - 1) % #spinWords) + 1
-							reelLabel.Text = tostring(spinWords[wordIndex])
-							task.wait(stepDelay)
-						end
-						reelLabel.Text = tostring(reelTexts[reelIndex] or reelTexts[#reelTexts] or spec.primary)
+					local totalSteps = math.max(12, 8 + (spec.rarityIndex or 1) * 3)
+					for spinStep = 1, totalSteps do
+						local progress = spinStep / totalSteps
+						local stepDelay = 0.06 + progress * 0.14
+						local wordIndex = ((spinStep) % #spinWords) + 1
+						singleReelLabel.Text = tostring(spinWords[wordIndex])
+						task.wait(stepDelay)
 					end
+					singleReelLabel.Text = tostring(spec.reelFinal or spec.primary)
+					reelFinished = true
+					revealResolvedPopupText()
 				end)
 			end
 
 			primaryLabel = createTextLabel(
 				popup,
-				spec.primary,
-				if spec.showSlotMachine == true then 24 else 28,
+				if hideResolvedRevealText then "" else spec.primary,
+				if spec.showSlotMachine == true then 26 else 28,
 				spec.textColor or tone.text,
-				if spec.showSlotMachine == true then 28 else 34
+				if spec.showSlotMachine == true then 32 else 34
 			)
 			primaryLabel.LayoutOrder = if spec.showSlotMachine == true then 3 else 2
+			primaryLabel.Visible = not hideResolvedRevealText
 
 			if spec.detail ~= nil or spec.rarityLabel ~= nil then
-				local detailText = if spec.detail ~= nil then tostring(spec.detail) else tostring(spec.rarityLabel)
-				detailLabel = createTextLabel(popup, detailText, if spec.showSlotMachine == true then 16 else 18, tone.text, if spec.showSlotMachine == true then 20 else 22)
+				detailLabel = createTextLabel(
+					popup,
+					if hideResolvedRevealText then "" else resolvedDetailText,
+					18,
+					tone.text,
+					if spec.showSlotMachine == true then 24 else 22
+				)
 				detailLabel.LayoutOrder = if spec.showSlotMachine == true then 4 else 3
+				detailLabel.Visible = not hideResolvedRevealText
 			end
 
 			if spec.rarityLabel ~= nil and spec.compact ~= true then
@@ -1227,11 +1294,12 @@ function RootScreen:_pumpCelebrationQueue()
 				badgeLabel.BorderSizePixel = 0
 				badgeLabel.Size = UDim2.new(0, math.clamp(100 + ((spec.rarityIndex or 1) * 6), 100, 170), 0, 22)
 				badgeLabel.Font = Enum.Font.FredokaOne
-				badgeLabel.Text = tostring(spec.rarityLabel):upper()
+				badgeLabel.Text = if hideResolvedRevealText then "" else (resolvedBadgeText or "")
 				badgeLabel.TextColor3 = tone.text
 				badgeLabel.TextSize = 14
 				badgeLabel.ZIndex = POPUP_Z_INDEX + 1
 				badgeLabel.LayoutOrder = if spec.showSlotMachine == true then 5 else 4
+				badgeLabel.Visible = not hideResolvedRevealText
 				badgeLabel.Parent = popup
 
 				local badgeCorner = Instance.new("UICorner")
@@ -1244,9 +1312,8 @@ function RootScreen:_pumpCelebrationQueue()
 				badgeStroke.Parent = badgeLabel
 			end
 		else
-			if spec.kind == "coin" then
-				primaryLabel = createTextLabel(popup, spec.primary, 20, tone.text, 22)
-				primaryLabel.LayoutOrder = 2
+			if isCoin then
+				-- coin popup only shows the title (e.g. "+6 Coins"), no extra label
 			elseif spec.kind ~= "basic" or spec.detail ~= nil then
 				primaryLabel = createTextLabel(popup, spec.primary, 20, tone.text, 22)
 				primaryLabel.LayoutOrder = 2
@@ -1255,24 +1322,106 @@ function RootScreen:_pumpCelebrationQueue()
 			end
 		end
 
+		local popInTime = 0.2
+		local popInTarget = 1
+		if spec.kind == "geode_discovery" then
+			local ri = math.clamp(spec.rarityIndex or 1, 1, 10)
+			popInTime = math.clamp(0.22 + (ri - 1) * 0.02, 0.22, 0.38)
+			popInTarget = math.clamp(1 + (ri - 1) * 0.04, 1, 1.32)
+			scale.Scale = 0.5
+		end
 		local popIn = TweenService:Create(
 			scale,
-			TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-			{ Scale = 1 }
+			TweenInfo.new(popInTime, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+			{ Scale = popInTarget }
 		)
 		popIn:Play()
+
+		if reelRow ~= nil and spec.showSlotMachine == true then
+			while not reelFinished do
+				task.wait(0.05)
+			end
+		end
 
 		local holdDuration
 		if spec.duration ~= nil then
 			holdDuration = spec.duration
+		elseif spec.kind == "geode_discovery" then
+			local ri = math.clamp(spec.rarityIndex or 1, 1, 10)
+			holdDuration = math.clamp(1.6 + (ri - 1) * 0.3, 1.6, 4.3)
 		elseif spec.compact == true then
 			holdDuration = 0.92
 		elseif spec.showSlotMachine == true then
-			holdDuration = 1.45 + ((spec.rarityIndex or 1) * 0.12)
+			holdDuration = 3.0
 		else
-			holdDuration = 1.08
+			holdDuration = 2.0
 		end
 		task.wait(holdDuration)
+
+		if spec.waitForClick == true then
+			local continueButton = Instance.new("TextButton")
+			continueButton.Name = "CelebrationContinueButton"
+			continueButton.AutoButtonColor = false
+			continueButton.BackgroundTransparency = 1
+			continueButton.BorderSizePixel = 0
+			continueButton.Size = UDim2.new(1, 0, 1, 0)
+			continueButton.Font = Enum.Font.FredokaOne
+			continueButton.Text = ""
+			continueButton.ZIndex = POPUP_Z_INDEX + 3
+			continueButton.Parent = popup
+
+			local continueLabel = Instance.new("TextLabel")
+			continueLabel.Name = "CelebrationContinuePrompt"
+			continueLabel.Active = false
+			continueLabel.BackgroundTransparency = 1
+			continueLabel.Size = UDim2.new(1, 0, 0, 22)
+			continueLabel.Font = Enum.Font.FredokaOne
+			continueLabel.Text = "Click anywhere to continue..."
+			continueLabel.TextColor3 = tone.text
+			continueLabel.TextSize = 14
+			continueLabel.TextTransparency = 0.3
+			continueLabel.ZIndex = POPUP_Z_INDEX + 4
+			continueLabel.LayoutOrder = 99
+			continueLabel.Parent = popup
+
+			local clicked = false
+			local function setClicked()
+				clicked = true
+			end
+
+			continueButton.Activated:Connect(function()
+				setClicked()
+			end)
+
+			local inputConnection = UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
+				if gameProcessedEvent then
+					return
+				end
+				if GeodePresentation.shouldAdvanceRevealOnInput(input.UserInputType) then
+					setClicked()
+				end
+			end)
+
+			task.spawn(function()
+				while not clicked do
+					for t = 0, 1, 0.05 do
+						if clicked then
+							break
+						end
+						continueLabel.TextTransparency = 0.3 + math.sin(t * math.pi) * 0.4
+						task.wait(0.04)
+					end
+				end
+			end)
+
+			while not clicked do
+				task.wait(0.05)
+			end
+
+			inputConnection:Disconnect()
+			continueButton:Destroy()
+			continueLabel:Destroy()
+		end
 
 		local fadeTween = TweenService:Create(
 			popup,
@@ -1374,6 +1523,17 @@ end
 
 function RootScreen:showMiningPopup(text)
 	local spec = normalizeCelebrationSpec(text)
+	if spec.compact == true or spec.kind == "coin" then
+		local i = 1
+		while i <= #self.celebrationQueue do
+			local queued = self.celebrationQueue[i]
+			if queued.compact == true or queued.kind == "coin" then
+				table.remove(self.celebrationQueue, i)
+			else
+				i += 1
+			end
+		end
+	end
 	table.insert(self.celebrationQueue, spec)
 	while #self.celebrationQueue > POPUP_QUEUE_LIMIT do
 		table.remove(self.celebrationQueue, 1)
@@ -1446,6 +1606,3 @@ function RootScreen:destroy()
 end
 
 return RootScreen
-
-
-

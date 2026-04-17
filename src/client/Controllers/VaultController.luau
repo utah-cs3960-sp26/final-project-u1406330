@@ -6,15 +6,27 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Geodes = require(Shared.Config.Geodes)
 local Resources = require(Shared.Config.Resources)
 local Traits = require(Shared.Config.Traits)
+local SizeRules = require(Shared.Domain.SizeRules)
 local VaultMath = require(Shared.Domain.VaultMath)
 
 local VaultController = {}
 VaultController.__index = VaultController
 
-local function createRow(parent, titleText, detailText, tint, layoutOrder)
+local RESOURCE_SWATCH_COLORS = {
+	quartz = Color3.fromRGB(230, 238, 245),
+	amethyst = Color3.fromRGB(160, 100, 230),
+	emerald_cluster = Color3.fromRGB(50, 190, 130),
+	diamond_core = Color3.fromRGB(120, 220, 255),
+	star_shard = Color3.fromRGB(255, 200, 60),
+}
+
+local function createRow(parent, titleText, detailText, tint, layoutOrder, itemKind, resourceTypeId)
+	local isResource = itemKind == "resource"
+	local bgColor = if isResource then Color3.fromRGB(248, 255, 250) else Color3.fromRGB(250, 248, 255)
+
 	local row = Instance.new("Frame")
 	row.Name = titleText .. "Row"
-	row.BackgroundColor3 = Color3.fromRGB(255, 255, 250)
+	row.BackgroundColor3 = bgColor
 	row.BorderSizePixel = 0
 	row.LayoutOrder = layoutOrder
 	row.Size = UDim2.new(1, -8, 0, 92)
@@ -30,27 +42,81 @@ local function createRow(parent, titleText, detailText, tint, layoutOrder)
 	stroke.Thickness = 3
 	stroke.Parent = row
 
+	local swatchColor = tint
+	if isResource and resourceTypeId ~= nil and RESOURCE_SWATCH_COLORS[resourceTypeId] ~= nil then
+		swatchColor = RESOURCE_SWATCH_COLORS[resourceTypeId]
+	end
+
 	local swatch = Instance.new("Frame")
 	swatch.Name = "Swatch"
-	swatch.BackgroundColor3 = tint
+	swatch.BackgroundColor3 = swatchColor
 	swatch.BorderSizePixel = 0
 	swatch.Position = UDim2.new(0, 12, 0.5, -24)
 	swatch.Size = UDim2.new(0, 48, 0, 48)
 	swatch.ZIndex = 59
 	swatch.Parent = row
 
-	local swatchCorner = Instance.new("UICorner")
-	swatchCorner.CornerRadius = UDim.new(0, 14)
-	swatchCorner.Parent = swatch
+	if isResource then
+		local swatchCorner = Instance.new("UICorner")
+		swatchCorner.CornerRadius = UDim.new(0, 6)
+		swatchCorner.Parent = swatch
+		swatch.Rotation = 45
+
+		local innerGem = Instance.new("Frame")
+		innerGem.BackgroundColor3 = swatchColor:Lerp(Color3.fromRGB(255, 255, 255), 0.4)
+		innerGem.BorderSizePixel = 0
+		innerGem.AnchorPoint = Vector2.new(0.5, 0.5)
+		innerGem.Position = UDim2.fromScale(0.5, 0.5)
+		innerGem.Size = UDim2.new(0, 22, 0, 22)
+		innerGem.ZIndex = 60
+		innerGem.Parent = swatch
+
+		local innerCorner = Instance.new("UICorner")
+		innerCorner.CornerRadius = UDim.new(0, 4)
+		innerCorner.Parent = innerGem
+	else
+		local swatchCorner = Instance.new("UICorner")
+		swatchCorner.CornerRadius = UDim.new(0.5, 0)
+		swatchCorner.Parent = swatch
+
+		local innerCircle = Instance.new("Frame")
+		innerCircle.BackgroundColor3 = swatchColor:Lerp(Color3.fromRGB(255, 255, 255), 0.35)
+		innerCircle.BorderSizePixel = 0
+		innerCircle.AnchorPoint = Vector2.new(0.5, 0.5)
+		innerCircle.Position = UDim2.fromScale(0.5, 0.5)
+		innerCircle.Size = UDim2.new(0, 24, 0, 24)
+		innerCircle.ZIndex = 60
+		innerCircle.Parent = swatch
+
+		local innerCircleCorner = Instance.new("UICorner")
+		innerCircleCorner.CornerRadius = UDim.new(0.5, 0)
+		innerCircleCorner.Parent = innerCircle
+	end
+
+	local typeBadge = Instance.new("TextLabel")
+	typeBadge.BackgroundColor3 = if isResource then Color3.fromRGB(210, 245, 225) else Color3.fromRGB(220, 215, 240)
+	typeBadge.BorderSizePixel = 0
+	typeBadge.Position = UDim2.new(0, 72, 0, 8)
+	typeBadge.Size = UDim2.new(0, if isResource then 66 else 54, 0, 18)
+	typeBadge.Font = Enum.Font.GothamBold
+	typeBadge.Text = if isResource then "RESOURCE" else "GEODE"
+	typeBadge.TextColor3 = if isResource then Color3.fromRGB(36, 100, 60) else Color3.fromRGB(70, 50, 110)
+	typeBadge.TextSize = 10
+	typeBadge.ZIndex = 59
+	typeBadge.Parent = row
+
+	local typeBadgeCorner = Instance.new("UICorner")
+	typeBadgeCorner.CornerRadius = UDim.new(0, 6)
+	typeBadgeCorner.Parent = typeBadge
 
 	local title = Instance.new("TextLabel")
 	title.BackgroundTransparency = 1
-	title.Position = UDim2.new(0, 72, 0, 10)
-	title.Size = UDim2.new(1, -220, 0, 30)
+	title.Position = UDim2.new(0, 72, 0, 28)
+	title.Size = UDim2.new(1, -220, 0, 24)
 	title.Font = Enum.Font.FredokaOne
 	title.Text = titleText
 	title.TextColor3 = Color3.fromRGB(71, 48, 20)
-	title.TextSize = 22
+	title.TextSize = 20
 	title.TextXAlignment = Enum.TextXAlignment.Left
 	title.TextTruncate = Enum.TextTruncate.AtEnd
 	title.ZIndex = 59
@@ -58,12 +124,12 @@ local function createRow(parent, titleText, detailText, tint, layoutOrder)
 
 	local detail = Instance.new("TextLabel")
 	detail.BackgroundTransparency = 1
-	detail.Position = UDim2.new(0, 72, 0, 43)
-	detail.Size = UDim2.new(1, -220, 0, 36)
+	detail.Position = UDim2.new(0, 72, 0, 53)
+	detail.Size = UDim2.new(1, -220, 0, 30)
 	detail.Font = Enum.Font.GothamBold
 	detail.Text = detailText
 	detail.TextColor3 = Color3.fromRGB(112, 84, 45)
-	detail.TextSize = 14
+	detail.TextSize = 13
 	detail.TextWrapped = true
 	detail.TextXAlignment = Enum.TextXAlignment.Left
 	detail.ZIndex = 59
@@ -107,6 +173,14 @@ local function getResourceLabel(resource)
 	return displayName
 end
 
+local function getSizeDetail(item)
+	if type(item) ~= "table" then
+		return "Size: Medium (1.00x)"
+	end
+
+	return "Size: " .. SizeRules.getDisplayText(item.sizeId, item.sizeValue)
+end
+
 function VaultController.new(context)
 	return setmetatable({
 		context = context or {},
@@ -130,10 +204,15 @@ function VaultController:start()
 					kind = "geode",
 					id = geode.id,
 					title = getGeodeLabel(geode),
-					detail = if geode.placement ~= nil then "On plot. Crack it when ready or sell it." else "In Vault. Place it or sell it.",
+					detail = string.format(
+						"%s %s",
+						getSizeDetail(geode),
+						if geode.placement ~= nil then "On plot. Crack it when ready or sell it." else "In Vault. Place it or sell it."
+					),
 					tint = definition and definition.displayColor or Color3.fromRGB(180, 190, 210),
 					canPlace = geode.placement == nil,
 					sellValue = VaultMath.getGeodeSellValue(definition),
+					resourceTypeId = nil,
 				})
 			end
 		end
@@ -143,14 +222,20 @@ function VaultController:start()
 			if resource ~= nil then
 				local definition = Resources[resource.resourceTypeId]
 				local trait = Traits[resource.traitId or "none"] or Traits.none
+				local sizeDefinition = SizeRules.resolveDefinition(resource.sizeId, resource.sizeValue)
 				table.insert(rows, {
 					kind = "resource",
 					id = resource.id,
 					title = getResourceLabel(resource),
-					detail = if resource.placement ~= nil then "On plot. Sell it anytime." else "In Vault. Place it or sell it.",
+					detail = string.format(
+						"%s %s",
+						getSizeDetail(resource),
+						if resource.placement ~= nil then "On plot. Sell it anytime." else "In Vault. Place it or sell it."
+					),
 					tint = definition and definition.color or Color3.fromRGB(240, 240, 255),
 					canPlace = resource.placement == nil and resource.stationId == nil,
-					sellValue = VaultMath.getResourceSellValue(definition, trait),
+					sellValue = VaultMath.getResourceSellValue(definition, trait, sizeDefinition),
+					resourceTypeId = resource.resourceTypeId,
 				})
 			end
 		end
@@ -182,7 +267,9 @@ function VaultController:start()
 				rowData.title,
 				string.format("%s Sell: %d coins", rowData.detail, rowData.sellValue),
 				rowData.tint,
-				index
+				index,
+				rowData.kind,
+				rowData.resourceTypeId
 			)
 
 			local place = createActionButton(row, "Place", Color3.fromRGB(122, 231, 184), -174)

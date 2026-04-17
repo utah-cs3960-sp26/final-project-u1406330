@@ -4,6 +4,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
 local MiningRewards = require(Shared.Domain.MiningRewards)
+local PickaxeRules = require(Shared.Domain.PickaxeRules)
 local Pickaxes = require(Shared.Config.Pickaxes)
 
 local MiningService = {}
@@ -51,10 +52,11 @@ end
 
 local function ensurePickaxeState(profile)
 	profile.inventory.pickaxes = profile.inventory.pickaxes or {}
-	profile.inventory.pickaxes.stone_pickaxe = true
-	if profile.progression.equippedPickaxeId == nil or profile.inventory.pickaxes[profile.progression.equippedPickaxeId] ~= true then
-		profile.progression.equippedPickaxeId = "stone_pickaxe"
-	end
+	profile.inventory.pickaxes, profile.progression.equippedPickaxeId = PickaxeRules.normalizeOwnedPickaxes(
+		profile.inventory.pickaxes,
+		profile.progression.equippedPickaxeId
+	)
+	return profile.progression.equippedPickaxeId
 end
 
 function MiningService.new(dependencies)
@@ -95,9 +97,12 @@ function MiningService:buyPickaxe(userId, pickaxeId)
 
 	local result
 	local _, mutateError = playerData:mutateProfile(userId, function(currentProfile)
-		ensurePickaxeState(currentProfile)
+		local currentPickaxeId = ensurePickaxeState(currentProfile)
 		if currentProfile.inventory.pickaxes[pickaxeId] == true then
 			return nil, "pickaxe_already_owned"
+		end
+		if not PickaxeRules.isStrictUpgrade(currentPickaxeId, pickaxeId) then
+			return nil, "pickaxe_not_upgrade"
 		end
 
 		local spent, spendError = spendCurrency(currentProfile, pickaxeDefinition.currency, pickaxeDefinition.price)
@@ -105,7 +110,9 @@ function MiningService:buyPickaxe(userId, pickaxeId)
 			return nil, spendError
 		end
 
-		currentProfile.inventory.pickaxes[pickaxeId] = true
+		currentProfile.inventory.pickaxes = {
+			[pickaxeId] = true,
+		}
 		currentProfile.progression.equippedPickaxeId = pickaxeId
 
 		result = {

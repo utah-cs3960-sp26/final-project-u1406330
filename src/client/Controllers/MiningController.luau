@@ -236,10 +236,6 @@ function MiningController:start()
 
 		local equippedTool, pickaxeId = getEquippedPickaxeTool()
 		if equippedTool == nil then
-			app:setStatus("Equip a pickaxe before mining.")
-			if screen ~= nil and screen.showMiningPopup ~= nil then
-				screen:showMiningPopup("Equip a pickaxe")
-			end
 			return
 		end
 		playPickaxeSwing(equippedTool)
@@ -254,60 +250,24 @@ function MiningController:start()
 			local rewardText = nil
 			local rewardPopup = nil
 			if type(result.coins) == "number" and result.coins > 0 then
-				rewardText = string.format("Found %d coins in the mine.", math.floor(result.coins + 0.5))
+				local coinAmount = math.floor(result.coins + 0.5)
+				rewardText = string.format("+%d Coins", coinAmount)
 				rewardPopup = {
 					kind = "coin",
-					headline = "COINS!",
+					headline = rewardText,
 					primary = rewardText,
 					duration = 0.8,
 					compact = true,
 				}
-			elseif type(result.geodeDisplayName) == "string" then
-				rewardText = string.format("Unearthed %s.", tostring(result.geodeDisplayName))
+			elseif type(result.geodeDisplayName) == "string" or type(result.geodeTypeId) == "string" then
+				local displayName = result.geodeDisplayName or result.geodeTypeId
+				rewardText = string.format("Unearthed %s.", tostring(displayName))
 				rewardPopup = getGeodeCelebrationInfo(result.geodeTypeId, result.geodeDisplayName)
-				rewardPopup.kind = "geode"
-				rewardPopup.headline = "GEODE!"
+				rewardPopup.kind = "geode_discovery"
+				rewardPopup.headline = "GEODE FOUND!"
 				rewardPopup.primary = rewardPopup.geodeDisplayName
-				if rewardPopup.rarityIndex > 1 then
-					rewardPopup.detail = "The reel is spinning up!"
-					rewardPopup.showSlotMachine = true
-					rewardPopup.reelValues = {
-						rewardPopup.rarityLabel,
-						rewardPopup.geodeDisplayName,
-						"BIG DROP",
-					}
-				else
-					rewardPopup.detail = "A fresh geode clinks in the bag."
-					rewardPopup.showSlotMachine = false
-					rewardPopup.reelValues = {
-						rewardPopup.rarityLabel,
-						rewardPopup.geodeDisplayName,
-						"SMALL WIN",
-					}
-				end
-			elseif type(result.geodeTypeId) == "string" then
-				rewardText = string.format("Unearthed %s.", tostring(result.geodeTypeId))
-				rewardPopup = getGeodeCelebrationInfo(result.geodeTypeId, result.geodeDisplayName)
-				rewardPopup.kind = "geode"
-				rewardPopup.headline = "GEODE!"
-				rewardPopup.primary = rewardPopup.geodeDisplayName
-				if rewardPopup.rarityIndex > 1 then
-					rewardPopup.detail = "The reel is spinning up!"
-					rewardPopup.showSlotMachine = true
-					rewardPopup.reelValues = {
-						rewardPopup.rarityLabel,
-						rewardPopup.geodeDisplayName,
-						"BIG DROP",
-					}
-				else
-					rewardPopup.detail = "A fresh geode clinks in the bag."
-					rewardPopup.showSlotMachine = false
-					rewardPopup.reelValues = {
-						rewardPopup.rarityLabel,
-						rewardPopup.geodeDisplayName,
-						"SMALL WIN",
-					}
-				end
+				rewardPopup.showSlotMachine = false
+				rewardPopup.detail = rewardPopup.rarityLabel
 			elseif type(result.rewardText) == "string" then
 				rewardText = tostring(result.rewardText)
 			end

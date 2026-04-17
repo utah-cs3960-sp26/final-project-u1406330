@@ -6,10 +6,16 @@ local Workspace = game:GetService("Workspace")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
 local Resources = require(Shared.Config.Resources)
+local ResourceVisuals = require(Shared.Domain.ResourceVisuals)
+local SizeRules = require(Shared.Domain.SizeRules)
 local World = require(Shared.Config.World)
 
 local ResourcePlacementGhost = {}
 ResourcePlacementGhost.__index = ResourcePlacementGhost
+
+local function getPreviewHeightOffset(rootPartHeight: number): number
+	return (World.plotBaseSize.height / 2) + (rootPartHeight / 2)
+end
 
 local function getPlotBase(plotModel: Model): BasePart?
 	local plotBase = plotModel:FindFirstChild("PlotBase")
@@ -54,30 +60,36 @@ function ResourcePlacementGhost.new()
 		part = part,
 		label = label,
 		resourceTypeId = nil,
+		sizeId = nil,
+		sizeValue = nil,
 		footprintWidth = 1,
 		footprintHeight = 1,
 		visible = false,
 	}, ResourcePlacementGhost)
 end
 
-function ResourcePlacementGhost:setResourceTypeId(resourceTypeId: string?)
-	if self.resourceTypeId == resourceTypeId then
+function ResourcePlacementGhost:setResourceTypeId(resourceTypeId: string?, sizeId: string?, sizeValue: number?)
+	if self.resourceTypeId == resourceTypeId and self.sizeId == sizeId and self.sizeValue == sizeValue then
 		return
 	end
 
 	self.resourceTypeId = resourceTypeId
+	self.sizeId = sizeId
+	self.sizeValue = sizeValue
 	local definition = if resourceTypeId ~= nil then Resources[resourceTypeId] else nil
+	local rootSize = ResourceVisuals.getPlacedRootSize(sizeId, sizeValue)
 	if definition ~= nil then
 		self.footprintWidth = definition.gridSize and definition.gridSize.width or 1
 		self.footprintHeight = definition.gridSize and definition.gridSize.height or 1
 		self.part.Color = definition.color or Color3.fromRGB(240, 240, 255)
-		self.label.Text = definition.displayName or "Treasure"
+		self.label.Text = string.format("%s %s", SizeRules.getDisplayName(sizeId, sizeValue), definition.displayName or "Treasure")
 	else
 		self.footprintWidth = 1
 		self.footprintHeight = 1
 		self.part.Color = Color3.fromRGB(240, 240, 255)
 		self.label.Text = "Treasure"
 	end
+	self.part.Size = rootSize
 end
 
 function ResourcePlacementGhost:getSnappedCell(plotModel: Model, hitPosition: Vector3): (number?, number?, Vector3?)
@@ -105,7 +117,7 @@ function ResourcePlacementGhost:getSnappedCell(plotModel: Model, hitPosition: Ve
 	local gridOriginZ = plotBase.Position.Z - ((World.plotGridHeight * World.cellSize) / 2) + (World.cellSize / 2)
 	local worldPosition = Vector3.new(
 		gridOriginX + ((cellX - 1) * World.cellSize) + (((self.footprintWidth - 1) * World.cellSize) / 2),
-		plotBase.Position.Y + 3,
+		plotBase.Position.Y + getPreviewHeightOffset(self.part.Size.Y),
 		gridOriginZ + ((cellY - 1) * World.cellSize) + (((self.footprintHeight - 1) * World.cellSize) / 2)
 	)
 

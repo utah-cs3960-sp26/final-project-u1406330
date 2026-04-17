@@ -5,6 +5,8 @@ local GeodeState = {}
 export type GeodeInstance = {
 	id: string,
 	geodeTypeId: string,
+	sizeId: string?,
+	sizeValue: number?,
 	status: string,
 	startedAt: number,
 	endsAt: number,
@@ -43,10 +45,12 @@ local function resolveStatus(instance: GeodeInstance, nowUnix: number?)
 	return status
 end
 
-function GeodeState.createInstance(id: string, geodeTypeId: string, nowUnix: number, geodeSeconds: number): GeodeInstance
+function GeodeState.createInstance(id: string, geodeTypeId: string, nowUnix: number, geodeSeconds: number, sizeId: string?, sizeValue: number?): GeodeInstance
 	return {
 		id = id,
 		geodeTypeId = geodeTypeId,
+		sizeId = sizeId or nil,
+		sizeValue = sizeValue or nil,
 		status = "queued",
 		startedAt = nowUnix,
 		endsAt = nowUnix + geodeSeconds,
@@ -98,6 +102,8 @@ function GeodeState.migrateLegacyQueue(profile)
 			profile.geodesById[geodeInstanceId] = {
 				id = geodeInstanceId,
 				geodeTypeId = legacyEntry.geodeId,
+				sizeId = nil,
+				sizeValue = nil,
 				status = legacyEntry.status or "queued",
 				startedAt = legacyEntry.startedAt or 0,
 				endsAt = legacyEntry.endsAt or 0,

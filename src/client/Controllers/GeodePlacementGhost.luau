@@ -6,6 +6,7 @@ local Workspace = game:GetService("Workspace")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
 local Geodes = require(Shared.Config.Geodes)
+local SizeRules = require(Shared.Domain.SizeRules)
 local World = require(Shared.Config.World)
 
 local GeodePlacementGhost = {}
@@ -81,28 +82,34 @@ function GeodePlacementGhost.new()
 		model = model,
 		core = core,
 		label = label,
+		prompt = prompt,
 		shell = shell,
 		geodeTypeId = nil,
+		sizeId = nil,
+		sizeValue = nil,
 		footprintWidth = 2,
 		footprintHeight = 2,
 		visible = false,
 	}, GeodePlacementGhost)
 end
 
-function GeodePlacementGhost:setGeodeTypeId(geodeTypeId: string?)
-	if self.geodeTypeId == geodeTypeId then
+function GeodePlacementGhost:setGeodeTypeId(geodeTypeId: string?, sizeId: string?, sizeValue: number?)
+	if self.geodeTypeId == geodeTypeId and self.sizeId == sizeId and self.sizeValue == sizeValue then
 		return
 	end
 
 	self.geodeTypeId = geodeTypeId
+	self.sizeId = sizeId
+	self.sizeValue = sizeValue
 
 	local definition = getGeodeDefinition(geodeTypeId)
+	local scaleValue = SizeRules.getScaleValue(sizeId, sizeValue)
 	if definition ~= nil then
 		self.footprintWidth = definition.gridSize and definition.gridSize.width or 2
 		self.footprintHeight = definition.gridSize and definition.gridSize.height or 2
 		self.core.Color = definition.displayColor or Color3.fromRGB(240, 240, 255)
 		self.shell.Color = definition.displayColor or Color3.fromRGB(205, 210, 224)
-		self.label.Text = definition.displayName or "Geode"
+		self.label.Text = string.format("%s %s", SizeRules.getDisplayName(sizeId, sizeValue), definition.displayName or "Geode")
 	else
 		self.footprintWidth = 2
 		self.footprintHeight = 2
@@ -110,6 +117,10 @@ function GeodePlacementGhost:setGeodeTypeId(geodeTypeId: string?)
 		self.shell.Color = Color3.fromRGB(205, 210, 224)
 		self.label.Text = "Geode"
 	end
+
+	self.shell.Size = Vector3.new(4.5, 4.5, 4.5) * scaleValue
+	self.core.Size = Vector3.new(3.2, 3.2, 3.2) * scaleValue
+	self.prompt.StudsOffset = Vector3.new(0, 2.4 + scaleValue, 0)
 end
 
 function GeodePlacementGhost:getSnappedCell(plotModel: Model, hitPosition: Vector3): (number?, number?, Vector3?)
@@ -137,7 +148,7 @@ function GeodePlacementGhost:getSnappedCell(plotModel: Model, hitPosition: Vecto
 	local gridOriginZ = plotBase.Position.Z - ((World.plotGridHeight * World.cellSize) / 2) + (World.cellSize / 2)
 	local worldPosition = Vector3.new(
 		gridOriginX + ((cellX - 1) * World.cellSize) + (((self.footprintWidth - 1) * World.cellSize) / 2),
-		plotBase.Position.Y + 3.25,
+		plotBase.Position.Y + (plotBase.Size.Y / 2) + (self.shell.Size.Y / 2),
 		gridOriginZ + ((cellY - 1) * World.cellSize) + (((self.footprintHeight - 1) * World.cellSize) / 2)
 	)
 
@@ -171,4 +182,3 @@ function GeodePlacementGhost:destroy()
 end
 
 return GeodePlacementGhost
-

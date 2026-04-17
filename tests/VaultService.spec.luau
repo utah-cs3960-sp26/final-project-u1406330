@@ -8,6 +8,7 @@ local Server = ServerScriptService:WaitForChild("Server")
 
 local PlayerProfile = require(Shared.Types.PlayerProfile)
 local GeodeState = require(Shared.Domain.GeodeState)
+local SizeRules = require(Shared.Domain.SizeRules)
 local PlacementService = require(Server.Services.PlacementService)
 local VaultService = require(Server.Services.VaultService)
 
@@ -15,7 +16,7 @@ return function()
 	local profile = PlayerProfile.new(100)
 	profile.plotState.plotId = "plot_1"
 
-	local geode = GeodeState.createInstance("geode_a", "starter_geode", 100, 10)
+	local geode = GeodeState.createInstance("geode_a", "starter_geode", 100, 10, "huge", 1.52)
 	profile.geodesById[geode.id] = geode
 	table.insert(profile.geodeOrder, geode.id)
 	profile.inventory.geodes.starter_geode = 1
@@ -24,6 +25,8 @@ return function()
 		id = "resource_a",
 		resourceTypeId = "quartz",
 		traitId = "none",
+		sizeId = "huge",
+		sizeValue = 1.52,
 		level = 1,
 		stationId = nil,
 		obtainedAt = 100,
@@ -54,6 +57,8 @@ return function()
 		id = "resource_b",
 		resourceTypeId = "amethyst",
 		traitId = "none",
+		sizeId = "tiny",
+		sizeValue = SizeRules.getScaleValue("tiny", nil),
 		level = 1,
 		stationId = "station_a",
 		obtainedAt = 100,
@@ -70,8 +75,9 @@ return function()
 	assert(profile.inventory.geodes.starter_geode == 0, "selling a geode should update vault counts")
 	assert(profile.currencies.coins == 280, "selling a starter geode should award configured coins")
 
+	assert(service:getResourceSellValue(profile.resourcesById.resource_a) == 43, "resource sell previews should include resolved size categories")
 	local soldResource = service:sellResource(1, "resource_a")
 	assert(soldResource ~= nil, "placed resources should be sellable")
 	assert(profile.resourcesById.resource_a == nil, "selling a resource should remove it from owned resources")
-	assert(profile.currencies.coins == 305, "selling quartz should award configured coins")
+	assert(profile.currencies.coins == 323, "selling quartz should award configured coins including size")
 end

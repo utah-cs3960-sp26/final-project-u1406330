@@ -6,6 +6,7 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Server = ServerScriptService:WaitForChild("Server")
 
+local Pickaxes = require(Shared.Config.Pickaxes)
 local PlayerProfile = require(Shared.Types.PlayerProfile)
 local MiningService = require(Server.Services.MiningService)
 local GeodeService = require(Server.Services.GeodeService)
@@ -22,6 +23,16 @@ local function makeRng(numberRoll: number, integerRoll: number)
 	end
 
 	return rng
+end
+
+local function countOwnedPickaxes(profile)
+	local count = 0
+	for _, pickaxeId in ipairs(Pickaxes.order) do
+		if profile.inventory.pickaxes[pickaxeId] == true then
+			count += 1
+		end
+	end
+	return count
 end
 
 return function()
@@ -50,6 +61,7 @@ return function()
 	})
 
 	assert(profile.inventory.pickaxes.stone_pickaxe == true, "new profiles should start with a stone pickaxe")
+	assert(countOwnedPickaxes(profile) == 1, "new profiles should only own one pickaxe")
 
 	local coinResult = miningService:mine(1, "stone_pickaxe", 100, makeRng(0.99, 6))
 	assert(coinResult ~= nil, "stone pickaxe should mine successfully")
@@ -69,13 +81,43 @@ return function()
 	local buyResult = miningService:buyPickaxe(1, "copper_pickaxe")
 	assert(buyResult ~= nil, "buying an affordable pickaxe should succeed")
 	assert(profile.inventory.pickaxes.copper_pickaxe == true, "buying should mark the pickaxe owned")
+	assert(profile.inventory.pickaxes.stone_pickaxe ~= true, "buying an upgrade should replace the old pickaxe")
+	assert(countOwnedPickaxes(profile) == 1, "upgrades should leave only one owned pickaxe")
 	assert(profile.progression.equippedPickaxeId == "copper_pickaxe", "buying should equip the new pickaxe")
 
 	local duplicateResult, duplicateError = miningService:buyPickaxe(1, "copper_pickaxe")
 	assert(duplicateResult == nil and duplicateError == "pickaxe_already_owned", "duplicate pickaxe purchases should be rejected")
 
-	local equipResult = miningService:equipPickaxe(1, "stone_pickaxe")
-	assert(equipResult ~= nil, "owned pickaxes should be equippable")
-	assert(profile.progression.equippedPickaxeId == "stone_pickaxe", "equip should update profile state")
-	assert(notifyCount >= 4, "successful mining and pickaxe changes should notify profile listeners")
+	local oldEquipResult, oldEquipError = miningService:equipPickaxe(1, "stone_pickaxe")
+	assert(oldEquipResult == nil and oldEquipError == "pickaxe_not_owned", "replaced pickaxes should no longer be equippable")
+
+	local downgradeResult, downgradeError = miningService:buyPickaxe(1, "stone_pickaxe")
+	assert(downgradeResult == nil and downgradeError == "pickaxe_not_upgrade", "lower-tier pickaxe purchases should be rejected")
+
+	profile.currencies.coins = 999
+	local secondUpgradeResult = miningService:buyPickaxe(1, "iron_pickaxe")
+	assert(secondUpgradeResult ~= nil, "later upgrades should still succeed")
+	assert(profile.inventory.pickaxes.iron_pickaxe == true, "the newer upgrade should become the owned pickaxe")
+	assert(profile.inventory.pickaxes.copper_pickaxe ~= true, "the previous pickaxe should be removed on the next upgrade")
+	assert(countOwnedPickaxes(profile) == 1, "replacement should continue to enforce a single owned pickaxe")
+	assert(profile.progression.equippedPickaxeId == "iron_pickaxe", "the newest upgrade should stay equipped")
+
+	local migratedProfile = PlayerProfile.reconcile({
+		inventory = {
+			pickaxes = {
+				stone_pickaxe = true,
+				copper_pickaxe = true,
+				iron_pickaxe = true,
+			},
+		},
+		progression = {
+			equippedPickaxeId = "stone_pickaxe",
+		},
+	}, 200)
+	assert(migratedProfile.inventory.pickaxes.iron_pickaxe == true, "legacy profiles should keep their highest owned pickaxe")
+	assert(migratedProfile.inventory.pickaxes.stone_pickaxe ~= true, "legacy profiles should drop replaced pickaxes during reconcile")
+	assert(countOwnedPickaxes(migratedProfile) == 1, "legacy profiles should reconcile down to one owned pickaxe")
+	assert(migratedProfile.progression.equippedPickaxeId == "iron_pickaxe", "legacy profiles should equip the surviving pickaxe")
+
+	assert(notifyCount >= 5, "successful mining and pickaxe changes should notify profile listeners")
 end

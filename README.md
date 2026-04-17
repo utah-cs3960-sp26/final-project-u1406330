@@ -32,10 +32,18 @@ Historical planning notes live in [docs/archive](docs/archive). They are useful 
 ```text
 src/
   client/   Client bootstrap, controllers, HUD, mining input, placement input, and presentation.
+            Controllers/ has AppController, mining, placement, geode interaction, vault, shop,
+            HUD, sprint, notifications, and daily rewards controllers.
+            UI/ has Components/, Screens/, and Theme/ for panel layout and palette.
   server/   Server bootstrap, services, persistence, economy, mining, plots, and world replica.
+            Services/ includes 16 service modules covering player data, economy, mining, geodes,
+            geode queue, vault, placement, stations, pickaxe tools, shop, daily rewards, and offline.
+            Systems/ has RareAnnouncementSystem. Util/ has PickaxeModelBuilder.
   shared/   Config, deterministic domain modules, remote names, types, and utilities.
+            Config/ covers resources, geodes, pickaxes, traits, sizes, stations, economy, shops,
+            daily rewards, and world settings. Domain/ has 15 deterministic gameplay/presentation modules.
 
-tests/      Deterministic Luau specs for shared gameplay rules and server service behavior.
+tests/      21 Luau spec files for deterministic gameplay rules and server service behavior.
 docs/       Current docs plus archived historical planning notes.
 ```
 
@@ -51,7 +59,7 @@ Important entry points:
 - Shared 8-player cavern map with assigned plots.
 - Mine on a no-plot side of the world plate.
 - Pickaxe shop on the opposite end of the world plate.
-- Mock persistence with profile reconciliation.
+- Mock persistence with profile reconciliation (schema version 2; players start with 250 coins and 10 gems).
 - Large bottom-left coin counter and Vault button as the primary player-facing HUD.
 - Permanent one-time pickaxe purchases, all currently coin-priced.
 - Server-owned pickaxe Tools in Roblox `Backpack` and `StarterGear`.
@@ -62,12 +70,15 @@ Important entry points:
 - Grid placement for geodes, resources, and starter stations.
 - Timed geode lifecycle with ready-to-crack world interaction.
 - Weighted geode reward rolls and attribute-aware resource instances with independent attribute rarity.
-- Bubbly slot-machine style reward popups for uncommon-or-better mining/geode reveal outcomes.
-- Three procedural placed-resource visual families with rarity glow and attribute effects.
+- Numeric size values assigned to geodes when mined, resolved into Tiny/Small/Medium/Large/Huge/Colossal categories, carried over to resources on cracking, affecting visual scale and sell value.
+- Vault rows display size information for geodes and resources, and placement ghosts/world replicas use the resolved size for physical scale.
+- Rarity-scaled mining discovery popups plus staged geode cracking/resource reveal presentation with hidden-until-resolved resource and attribute labels.
+- Live countdown labels above cracking geodes until they become ready to open.
+- Procedural placed-resource visuals across gemstone, cluster, artifact, ingot, and eldritch families, with rarity glow, attribute effects, and rolled size scaling.
 - Station assignment and passive income systems still exist, but cracked resources now enter the Vault first.
 - Online passive income and offline reward summaries.
 - Daily rewards, pickaxe shop rotation data, HUD panels, and rare reveal announcements.
-- Workspace replica for plots, geodes, placed resources, stations, displayed resources, the mine, and the pickaxe shop.
+- Workspace replica for plots, geodes, placed resources, stations, displayed resources, the mine, and the pickaxe shop. `GeodeQueueService` manages server-side geode queue lifecycle (distinct from `GeodeService`).
 
 ## Build And Verification
 
@@ -77,7 +88,7 @@ Build the Roblox place file with Rojo:
 rojo build default.project.json -o build-check.rbxlx
 ```
 
-The repo contains Luau specs under `tests/`, including coverage for economy math, geode lifecycle, placement rules, station assignment, offline math, shop rotation, mining rewards, mining service behavior, Vault math and service behavior, geode tool cleanup, shop catalog data, and remote names. A terminal-integrated test runner is not wired into this repo yet, so the specs are currently intended for Studio-side execution or a future runner setup.
+The repo contains 21 Luau spec files under `tests/`: EconomyMath, GeodeLifecycle, GeodePresentation, GeodeRoller, GeodeState, GeodeToolService, MiningRewards, MiningService, OfflineMath, PlacementRules, RemoteNames, Resources, ResourceVisuals, RewardPresentation, ShopCatalog, ShopRotation, SizeRoller, SizeRules, StationAssignment, VaultMath, and VaultService. A terminal-integrated test runner is not wired into this repo yet, so the specs are currently intended for Studio-side execution or a future runner setup.
 
 ## Working Notes
 

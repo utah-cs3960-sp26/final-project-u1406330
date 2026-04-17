@@ -25,6 +25,7 @@ local PlacementController = require(script.Parent.PlacementController)
 local DailyRewardsController = require(script.Parent.DailyRewardsController)
 local NotificationsController = require(script.Parent.NotificationsController)
 local VaultController = require(script.Parent.VaultController)
+local SprintController = require(script.Parent.SprintController)
 local Palette = require(script.Parent.Parent.UI.Theme.Palette)
 
 local AppController = {}
@@ -231,11 +232,7 @@ local function getResourceCelebrationSpec(resource)
 		else "Common"
 	local rarityIndex = RewardPresentation.getResourceCelebrationTier(resourceDefinition)
 	local traitId = if type(resource.traitId) == "string" then resource.traitId else "none"
-	local traitDefinition = Traits[traitId] or Traits.none
 	local displayName = if resourceDefinition ~= nil and resourceDefinition.displayName ~= nil then resourceDefinition.displayName else resourceTypeId
-	if traitDefinition ~= nil and traitDefinition.id ~= "none" then
-		displayName = string.format("%s %s", traitDefinition.displayName, displayName)
-	end
 
 	return {
 		kind = "resource",
@@ -247,11 +244,7 @@ local function getResourceCelebrationSpec(resource)
 		rarityLabel = rarityName,
 		rarityIndex = rarityIndex + 1,
 		accentColor = if resourceDefinition ~= nil then resourceDefinition.color else nil,
-		reelValues = {
-			rarityName,
-			displayName,
-			traitDefinition ~= nil and traitDefinition.id ~= "none" and traitDefinition.displayName or "Bonus",
-		},
+		reelFinal = displayName,
 		showSlotMachine = rarityIndex > 0,
 	}
 end
@@ -285,11 +278,7 @@ local function getAttributeCelebrationSpec(resource)
 		rarityIndex = traitRank + 1,
 		accentColor = traitDefinition.accentColor,
 		highlightColor = traitDefinition.glowColor,
-		reelValues = {
-			displayName,
-			string.upper(displayName),
-			string.format("x%.2f", multiplier),
-		},
+		reelFinal = displayName,
 		showSlotMachine = true,
 	}
 end
@@ -325,6 +314,7 @@ function AppController.new()
 		DailyRewardsController.new(context),
 		NotificationsController.new(context),
 		VaultController.new(context),
+		SprintController.new(context),
 	}
 
 	return self
@@ -374,11 +364,15 @@ function AppController:showOpenResultCelebrations(openResult)
 
 	for _, resource in ipairs(createdResources) do
 		local resourceCelebration = getResourceCelebrationSpec(resource)
+		local attributeCelebration = getAttributeCelebrationSpec(resource)
+
 		if resourceCelebration ~= nil then
+			if attributeCelebration ~= nil then
+				resourceCelebration.waitForClick = true
+			end
 			screen:showMiningPopup(resourceCelebration)
 		end
 
-		local attributeCelebration = getAttributeCelebrationSpec(resource)
 		if attributeCelebration ~= nil then
 			screen:showMiningPopup(attributeCelebration)
 		end
@@ -680,5 +674,4 @@ function AppController:start()
 end
 
 return AppController
-
 

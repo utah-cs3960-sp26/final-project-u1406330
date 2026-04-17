@@ -4,6 +4,7 @@ local ResourceTypes = require(script.Parent.ResourceTypes)
 local StationTypes = require(script.Parent.StationTypes)
 local GeodeTypes = require(script.Parent.GeodeTypes)
 local GeodeState = require(script.Parent.Parent.Domain.GeodeState)
+local PickaxeRules = require(script.Parent.Parent.Domain.PickaxeRules)
 local TableUtil = require(script.Parent.Parent.Util.TableUtil)
 
 export type ResourceInstance = ResourceTypes.ResourceInstance
@@ -133,10 +134,10 @@ end
 function PlayerProfile.reconcile(profile: any, nowUnix: number?): PlayerProfile
 	local timestamp = nowUnix or 0
 	local resolved = TableUtil.reconcile(createTemplate(timestamp), profile)
-	resolved.inventory.pickaxes.stone_pickaxe = true
-	if resolved.progression.equippedPickaxeId == nil or resolved.inventory.pickaxes[resolved.progression.equippedPickaxeId] ~= true then
-		resolved.progression.equippedPickaxeId = "stone_pickaxe"
-	end
+	resolved.inventory.pickaxes, resolved.progression.equippedPickaxeId = PickaxeRules.normalizeOwnedPickaxes(
+		resolved.inventory.pickaxes,
+		resolved.progression.equippedPickaxeId
+	)
 	GeodeState.migrateLegacyQueue(resolved)
 	resolved.geodeQueue = GeodeState.buildQueueEntries(resolved.geodesById, resolved.geodeOrder, timestamp)
 	resolved.meta.schemaVersion = PlayerProfile.SCHEMA_VERSION

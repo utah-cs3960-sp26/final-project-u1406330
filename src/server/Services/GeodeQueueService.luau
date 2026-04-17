@@ -128,7 +128,13 @@ function GeodeQueueService:claimEntries(profile, nowUnix, rng, geodeId, playerNa
 	for _, entry in ipairs(claimableEntries) do
 		local geodeInstance = profile.geodesById[entry.id]
 		if geodeInstance ~= nil then
-			local resource, errorCode = geodeService:createResourceInstance(geodeInstance.geodeTypeId, nowUnix, rng)
+			local resource, errorCode = geodeService:createResourceInstance(
+				geodeInstance.geodeTypeId,
+				nowUnix,
+				rng,
+				geodeInstance.sizeId,
+				geodeInstance.sizeValue
+			)
 			if resource ~= nil then
 				profile.resourcesById[resource.id] = resource
 				table.insert(profile.resourceOrder, resource.id)
@@ -176,5 +182,4 @@ function GeodeQueueService:start()
 end
 
 return GeodeQueueService
-
 
