@@ -1,5 +1,7 @@
 --!strict
 
+-- Shared utility module for Table Util that supports reusable deterministic helpers.
+
 local TableUtil = {}
 
 function TableUtil.shallowCopy<T>(input: T): T

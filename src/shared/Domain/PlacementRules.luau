@@ -1,8 +1,12 @@
 --!strict
 
+-- Deterministic shared rules for Placement Rules so gameplay behavior can be reused by the server, client presentation, and specs.
+
 local PlacementRules = {}
 
 local function cellKey(x: number, y: number)
+	-- Occupancy is stored as a flat dictionary because it is cheap to serialize, clone, and
+	-- diff compared with nested grid tables keyed by row and column.
 	return tostring(x) .. ":" .. tostring(y)
 end
 
@@ -52,6 +56,8 @@ function PlacementRules.getFootprintKeys(x: number, y: number, width: number, he
 end
 
 function PlacementRules.findFirstPlacement(plotSize: { width: number, height: number }, occupancy: { [string]: string }, width: number, height: number)
+	-- First-fit scanning keeps starter placements deterministic, which makes tests and
+	-- reconnect behavior much easier to reason about than randomized placement choices.
 	for y = 1, plotSize.height do
 		for x = 1, plotSize.width do
 			local canPlace = PlacementRules.canPlace(plotSize, occupancy, x, y, width, height)

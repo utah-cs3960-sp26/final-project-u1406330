@@ -1,5 +1,7 @@
 --!strict
 
+-- Static shared configuration for Pickaxes used by deterministic gameplay logic on both client and server.
+
 local geodeOrder = {
 	"starter_geode",
 	"crystal_cavern_geode",

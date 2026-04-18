@@ -1,5 +1,7 @@
 --!strict
 
+-- Shared utility module for Time that supports reusable deterministic helpers.
+
 local Time = {}
 
 function Time.nowUnix()

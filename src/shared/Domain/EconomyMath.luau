@@ -1,5 +1,7 @@
 --!strict
 
+-- Deterministic shared rules for Economy Math so gameplay behavior can be reused by the server, client presentation, and specs.
+
 local EconomyMath = {}
 
 function EconomyMath.getPrestigeMultiplier(prestigeCount: number, step: number, baseMultiplier: number?): number

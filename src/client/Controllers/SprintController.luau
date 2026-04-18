@@ -1,5 +1,7 @@
 --!strict
 
+-- Client controller for Sprint Controller that coordinates UI, local input, and app-state updates for this slice.
+
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 

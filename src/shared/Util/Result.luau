@@ -1,5 +1,7 @@
 --!strict
 
+-- Shared utility module for Result that supports reusable deterministic helpers.
+
 export type Result<T, E> = {
 	ok: true,
 	value: T,

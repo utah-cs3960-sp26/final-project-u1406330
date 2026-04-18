@@ -1,5 +1,7 @@
 --!strict
 
+-- Client controller for Geode Interaction Controller that coordinates UI, local input, and app-state updates for this slice.
+
 local Debris = game:GetService("Debris")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")

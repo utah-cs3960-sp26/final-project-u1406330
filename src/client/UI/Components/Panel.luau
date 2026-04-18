@@ -1,5 +1,7 @@
 --!strict
 
+-- Reusable UI component module for Panel used by the HUD and screen layer.
+
 local Panel = {}
 
 local function applyStroke(parent: Instance, palette)

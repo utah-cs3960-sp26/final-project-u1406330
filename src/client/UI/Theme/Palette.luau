@@ -1,5 +1,7 @@
 --!strict
 
+-- Shared client theme module for Palette that keeps HUD styling consistent.
+
 local Palette = {
 	background = {
 		page = Color3.fromRGB(14, 12, 24),

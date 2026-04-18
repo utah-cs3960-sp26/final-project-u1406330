@@ -24,8 +24,17 @@ Before and after implementation, ask:
 - Read [docs/gem_factory_design.md](docs/gem_factory_design.md) when changing product behavior or terminology.
 - Update [docs/current_state.md](docs/current_state.md) after meaningful implementation changes.
 - Update [README.md](README.md) or [docs/README.md](docs/README.md) only when project navigation, setup, or high-level context changes.
+- Keep comments current when touching code so future agents can follow ownership, data flow, and tricky state transitions without re-deriving intent from scratch.
 - Clean up dead code introduced by the change.
 - Add focused tests when touching deterministic gameplay logic.
+
+## Commenting Expectations
+
+- Comment code for future agents, not just for the current task.
+- Add a short file-level comment to non-trivial modules describing what the module owns and where it fits in the client, server, or shared architecture.
+- Add brief inline comments around logic that is easy to misread later: profile mutation boundaries, replicated-world projection, placement math, lifecycle state transitions, and reward or offline calculations.
+- Do not add noisy comments that only restate syntax or obvious assignments.
+- When you touch an older module that lacks context, improve the surrounding comments as part of the change.
 
 ## Feature Implementation Process
 

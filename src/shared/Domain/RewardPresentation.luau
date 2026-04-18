@@ -1,5 +1,7 @@
 --!strict
 
+-- Deterministic shared rules for Reward Presentation so gameplay behavior can be reused by the server, client presentation, and specs.
+
 local RewardPresentation = {}
 
 local RarityRanks = {

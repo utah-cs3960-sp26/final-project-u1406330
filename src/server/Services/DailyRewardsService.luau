@@ -1,5 +1,7 @@
 --!strict
 
+-- Server-authoritative service for Daily Rewards Service that validates requests and mutates gameplay state for this system.
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 

@@ -1,5 +1,7 @@
 --!strict
 
+-- Static shared configuration for World used by deterministic gameplay logic on both client and server.
+
 local World = {
 	plotGridWidth = 16,
 	plotGridHeight = 16,

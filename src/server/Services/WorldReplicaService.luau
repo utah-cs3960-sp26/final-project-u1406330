@@ -1,5 +1,7 @@
 --!strict
 
+-- Server-authoritative service for World Replica Service that validates requests and mutates gameplay state for this system.
+
 local Workspace = game:GetService("Workspace")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")

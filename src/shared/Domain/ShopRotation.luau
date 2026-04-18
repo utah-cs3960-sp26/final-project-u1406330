@@ -1,5 +1,7 @@
 --!strict
 
+-- Deterministic shared rules for Shop Rotation so gameplay behavior can be reused by the server, client presentation, and specs.
+
 local ShopRotation = {}
 
 function ShopRotation.getHourlyIndex(nowUnix: number, offerCount: number)

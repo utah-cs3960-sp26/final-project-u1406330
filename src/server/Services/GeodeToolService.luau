@@ -1,5 +1,7 @@
 --!strict
 
+-- Server-authoritative service for Geode Tool Service that validates requests and mutates gameplay state for this system.
+
 local Players = game:GetService("Players")
 local GeodeToolService = {}
 GeodeToolService.__index = GeodeToolService

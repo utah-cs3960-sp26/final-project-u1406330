@@ -1,5 +1,7 @@
 --!strict
 
+-- Static shared configuration for Geodes used by deterministic gameplay logic on both client and server.
+
 local function makeRoll(resourceId: string, weight: number)
 	return {
 		resourceId = resourceId,

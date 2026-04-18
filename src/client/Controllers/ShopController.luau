@@ -1,5 +1,7 @@
 --!strict
 
+-- Client controller for Shop Controller that coordinates UI, local input, and app-state updates for this slice.
+
 local ProximityPromptService = game:GetService("ProximityPromptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 

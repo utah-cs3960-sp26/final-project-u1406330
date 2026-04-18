@@ -1,5 +1,7 @@
 --!strict
 
+-- Deterministic shared rules for Geode Roller so gameplay behavior can be reused by the server, client presentation, and specs.
+
 local GeodeRoller = {}
 
 function GeodeRoller.getTotalWeight(entries: { any }): number

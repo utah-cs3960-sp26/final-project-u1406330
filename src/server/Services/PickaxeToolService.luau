@@ -1,5 +1,7 @@
 --!strict
 
+-- Server-authoritative service for Pickaxe Tool Service that validates requests and mutates gameplay state for this system.
+
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")

@@ -1,5 +1,7 @@
 --!strict
 
+-- Deterministic shared rules for Vault Math so gameplay behavior can be reused by the server, client presentation, and specs.
+
 local RewardPresentation = require(script.Parent.RewardPresentation)
 
 local VaultMath = {}

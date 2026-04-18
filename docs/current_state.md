@@ -4,7 +4,7 @@
 
 Gem Factory is at a mine-first MVP stage in Roblox Studio. The current early loop is mine-first: players equip a pickaxe, click inside the mine to earn either coins or geodes, open the Vault to place or sell owned geodes, wait for placed geodes to finish, crack ready geodes in the world, store revealed resources in the Vault, and either place or sell those resources.
 
-The project is still a prototype. The backend gameplay slice is more complete than the presentation layer, and persistence is still mocked for development.
+The project is still a prototype. The backend gameplay slice is more complete than the presentation layer, persistence is still mocked for development, and the repo is being documented for agent-friendly maintenance through synchronized docs plus concise module comments in the Luau source tree.
 
 ## What Works
 
@@ -117,6 +117,7 @@ The project is still a prototype. The backend gameplay slice is more complete th
 - Client UI is organized under `UI/Components/Panel.luau`, `UI/Screens/RootScreen.luau`, and `UI/Theme/Palette.luau`.
 - `SprintController` (`src/client/Controllers/`) manages Left Shift sprint behavior.
 - `NotificationsController` (`src/client/Controllers/`) drives center-screen action popups for rewards and prompts.
+- Non-trivial Luau modules are expected to carry short purpose comments so future agents can identify ownership and trace data flow without re-reading the entire repo first.
 - Workspace objects are a projection of authoritative state, not the source of truth.
 - Mining rewards are rolled on the server; the client only requests mining after a local mine-target click.
 - Vault sell and placement requests are validated by the server before profile mutation.

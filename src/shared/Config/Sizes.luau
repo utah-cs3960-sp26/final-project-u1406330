@@ -1,5 +1,7 @@
 --!strict
 
+-- Static shared configuration for Sizes used by deterministic gameplay logic on both client and server.
+
 local Sizes = {
 	tiny = {
 		id = "tiny",

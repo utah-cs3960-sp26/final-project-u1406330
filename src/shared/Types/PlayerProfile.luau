@@ -1,5 +1,7 @@
 --!strict
 
+-- Shared type definitions for Player Profile so profile, item, and world data stay consistent across modules.
+
 local ResourceTypes = require(script.Parent.ResourceTypes)
 local StationTypes = require(script.Parent.StationTypes)
 local GeodeTypes = require(script.Parent.GeodeTypes)

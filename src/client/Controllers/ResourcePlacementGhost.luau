@@ -1,5 +1,7 @@
 --!strict
 
+-- Client controller for Resource Placement Ghost that coordinates UI, local input, and app-state updates for this slice.
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 

@@ -1,5 +1,7 @@
 --!strict
 
+-- Static shared configuration for Stations used by deterministic gameplay logic on both client and server.
+
 local Stations = {
 	crystal_display_t1 = {
 		id = "crystal_display_t1",

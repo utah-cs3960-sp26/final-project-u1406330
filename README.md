@@ -2,7 +2,7 @@
 
 Gem Factory is a Roblox idle progression prototype built with Rojo and Luau. The current game loop is about mining for coins and geodes, upgrading permanent pickaxes, using the Vault to place or sell geodes and resources, waiting for placed geodes to finish, cracking them open, and growing a personal cave plot.
 
-The project is intentionally small and testable right now. Server services own the authoritative gameplay state, shared modules hold deterministic rules and config, and client controllers handle HUD, placement input, mining input, and world presentation.
+The project is intentionally small and testable right now. Server services own the authoritative gameplay state, shared modules hold deterministic rules and config, and client controllers handle HUD, placement input, mining input, and world presentation. The source tree is also being kept agent-friendly: non-trivial modules should carry brief purpose comments so future contributors can trace intent quickly.
 
 ## Start Here
 
@@ -11,7 +11,7 @@ For the fastest context, read these in order:
 1. [docs/README.md](docs/README.md) - documentation map and what each doc is for.
 2. [docs/current_state.md](docs/current_state.md) - what works now, what is partial, and what should happen next.
 3. [docs/gem_factory_design.md](docs/gem_factory_design.md) - current product direction and design principles.
-4. [agents.md](agents.md) - collaboration rules for agent-assisted implementation.
+4. [agents.md](agents.md) - collaboration rules for agent-assisted implementation, including the repo's code-commenting expectations.
 
 Historical planning notes live in [docs/archive](docs/archive). They are useful for understanding where the project came from, but they should not be treated as the source of truth for the current implementation.
 
@@ -43,7 +43,7 @@ src/
             Config/ covers resources, geodes, pickaxes, traits, sizes, stations, economy, shops,
             daily rewards, and world settings. Domain/ has 15 deterministic gameplay/presentation modules.
 
-tests/      21 Luau spec files for deterministic gameplay rules and server service behavior.
+tests/      22 Luau spec files for deterministic gameplay rules and server service behavior.
 docs/       Current docs plus archived historical planning notes.
 ```
 
@@ -88,7 +88,7 @@ Build the Roblox place file with Rojo:
 rojo build default.project.json -o build-check.rbxlx
 ```
 
-The repo contains 21 Luau spec files under `tests/`: EconomyMath, GeodeLifecycle, GeodePresentation, GeodeRoller, GeodeState, GeodeToolService, MiningRewards, MiningService, OfflineMath, PlacementRules, RemoteNames, Resources, ResourceVisuals, RewardPresentation, ShopCatalog, ShopRotation, SizeRoller, SizeRules, StationAssignment, VaultMath, and VaultService. A terminal-integrated test runner is not wired into this repo yet, so the specs are currently intended for Studio-side execution or a future runner setup.
+The repo contains 22 Luau spec files under `tests/`: EconomyMath, GeodeLifecycle, GeodePresentation, GeodeRoller, GeodeState, GeodeToolService, MiningRewards, MiningService, OfflineMath, PlacementRules, RemoteNames, Resources, ResourceVisuals, RewardPresentation, ShopCatalog, ShopRotation, SizeRoller, SizeRules, StationAssignment, VaultMath, VaultService, and WorldLabelPresentation. A terminal-integrated test runner is not wired into this repo yet, so the specs are currently intended for Studio-side execution or a future runner setup.
 
 ## Working Notes
 
@@ -96,4 +96,5 @@ The repo contains 21 Luau spec files under `tests/`: EconomyMath, GeodeLifecycle
 - Treat [docs/gem_factory_design.md](docs/gem_factory_design.md) as the current product direction, not a promise that every listed future system exists.
 - Keep deterministic gameplay logic in `src/shared/Domain` whenever possible.
 - Keep server mutation authoritative; the client should request actions and render state.
+- Keep module comments and tricky-flow comments current so the codebase stays legible to future agents.
 - After gameplay changes, update docs that describe the affected loop or system.

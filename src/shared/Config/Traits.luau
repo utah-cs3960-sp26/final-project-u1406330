@@ -1,5 +1,7 @@
 --!strict
 
+-- Static shared configuration for Traits used by deterministic gameplay logic on both client and server.
+
 local Traits = {
 	none = {
 		id = "none",

@@ -1,5 +1,7 @@
 --!strict
 
+-- Static shared configuration for Resources used by deterministic gameplay logic on both client and server.
+
 local function makeResource(
 	id: string,
 	displayName: string,

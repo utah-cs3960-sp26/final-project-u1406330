@@ -1,5 +1,7 @@
 --!strict
 
+-- Shared networking module for Remote Names that defines or resolves the client-server remote contract.
+
 local RemoteNames = {
 	RequestBuyGeode = "RequestBuyGeode",
 	RequestMine = "RequestMine",

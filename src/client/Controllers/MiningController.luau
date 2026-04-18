@@ -1,5 +1,7 @@
 --!strict
 
+-- Client controller for Mining Controller that coordinates UI, local input, and app-state updates for this slice.
+
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")

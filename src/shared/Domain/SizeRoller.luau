@@ -1,5 +1,7 @@
 --!strict
 
+-- Deterministic shared rules for Size Roller so gameplay behavior can be reused by the server, client presentation, and specs.
+
 local SizeRoller = {}
 
 function SizeRoller.getTotalWeight(entries: { any }): number

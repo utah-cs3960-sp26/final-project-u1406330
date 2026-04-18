@@ -1,5 +1,7 @@
 --!strict
 
+-- Shared type definitions for Station Types so profile, item, and world data stay consistent across modules.
+
 export type GridPlacement = {
 	plotId: string?,
 	x: number,

@@ -30,6 +30,8 @@
             <string name="Name">DailyRewards</string>
             <string name="Source"><![CDATA[--!strict
 
+-- Static shared configuration for Daily Rewards used by deterministic gameplay logic on both client and server.
+
 local DailyRewards = {
 	streakResetHours = 48,
 	days = {
@@ -52,6 +54,8 @@ return DailyRewards
             <string name="Name">Economy</string>
             <string name="Source"><![CDATA[--!strict
 
+-- Static shared configuration for Economy used by deterministic gameplay logic on both client and server.
+
 local Economy = {
 	offlineCapSeconds = 60 * 60 * 12,
 	basePrestigeMultiplier = 1,
@@ -66,6 +70,8 @@ return Economy
           <Properties>
             <string name="Name">Geodes</string>
             <string name="Source"><![CDATA[--!strict
+
+-- Static shared configuration for Geodes used by deterministic gameplay logic on both client and server.
 
 local function makeRoll(resourceId: string, weight: number)
 	return {
@@ -288,6 +294,8 @@ return Geodes
             <string name="Name">Pickaxes</string>
             <string name="Source"><![CDATA[--!strict
 
+-- Static shared configuration for Pickaxes used by deterministic gameplay logic on both client and server.
+
 local geodeOrder = {
 	"starter_geode",
 	"crystal_cavern_geode",
@@ -498,6 +506,8 @@ return Pickaxes
             <string name="Name">Resources</string>
             <string name="Source"><![CDATA[--!strict
 
+-- Static shared configuration for Resources used by deterministic gameplay logic on both client and server.
+
 local function makeResource(
 	id: string,
 	displayName: string,
@@ -556,6 +566,8 @@ return Resources
           <Properties>
             <string name="Name">Shops</string>
             <string name="Source"><![CDATA[--!strict
+
+-- Static shared configuration for Shops used by deterministic gameplay logic on both client and server.
 
 local Pickaxes = require(script.Parent.Pickaxes)
 
@@ -630,6 +642,8 @@ return Shops
           <Properties>
             <string name="Name">Sizes</string>
             <string name="Source"><![CDATA[--!strict
+
+-- Static shared configuration for Sizes used by deterministic gameplay logic on both client and server.
 
 local Sizes = {
 	tiny = {
@@ -712,6 +726,8 @@ return Sizes
             <string name="Name">Stations</string>
             <string name="Source"><![CDATA[--!strict
 
+-- Static shared configuration for Stations used by deterministic gameplay logic on both client and server.
+
 local Stations = {
 	crystal_display_t1 = {
 		id = "crystal_display_t1",
@@ -739,6 +755,8 @@ return Stations
           <Properties>
             <string name="Name">Traits</string>
             <string name="Source"><![CDATA[--!strict
+
+-- Static shared configuration for Traits used by deterministic gameplay logic on both client and server.
 
 local Traits = {
 	none = {
@@ -931,6 +949,8 @@ return Traits
             <string name="Name">World</string>
             <string name="Source"><![CDATA[--!strict
 
+-- Static shared configuration for World used by deterministic gameplay logic on both client and server.
+
 local World = {
 	plotGridWidth = 16,
 	plotGridHeight = 16,
@@ -986,6 +1006,8 @@ return World
             <string name="Name">EconomyMath</string>
             <string name="Source"><![CDATA[--!strict
 
+-- Deterministic shared rules for Economy Math so gameplay behavior can be reused by the server, client presentation, and specs.
+
 local EconomyMath = {}
 
 function EconomyMath.getPrestigeMultiplier(prestigeCount: number, step: number, baseMultiplier: number?): number
@@ -1031,6 +1053,8 @@ return EconomyMath
           <Properties>
             <string name="Name">GeodePresentation</string>
             <string name="Source"><![CDATA[--!strict
+
+-- Deterministic shared rules for Geode Presentation so gameplay behavior can be reused by the server, client presentation, and specs.
 
 local GeodePresentation = {}
 
@@ -1084,6 +1108,8 @@ return GeodePresentation
           <Properties>
             <string name="Name">GeodeRoller</string>
             <string name="Source"><![CDATA[--!strict
+
+-- Deterministic shared rules for Geode Roller so gameplay behavior can be reused by the server, client presentation, and specs.
 
 local GeodeRoller = {}
 
@@ -1142,6 +1168,8 @@ return GeodeRoller
           <Properties>
             <string name="Name">GeodeState</string>
             <string name="Source"><![CDATA[--!strict
+
+-- Deterministic shared rules for Geode State so gameplay behavior can be reused by the server, client presentation, and specs.
 
 local GeodeState = {}
 
@@ -1296,6 +1324,8 @@ return GeodeState
             <string name="Name">MiningRewards</string>
             <string name="Source"><![CDATA[--!strict
 
+-- Deterministic shared rules for Mining Rewards so gameplay behavior can be reused by the server, client presentation, and specs.
+
 local MiningRewards = {}
 
 local function rollNumber(rng: any): number
@@ -1439,6 +1469,8 @@ return MiningRewards
             <string name="Name">OfflineMath</string>
             <string name="Source"><![CDATA[--!strict
 
+-- Deterministic shared rules for Offline Math so gameplay behavior can be reused by the server, client presentation, and specs.
+
 local EconomyMath = require(script.Parent.EconomyMath)
 
 local OfflineMath = {}
@@ -1471,6 +1503,8 @@ return OfflineMath
           <Properties>
             <string name="Name">PickaxeRules</string>
             <string name="Source"><![CDATA[--!strict
+
+-- Deterministic shared rules for Pickaxe Rules so gameplay behavior can be reused by the server, client presentation, and specs.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -1542,9 +1576,13 @@ return PickaxeRules
             <string name="Name">PlacementRules</string>
             <string name="Source"><![CDATA[--!strict
 
+-- Deterministic shared rules for Placement Rules so gameplay behavior can be reused by the server, client presentation, and specs.
+
 local PlacementRules = {}
 
 local function cellKey(x: number, y: number)
+	-- Occupancy is stored as a flat dictionary because it is cheap to serialize, clone, and
+	-- diff compared with nested grid tables keyed by row and column.
 	return tostring(x) .. ":" .. tostring(y)
 end
 
@@ -1594,6 +1632,8 @@ function PlacementRules.getFootprintKeys(x: number, y: number, width: number, he
 end
 
 function PlacementRules.findFirstPlacement(plotSize: { width: number, height: number }, occupancy: { [string]: string }, width: number, height: number)
+	-- First-fit scanning keeps starter placements deterministic, which makes tests and
+	-- reconnect behavior much easier to reason about than randomized placement choices.
 	for y = 1, plotSize.height do
 		for x = 1, plotSize.width do
 			local canPlace = PlacementRules.canPlace(plotSize, occupancy, x, y, width, height)
@@ -1625,6 +1665,8 @@ return PlacementRules
           <Properties>
             <string name="Name">ResourceVisuals</string>
             <string name="Source"><![CDATA[--!strict
+
+-- Deterministic shared rules for Resource Visuals so gameplay behavior can be reused by the server, client presentation, and specs.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -1843,6 +1885,8 @@ return ResourceVisuals
             <string name="Name">RewardPresentation</string>
             <string name="Source"><![CDATA[--!strict
 
+-- Deterministic shared rules for Reward Presentation so gameplay behavior can be reused by the server, client presentation, and specs.
+
 local RewardPresentation = {}
 
 local RarityRanks = {
@@ -1937,6 +1981,8 @@ return RewardPresentation
             <string name="Name">ShopRotation</string>
             <string name="Source"><![CDATA[--!strict
 
+-- Deterministic shared rules for Shop Rotation so gameplay behavior can be reused by the server, client presentation, and specs.
+
 local ShopRotation = {}
 
 function ShopRotation.getHourlyIndex(nowUnix: number, offerCount: number)
@@ -1968,6 +2014,8 @@ return ShopRotation
           <Properties>
             <string name="Name">SizeRoller</string>
             <string name="Source"><![CDATA[--!strict
+
+-- Deterministic shared rules for Size Roller so gameplay behavior can be reused by the server, client presentation, and specs.
 
 local SizeRoller = {}
 
@@ -2052,6 +2100,8 @@ return SizeRoller
           <Properties>
             <string name="Name">SizeRules</string>
             <string name="Source"><![CDATA[--!strict
+
+-- Deterministic shared rules for Size Rules so gameplay behavior can be reused by the server, client presentation, and specs.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -2176,6 +2226,8 @@ return SizeRules
           <Properties>
             <string name="Name">StationAssignment</string>
             <string name="Source"><![CDATA[--!strict
+
+-- Deterministic shared rules for Station Assignment so gameplay behavior can be reused by the server, client presentation, and specs.
 
 local StationAssignment = {}
 
@@ -2313,6 +2365,8 @@ return StationAssignment
             <string name="Name">TraitRoller</string>
             <string name="Source"><![CDATA[--!strict
 
+-- Deterministic shared rules for Trait Roller so gameplay behavior can be reused by the server, client presentation, and specs.
+
 local TraitRoller = {}
 
 function TraitRoller.getTotalWeight(entries: { any }): number
@@ -2370,6 +2424,8 @@ return TraitRoller
             <string name="Name">VaultMath</string>
             <string name="Source"><![CDATA[--!strict
 
+-- Deterministic shared rules for Vault Math so gameplay behavior can be reused by the server, client presentation, and specs.
+
 local RewardPresentation = require(script.Parent.RewardPresentation)
 
 local VaultMath = {}
@@ -2414,6 +2470,8 @@ return VaultMath
           <Properties>
             <string name="Name">WorldLabelPresentation</string>
             <string name="Source"><![CDATA[--!strict
+
+-- Deterministic shared rules for World Label Presentation so gameplay behavior can be reused by the server, client presentation, and specs.
 
 local WorldLabelPresentation = {}
 
@@ -2489,6 +2547,8 @@ return WorldLabelPresentation
             <string name="Name">RemoteNames</string>
             <string name="Source"><![CDATA[--!strict
 
+-- Shared networking module for Remote Names that defines or resolves the client-server remote contract.
+
 local RemoteNames = {
 	RequestBuyGeode = "RequestBuyGeode",
 	RequestMine = "RequestMine",
@@ -2521,6 +2581,8 @@ return RemoteNames
           <Properties>
             <string name="Name">Remotes</string>
             <string name="Source"><![CDATA[--!strict
+
+-- Shared networking module for Remotes that defines or resolves the client-server remote contract.
 
 local RemoteNames = require(script.Parent.RemoteNames)
 
@@ -2562,6 +2624,8 @@ return Remotes
             <string name="Name">GeodeTypes</string>
             <string name="Source"><![CDATA[--!strict
 
+-- Shared type definitions for Geode Types so profile, item, and world data stay consistent across modules.
+
 export type GridPlacement = {
 	plotId: string?,
 	x: number,
@@ -2590,6 +2654,8 @@ return {}
           <Properties>
             <string name="Name">PlayerProfile</string>
             <string name="Source"><![CDATA[--!strict
+
+-- Shared type definitions for Player Profile so profile, item, and world data stay consistent across modules.
 
 local ResourceTypes = require(script.Parent.ResourceTypes)
 local StationTypes = require(script.Parent.StationTypes)
@@ -2745,6 +2811,8 @@ return PlayerProfile
             <string name="Name">ResourceTypes</string>
             <string name="Source"><![CDATA[--!strict
 
+-- Shared type definitions for Resource Types so profile, item, and world data stay consistent across modules.
+
 export type ResourceInstance = {
 	id: string,
 	resourceTypeId: string,
@@ -2771,6 +2839,8 @@ return {}
           <Properties>
             <string name="Name">StationTypes</string>
             <string name="Source"><![CDATA[--!strict
+
+-- Shared type definitions for Station Types so profile, item, and world data stay consistent across modules.
 
 export type GridPlacement = {
 	plotId: string?,
@@ -2814,6 +2884,8 @@ return {}
             <string name="Name">Id</string>
             <string name="Source"><![CDATA[--!strict
 
+-- Shared utility module for Id that supports reusable deterministic helpers.
+
 local HttpService = game:GetService("HttpService")
 
 local Id = {}
@@ -2835,6 +2907,8 @@ return Id
           <Properties>
             <string name="Name">Result</string>
             <string name="Source"><![CDATA[--!strict
+
+-- Shared utility module for Result that supports reusable deterministic helpers.
 
 export type Result<T, E> = {
 	ok: true,
@@ -2872,6 +2946,8 @@ return Result
           <Properties>
             <string name="Name">Signal</string>
             <string name="Source"><![CDATA[--!strict
+
+-- Shared utility module for Signal that supports reusable deterministic helpers.
 
 local Signal = {}
 Signal.__index = Signal
@@ -2919,6 +2995,8 @@ return Signal
           <Properties>
             <string name="Name">TableUtil</string>
             <string name="Source"><![CDATA[--!strict
+
+-- Shared utility module for Table Util that supports reusable deterministic helpers.
 
 local TableUtil = {}
 
@@ -2984,6 +3062,8 @@ return TableUtil
             <string name="Name">Time</string>
             <string name="Source"><![CDATA[--!strict
 
+-- Shared utility module for Time that supports reusable deterministic helpers.
+
 local Time = {}
 
 function Time.nowUnix()
@@ -3027,6 +3107,8 @@ ServerBootstrap.start()
           <Properties>
             <string name="Name">ServerBootstrap</string>
             <string name="Source"><![CDATA[--!strict
+
+-- Server bootstrap module that constructs services, registers remotes, and starts authoritative gameplay systems.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -3563,6 +3645,8 @@ return ServerBootstrap
             <string name="Name">DailyRewardsService</string>
             <string name="Source"><![CDATA[--!strict
 
+-- Server-authoritative service for Daily Rewards Service that validates requests and mutates gameplay state for this system.
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
@@ -3703,6 +3787,8 @@ return DailyRewardsService
             <string name="Name">EconomyService</string>
             <string name="Source"><![CDATA[--!strict
 
+-- Server-authoritative service for Economy Service that validates requests and mutates gameplay state for this system.
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
@@ -3842,6 +3928,8 @@ return EconomyService
           <Properties>
             <string name="Name">GeodeQueueService</string>
             <string name="Source"><![CDATA[--!strict
+
+-- Server-authoritative service for Geode Queue Service that validates requests and mutates gameplay state for this system.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -4033,6 +4121,8 @@ return GeodeQueueService
           <Properties>
             <string name="Name">GeodeService</string>
             <string name="Source"><![CDATA[--!strict
+
+-- Server-authoritative service for Geode Service that validates requests and mutates gameplay state for this system.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -4342,6 +4432,8 @@ return GeodeService
             <string name="Name">GeodeToolService</string>
             <string name="Source"><![CDATA[--!strict
 
+-- Server-authoritative service for Geode Tool Service that validates requests and mutates gameplay state for this system.
+
 local Players = game:GetService("Players")
 local GeodeToolService = {}
 GeodeToolService.__index = GeodeToolService
@@ -4500,6 +4592,8 @@ return GeodeToolService
             <string name="Name">MiningService</string>
             <string name="Source"><![CDATA[--!strict
 
+-- Server-authoritative service for Mining Service that validates requests and mutates gameplay state for this system.
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
@@ -4562,6 +4656,8 @@ end
 function MiningService.new(dependencies)
 	return setmetatable({
 		dependencies = dependencies or {},
+		-- Cooldowns are tracked outside profiles so reconnecting or profile saves do not
+		-- implicitly change the live input cadence enforced by the running server.
 		lastMineAtByUserId = {},
 	}, MiningService)
 end
@@ -4701,6 +4797,8 @@ function MiningService:mine(userId, requestedPickaxeId, nowUnix, rng)
 		end
 
 		currentProfile.progression.equippedPickaxeId = pickaxeId
+		-- The reward roll happens inside the profile mutation so the awarded state and the
+		-- resulting inventory/currency changes are committed together or rejected together.
 		local reward, rewardError = MiningRewards.rollReward(pickaxeDefinition, rng)
 		if reward == nil then
 			return nil, rewardError or "mine_roll_failed"
@@ -4713,6 +4811,8 @@ function MiningService:mine(userId, requestedPickaxeId, nowUnix, rng)
 				return nil, "geode_service_unavailable"
 			end
 
+			-- Geodes are created through GeodeService so size rolls, lifecycle timestamps, and
+			-- instance bookkeeping stay centralized in one authoritative place.
 			local geodeInstance, geodeError = geodeService:createGeodeInstance(currentProfile, reward.geodeId, nowUnix)
 			if geodeInstance == nil then
 				return nil, geodeError or "geode_create_failed"
@@ -4754,6 +4854,8 @@ return MiningService
           <Properties>
             <string name="Name">MockPersistenceService</string>
             <string name="Source"><![CDATA[--!strict
+
+-- Server-authoritative service for Mock Persistence Service that validates requests and mutates gameplay state for this system.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -4811,6 +4913,8 @@ return MockPersistenceService
           <Properties>
             <string name="Name">OfflineProgressService</string>
             <string name="Source"><![CDATA[--!strict
+
+-- Server-authoritative service for Offline Progress Service that validates requests and mutates gameplay state for this system.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -4906,6 +5010,8 @@ return OfflineProgressService
           <Properties>
             <string name="Name">PickaxeToolService</string>
             <string name="Source"><![CDATA[--!strict
+
+-- Server-authoritative service for Pickaxe Tool Service that validates requests and mutates gameplay state for this system.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -5135,6 +5241,8 @@ return PickaxeToolService
           <Properties>
             <string name="Name">PlacementService</string>
             <string name="Source"><![CDATA[--!strict
+
+-- Server-authoritative service for Placement Service that validates requests and mutates gameplay state for this system.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -5462,6 +5570,8 @@ return PlacementService
             <string name="Name">PlayerDataService</string>
             <string name="Source"><![CDATA[--!strict
 
+-- Server-authoritative service for Player Data Service that validates requests and mutates gameplay state for this system.
+
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -5683,6 +5793,8 @@ return PlayerDataService
             <string name="Name">PlotService</string>
             <string name="Source"><![CDATA[--!strict
 
+-- Server-authoritative service for Plot Service that validates requests and mutates gameplay state for this system.
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
@@ -5822,6 +5934,8 @@ return PlotService
             <string name="Name">ShopService</string>
             <string name="Source"><![CDATA[--!strict
 
+-- Server-authoritative service for Shop Service that validates requests and mutates gameplay state for this system.
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
@@ -5896,6 +6010,8 @@ return ShopService
           <Properties>
             <string name="Name">StationService</string>
             <string name="Source"><![CDATA[--!strict
+
+-- Server-authoritative service for Station Service that validates requests and mutates gameplay state for this system.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -5993,6 +6109,8 @@ return StationService
             <string name="Name">VaultService</string>
             <string name="Source"><![CDATA[--!strict
 
+-- Server-authoritative service for Vault Service that validates requests and mutates gameplay state for this system.
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
@@ -6007,6 +6125,8 @@ local VaultService = {}
 VaultService.__index = VaultService
 
 local function removeFromOrder(order, id)
+	-- Orders are stored as arrays for stable UI/world presentation, so removals have to
+	-- preserve relative order instead of rebuilding the whole list from a dictionary.
 	for index = #order, 1, -1 do
 		if order[index] == id then
 			table.remove(order, index)
@@ -6098,11 +6218,15 @@ function VaultService:sellResource(userId, resourceId)
 		if resource.stationId ~= nil then
 			local station = currentProfile.stationsById[resource.stationId]
 			if station ~= nil and station.occupantIds ~= nil then
+				-- Selling a station occupant must clear the station order as well as the vault copy,
+				-- otherwise passive-income state would still point at a deleted resource id.
 				removeFromOrder(station.occupantIds, resource.id)
 			end
 		end
 
 		if placementService ~= nil then
+			-- World placement is derived from profile state, so the placement footprint has to be
+			-- cleared before the resource is removed from the authoritative profile tables.
 			placementService:removeObjectByObjectId(currentProfile, "resource", resource.id)
 		end
 
@@ -6145,6 +6269,8 @@ function VaultService:sellGeode(userId, geodeInstanceId)
 		end
 
 		if placementService ~= nil then
+			-- Selling a placed geode must clear its occupied cells before the geode leaves
+			-- profile state, otherwise later placement checks would think the plot is blocked.
 			placementService:removeObjectByObjectId(currentProfile, "geode", geode.id)
 		end
 
@@ -6182,6 +6308,8 @@ return VaultService
           <Properties>
             <string name="Name">WorldReplicaService</string>
             <string name="Source"><![CDATA[--!strict
+
+-- Server-authoritative service for World Replica Service that validates requests and mutates gameplay state for this system.
 
 local Workspace = game:GetService("Workspace")
 
@@ -7990,6 +8118,8 @@ return WorldReplicaService
             <string name="Name">RareAnnouncementSystem</string>
             <string name="Source"><![CDATA[--!strict
 
+-- Server system for Rare Announcement System that reacts to gameplay events and coordinates cross-service presentation.
+
 local RareAnnouncementSystem = {}
 RareAnnouncementSystem.__index = RareAnnouncementSystem
 
@@ -8031,6 +8161,8 @@ return RareAnnouncementSystem
           <Properties>
             <string name="Name">PickaxeModelBuilder</string>
             <string name="Source"><![CDATA[--!strict
+
+-- Server utility module for Pickaxe Model Builder used to support authoritative service behavior.
 
 local PickaxeModelBuilder = {}
 
@@ -8226,6 +8358,8 @@ ClientBootstrap.start()
               <string name="Name">ClientBootstrap</string>
               <string name="Source"><![CDATA[--!strict
 
+-- Client bootstrap module that wires controllers, UI, remotes, and shared state for the local player.
+
 local ClientBootstrap = {}
 
 function ClientBootstrap.start()
@@ -8251,6 +8385,8 @@ return ClientBootstrap
             <Properties>
               <string name="Name">AppController</string>
               <string name="Source"><![CDATA[--!strict
+
+-- Client controller for App Controller that coordinates UI, local input, and app-state updates for this slice.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -8935,6 +9071,8 @@ return AppController
               <string name="Name">DailyRewardsController</string>
               <string name="Source"><![CDATA[--!strict
 
+-- Client controller for Daily Rewards Controller that coordinates UI, local input, and app-state updates for this slice.
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
@@ -9028,6 +9166,8 @@ return DailyRewardsController
             <Properties>
               <string name="Name">GeodeController</string>
               <string name="Source"><![CDATA[--!strict
+
+-- Client controller for Geode Controller that coordinates UI, local input, and app-state updates for this slice.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -9268,6 +9408,8 @@ return GeodeController
             <Properties>
               <string name="Name">GeodeInteractionController</string>
               <string name="Source"><![CDATA[--!strict
+
+-- Client controller for Geode Interaction Controller that coordinates UI, local input, and app-state updates for this slice.
 
 local Debris = game:GetService("Debris")
 local Players = game:GetService("Players")
@@ -10178,6 +10320,8 @@ return GeodeInteractionController
               <string name="Name">GeodePlacementGhost</string>
               <string name="Source"><![CDATA[--!strict
 
+-- Client controller for Geode Placement Ghost that coordinates UI, local input, and app-state updates for this slice.
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
@@ -10368,6 +10512,8 @@ return GeodePlacementGhost
               <string name="Name">HUDController</string>
               <string name="Source"><![CDATA[--!strict
 
+-- Client controller for H U D Controller that coordinates UI, local input, and app-state updates for this slice.
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
@@ -10478,6 +10624,8 @@ return HUDController
             <Properties>
               <string name="Name">MiningController</string>
               <string name="Source"><![CDATA[--!strict
+
+-- Client controller for Mining Controller that coordinates UI, local input, and app-state updates for this slice.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -10783,6 +10931,8 @@ return MiningController
               <string name="Name">NotificationsController</string>
               <string name="Source"><![CDATA[--!strict
 
+-- Client controller for Notifications Controller that coordinates UI, local input, and app-state updates for this slice.
+
 local NotificationsController = {}
 NotificationsController.__index = NotificationsController
 
@@ -10875,6 +11025,8 @@ return NotificationsController
               <string name="Name">PlacementController</string>
               <string name="Source"><![CDATA[--!strict
 
+-- Client controller for Placement Controller that coordinates UI, local input, and app-state updates for this slice.
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
@@ -10941,6 +11093,8 @@ return PlacementController
             <Properties>
               <string name="Name">PlotController</string>
               <string name="Source"><![CDATA[--!strict
+
+-- Client controller for Plot Controller that coordinates UI, local input, and app-state updates for this slice.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -11018,6 +11172,8 @@ return PlotController
             <Properties>
               <string name="Name">ResourcePlacementGhost</string>
               <string name="Source"><![CDATA[--!strict
+
+-- Client controller for Resource Placement Ghost that coordinates UI, local input, and app-state updates for this slice.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
@@ -11177,6 +11333,8 @@ return ResourcePlacementGhost
             <Properties>
               <string name="Name">ShopController</string>
               <string name="Source"><![CDATA[--!strict
+
+-- Client controller for Shop Controller that coordinates UI, local input, and app-state updates for this slice.
 
 local ProximityPromptService = game:GetService("ProximityPromptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -11444,6 +11602,8 @@ return ShopController
               <string name="Name">SprintController</string>
               <string name="Source"><![CDATA[--!strict
 
+-- Client controller for Sprint Controller that coordinates UI, local input, and app-state updates for this slice.
+
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 
@@ -11504,6 +11664,8 @@ return SprintController
             <Properties>
               <string name="Name">VaultController</string>
               <string name="Source"><![CDATA[--!strict
+
+-- Client controller for Vault Controller that coordinates UI, local input, and app-state updates for this slice.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -11822,6 +11984,8 @@ return VaultController
                 <string name="Name">Panel</string>
                 <string name="Source"><![CDATA[--!strict
 
+-- Reusable UI component module for Panel used by the HUD and screen layer.
+
 local Panel = {}
 
 local function applyStroke(parent: Instance, palette)
@@ -11938,6 +12102,8 @@ return Panel
               <Properties>
                 <string name="Name">RootScreen</string>
                 <string name="Source"><![CDATA[--!strict
+
+-- Screen-construction module for Root Screen that builds the main client HUD and exposes imperative UI hooks.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
@@ -13557,6 +13723,8 @@ return RootScreen
               <Properties>
                 <string name="Name">Palette</string>
                 <string name="Source"><![CDATA[--!strict
+
+-- Shared client theme module for Palette that keeps HUD styling consistent.
 
 local Palette = {
 	background = {

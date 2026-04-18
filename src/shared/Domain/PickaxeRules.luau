@@ -1,5 +1,7 @@
 --!strict
 
+-- Deterministic shared rules for Pickaxe Rules so gameplay behavior can be reused by the server, client presentation, and specs.
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")

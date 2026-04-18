@@ -1,5 +1,7 @@
 --!strict
 
+-- Screen-construction module for Root Screen that builds the main client HUD and exposes imperative UI hooks.
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")

@@ -1,5 +1,7 @@
 --!strict
 
+-- Shared type definitions for Geode Types so profile, item, and world data stay consistent across modules.
+
 export type GridPlacement = {
 	plotId: string?,
 	x: number,

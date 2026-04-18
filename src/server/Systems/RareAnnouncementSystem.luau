@@ -1,5 +1,7 @@
 --!strict
 
+-- Server system for Rare Announcement System that reacts to gameplay events and coordinates cross-service presentation.
+
 local RareAnnouncementSystem = {}
 RareAnnouncementSystem.__index = RareAnnouncementSystem
 

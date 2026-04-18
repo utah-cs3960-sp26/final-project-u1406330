@@ -1,5 +1,7 @@
 --!strict
 
+-- Deterministic shared rules for Mining Rewards so gameplay behavior can be reused by the server, client presentation, and specs.
+
 local MiningRewards = {}
 
 local function rollNumber(rng: any): number

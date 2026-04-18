@@ -1,5 +1,7 @@
 --!strict
 
+-- Spec coverage for Offline Math to keep deterministic gameplay behavior and regressions easy to verify.
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 

@@ -1,5 +1,7 @@
 --!strict
 
+-- Client controller for App Controller that coordinates UI, local input, and app-state updates for this slice.
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")

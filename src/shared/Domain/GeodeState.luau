@@ -1,5 +1,7 @@
 --!strict
 
+-- Deterministic shared rules for Geode State so gameplay behavior can be reused by the server, client presentation, and specs.
+
 local GeodeState = {}
 
 export type GeodeInstance = {

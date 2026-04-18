@@ -1,5 +1,7 @@
 --!strict
 
+-- Deterministic shared rules for Geode Presentation so gameplay behavior can be reused by the server, client presentation, and specs.
+
 local GeodePresentation = {}
 
 function GeodePresentation.formatCountdown(remainingSeconds: number?): string

@@ -1,5 +1,7 @@
 --!strict
 
+-- Shared utility module for Id that supports reusable deterministic helpers.
+
 local HttpService = game:GetService("HttpService")
 
 local Id = {}

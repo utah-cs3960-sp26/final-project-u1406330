@@ -1,5 +1,7 @@
 --!strict
 
+-- Shared utility module for Signal that supports reusable deterministic helpers.
+
 local Signal = {}
 Signal.__index = Signal
 

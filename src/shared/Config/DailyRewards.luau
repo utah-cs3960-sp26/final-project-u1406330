@@ -1,5 +1,7 @@
 --!strict
 
+-- Static shared configuration for Daily Rewards used by deterministic gameplay logic on both client and server.
+
 local DailyRewards = {
 	streakResetHours = 48,
 	days = {

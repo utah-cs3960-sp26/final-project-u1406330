@@ -1,5 +1,7 @@
 --!strict
 
+-- Server-authoritative service for Vault Service that validates requests and mutates gameplay state for this system.
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
@@ -14,6 +16,8 @@ local VaultService = {}
 VaultService.__index = VaultService
 
 local function removeFromOrder(order, id)
+	-- Orders are stored as arrays for stable UI/world presentation, so removals have to
+	-- preserve relative order instead of rebuilding the whole list from a dictionary.
 	for index = #order, 1, -1 do
 		if order[index] == id then
 			table.remove(order, index)
@@ -105,11 +109,15 @@ function VaultService:sellResource(userId, resourceId)
 		if resource.stationId ~= nil then
 			local station = currentProfile.stationsById[resource.stationId]
 			if station ~= nil and station.occupantIds ~= nil then
+				-- Selling a station occupant must clear the station order as well as the vault copy,
+				-- otherwise passive-income state would still point at a deleted resource id.
 				removeFromOrder(station.occupantIds, resource.id)
 			end
 		end
 
 		if placementService ~= nil then
+			-- World placement is derived from profile state, so the placement footprint has to be
+			-- cleared before the resource is removed from the authoritative profile tables.
 			placementService:removeObjectByObjectId(currentProfile, "resource", resource.id)
 		end
 
@@ -152,6 +160,8 @@ function VaultService:sellGeode(userId, geodeInstanceId)
 		end
 
 		if placementService ~= nil then
+			-- Selling a placed geode must clear its occupied cells before the geode leaves
+			-- profile state, otherwise later placement checks would think the plot is blocked.
 			placementService:removeObjectByObjectId(currentProfile, "geode", geode.id)
 		end
 

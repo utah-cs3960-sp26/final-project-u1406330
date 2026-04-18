@@ -1,5 +1,7 @@
 --!strict
 
+-- Client controller for Notifications Controller that coordinates UI, local input, and app-state updates for this slice.
+
 local NotificationsController = {}
 NotificationsController.__index = NotificationsController
 

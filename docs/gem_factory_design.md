@@ -4,7 +4,7 @@
 
 Gem Factory is a Roblox idle progression game about turning a rough cave plot into a glowing gem operation. Players mine for coins and geodes, manage finds through a Vault, wait for placed geodes to crack, reveal resources, and reinvest coins into better pickaxes, rarer finds, and better production systems.
 
-The current implementation is a narrow MVP slice of this design. Anything listed as future direction should be treated as product intent, not current behavior. For current behavior, read [current_state.md](current_state.md).
+The current implementation is a narrow MVP slice of this design. Anything listed as future direction should be treated as product intent, not current behavior. For current behavior, read [current_state.md](current_state.md). For implementation guidance, also read [../agents.md](../agents.md), which requires code comments that explain module ownership and non-obvious flow.
 
 ## Core Fantasy
 

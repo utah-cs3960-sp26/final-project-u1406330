@@ -1,5 +1,7 @@
 --!strict
 
+-- Deterministic shared rules for Trait Roller so gameplay behavior can be reused by the server, client presentation, and specs.
+
 local TraitRoller = {}
 
 function TraitRoller.getTotalWeight(entries: { any }): number

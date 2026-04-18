@@ -1,5 +1,7 @@
 --!strict
 
+-- Deterministic shared rules for Station Assignment so gameplay behavior can be reused by the server, client presentation, and specs.
+
 local StationAssignment = {}
 
 local function getPlacementRecord(profile, stationId)

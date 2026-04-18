@@ -1,5 +1,7 @@
 --!strict
 
+-- Server bootstrap module that constructs services, registers remotes, and starts authoritative gameplay systems.
+
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")

@@ -1,5 +1,7 @@
 --!strict
 
+-- Server-authoritative service for Placement Service that validates requests and mutates gameplay state for this system.
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 

@@ -1,5 +1,7 @@
 --!strict
 
+-- Server utility module for Pickaxe Model Builder used to support authoritative service behavior.
+
 local PickaxeModelBuilder = {}
 
 local MODEL_VERSION = 2

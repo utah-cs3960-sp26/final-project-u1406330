@@ -1,5 +1,7 @@
 --!strict
 
+-- Static shared configuration for Shops used by deterministic gameplay logic on both client and server.
+
 local Pickaxes = require(script.Parent.Pickaxes)
 
 local function makeOffer(pickaxeId: string, spotlightText: string)

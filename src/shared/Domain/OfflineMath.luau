@@ -1,5 +1,7 @@
 --!strict
 
+-- Deterministic shared rules for Offline Math so gameplay behavior can be reused by the server, client presentation, and specs.
+
 local EconomyMath = require(script.Parent.EconomyMath)
 
 local OfflineMath = {}

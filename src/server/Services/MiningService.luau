@@ -1,5 +1,7 @@
 --!strict
 
+-- Server-authoritative service for Mining Service that validates requests and mutates gameplay state for this system.
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
@@ -62,6 +64,8 @@ end
 function MiningService.new(dependencies)
 	return setmetatable({
 		dependencies = dependencies or {},
+		-- Cooldowns are tracked outside profiles so reconnecting or profile saves do not
+		-- implicitly change the live input cadence enforced by the running server.
 		lastMineAtByUserId = {},
 	}, MiningService)
 end
@@ -201,6 +205,8 @@ function MiningService:mine(userId, requestedPickaxeId, nowUnix, rng)
 		end
 
 		currentProfile.progression.equippedPickaxeId = pickaxeId
+		-- The reward roll happens inside the profile mutation so the awarded state and the
+		-- resulting inventory/currency changes are committed together or rejected together.
 		local reward, rewardError = MiningRewards.rollReward(pickaxeDefinition, rng)
 		if reward == nil then
 			return nil, rewardError or "mine_roll_failed"
@@ -213,6 +219,8 @@ function MiningService:mine(userId, requestedPickaxeId, nowUnix, rng)
 				return nil, "geode_service_unavailable"
 			end
 
+			-- Geodes are created through GeodeService so size rolls, lifecycle timestamps, and
+			-- instance bookkeeping stay centralized in one authoritative place.
 			local geodeInstance, geodeError = geodeService:createGeodeInstance(currentProfile, reward.geodeId, nowUnix)
 			if geodeInstance == nil then
 				return nil, geodeError or "geode_create_failed"

@@ -1,5 +1,7 @@
 --!strict
 
+-- Shared networking module for Remotes that defines or resolves the client-server remote contract.
+
 local RemoteNames = require(script.Parent.RemoteNames)
 
 local Remotes = {
