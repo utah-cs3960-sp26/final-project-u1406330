@@ -87,12 +87,28 @@ return function()
 		"low-rarity geode discovery popups should keep their non-reel presentation"
 	)
 	assert(
-		GeodePresentation.getRevealResolvedHoldSeconds("resource", true) == 0.18,
-		"resource reveals with a follow-up attribute should use the short auto-close handoff"
+		GeodePresentation.getRevealResolvedHoldSeconds("resource", true) == 3,
+		"resource reveals with a follow-up attribute should stay visible for the full resolved hold"
 	)
 	assert(
-		GeodePresentation.getRevealResolvedHoldSeconds("resource", false) == nil,
-		"resource-only reveals should keep their normal hold timing"
+		GeodePresentation.getRevealResolvedHoldSeconds("resource", false) == 3,
+		"resource-only reveals should use the same resolved hold timing as other reveal reels"
+	)
+	assert(
+		GeodePresentation.getRevealResolvedHoldSeconds("resource", nil) == 3,
+		"resource reveals should not depend on a follow-up flag to keep their resolved hold"
+	)
+	assert(
+		GeodePresentation.getRevealResolvedHoldSeconds("attribute", true) == 3,
+		"attribute reveals should stay visible for the same resolved hold timing"
+	)
+	assert(
+		GeodePresentation.getRevealResolvedHoldSeconds("attribute", false) == 3,
+		"attribute reveals should keep the full resolved hold even without any follow-up"
+	)
+	assert(
+		GeodePresentation.getRevealResolvedHoldSeconds("geode", true) == nil,
+		"non-reveal popup kinds should not receive reveal-specific resolved hold overrides"
 	)
 	assert(
 		GeodePresentation.getCelebrationPopupMinHeight("coin", false, true, nil) == 52,

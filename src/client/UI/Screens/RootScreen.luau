@@ -261,6 +261,48 @@ local function getTraitIdFromReelWord(word: string?)
 	return nil
 end
 
+local function getResourceTypeIdFromReelWord(word: string?)
+	if word == nil then
+		return nil
+	end
+
+	local normalizedWord = string.lower(word)
+	for resourceTypeId, resourceDefinition in pairs(Resources) do
+		if type(resourceTypeId) == "string" and type(resourceDefinition) == "table" then
+			local displayName = string.lower(tostring(resourceDefinition.displayName or resourceTypeId))
+			if normalizedWord == displayName or normalizedWord == string.lower(resourceTypeId) then
+				return resourceTypeId
+			end
+		end
+	end
+
+	return nil
+end
+
+local function getResourceTone(resourceTypeId: string?)
+	if resourceTypeId == nil then
+		return nil
+	end
+
+	local resourceDefinition = Resources[resourceTypeId]
+	if resourceDefinition == nil then
+		return nil
+	end
+
+	local rarityTone = getRarityTone(getResourceRarityIndex(resourceTypeId), resourceDefinition.color)
+	local accent = if typeof(resourceDefinition.color) == "Color3" then resourceDefinition.color else rarityTone.accent
+	local highlightBase = if typeof(resourceDefinition.color) == "Color3"
+		then resourceDefinition.color:Lerp(Color3.fromRGB(255, 255, 255), 0.58)
+		else rarityTone.highlight
+
+	return {
+		background = rarityTone.background:Lerp(accent, 0.14),
+		accent = accent,
+		highlight = rarityTone.highlight:Lerp(highlightBase, 0.42),
+		text = rarityTone.text,
+	}
+end
+
 local function getTraitReelWords()
 	local words = {}
 	for _, traitDefinition in ipairs(Traits.order or {}) do
@@ -292,6 +334,13 @@ local function sanitizePromptText(value: any): string?
 end
 
 local function getSpinTone(spec, reelWord: string, fallbackTone)
+	if spec.kind == "resource" then
+		local resourceTone = getResourceTone(getResourceTypeIdFromReelWord(reelWord))
+		if resourceTone ~= nil then
+			return resourceTone
+		end
+	end
+
 	if spec.kind == "attribute" then
 		local traitTone = getTraitTone(getTraitIdFromReelWord(reelWord))
 		if traitTone ~= nil then

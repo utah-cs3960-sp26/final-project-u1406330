@@ -12,7 +12,7 @@ local RewardPresentation = require(Shared.Domain.RewardPresentation)
 
 local GeodePresentation = {}
 
-local RESOURCE_TO_ATTRIBUTE_HANDOFF_HOLD_SECONDS = 0.18
+local REVEAL_RESOLVED_HOLD_SECONDS = 3
 
 local function compareRevealWords(leftWord: string, rightWord: string): boolean
 	return string.lower(leftWord) < string.lower(rightWord)
@@ -117,9 +117,9 @@ function GeodePresentation.shouldUseRevealSlotMachine(kind: string?, rarityIndex
 	return false
 end
 
-function GeodePresentation.getRevealResolvedHoldSeconds(kind: string?, hasFollowupReveal: boolean?): number?
-	if kind == "resource" and hasFollowupReveal == true then
-		return RESOURCE_TO_ATTRIBUTE_HANDOFF_HOLD_SECONDS
+function GeodePresentation.getRevealResolvedHoldSeconds(kind: string?, _hasFollowupReveal: boolean?): number?
+	if kind == "resource" or kind == "attribute" then
+		return REVEAL_RESOLVED_HOLD_SECONDS
 	end
 
 	return nil

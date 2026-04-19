@@ -4,6 +4,14 @@ Gem Factory is a Roblox idle progression prototype built with Rojo and Luau. The
 
 The project is intentionally small and testable right now. Server services own the authoritative gameplay state, shared modules hold deterministic rules and config, and client controllers handle HUD, placement input, mining input, and world presentation. The source tree is also being kept agent-friendly: non-trivial modules should carry brief purpose comments so future contributors can trace intent quickly.
 
+## Week 14
+
+The final version of Gem Factory is still very similar to the original proposal in terms of the main idea. It is still a Roblox idle/progression game focused on geodes, rare rewards, and building up your own area over time. The overall design and theme stayed mostly the same, but a lot of the smaller gameplay details changed during development.
+
+Compared to what I proposed a couple weeks earlier, I ended up reworking a lot of the gameplay mechanics and refining the gameplay loop quite a bit. My original proposal was more of a rough plan than a detailed feature list, so as I actually built the game I had to figure out what worked, what did not work, and what would make the game more fun and interesting. I also changed the models, improved the presentation, and tried to polish the game as much as I could within the time I had.
+
+So overall, I would say the final product matches the original proposal in its core concept, but not in every exact mechanic. The game ended up being a more developed and polished version of the same idea, with changes made throughout development to make the gameplay better and more interesting.
+
 ## Start Here
 
 For the fastest context, read these in order:

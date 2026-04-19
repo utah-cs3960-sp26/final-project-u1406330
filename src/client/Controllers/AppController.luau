@@ -223,6 +223,15 @@ local function normalizePayload(state, payload, nowUnix)
 	return nextState
 end
 
+local function getSettledRevealDuration(kind: string, hasFollowupReveal: boolean?): number
+	local sharedDuration = GeodePresentation.getRevealResolvedHoldSeconds(kind, hasFollowupReveal)
+	if type(sharedDuration) == "number" then
+		return math.max(3, sharedDuration)
+	end
+
+	return 3
+end
+
 local function getResourceCelebrationSpec(resource, hasFollowupAttribute: boolean?)
 	if type(resource) ~= "table" then
 		return nil
@@ -254,7 +263,7 @@ local function getResourceCelebrationSpec(resource, hasFollowupAttribute: boolea
 		reelWords = GeodePresentation.getResourceRevealWords(),
 		reelFinal = displayName,
 		showSlotMachine = GeodePresentation.shouldUseRevealSlotMachine("resource", rarityIndex + 1),
-		duration = GeodePresentation.getRevealResolvedHoldSeconds("resource", hasFollowupAttribute),
+		duration = getSettledRevealDuration("resource", hasFollowupAttribute),
 	}
 end
 
@@ -290,6 +299,7 @@ local function getAttributeCelebrationSpec(resource)
 		reelWords = GeodePresentation.getAttributeRevealWords(),
 		reelFinal = displayName,
 		showSlotMachine = GeodePresentation.shouldUseRevealSlotMachine("attribute", traitRank + 1),
+		duration = getSettledRevealDuration("attribute", false),
 	}
 end
 
