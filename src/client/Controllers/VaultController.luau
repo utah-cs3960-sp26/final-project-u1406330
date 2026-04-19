@@ -212,7 +212,9 @@ function VaultController:start()
 						if geode.placement ~= nil then "On plot. Crack it when ready or sell it." else "In Vault. Place it or sell it."
 					),
 					tint = definition and definition.displayColor or Color3.fromRGB(180, 190, 210),
-					canPlace = geode.placement == nil,
+					actionText = "Place",
+					canPrimaryAction = geode.placement == nil,
+					picksUp = false,
 					sellValue = VaultMath.getGeodeSellValue(definition),
 					resourceTypeId = nil,
 				})
@@ -225,17 +227,22 @@ function VaultController:start()
 				local definition = Resources[resource.resourceTypeId]
 				local trait = Traits[resource.traitId or "none"] or Traits.none
 				local sizeDefinition = SizeRules.resolveDefinition(resource.sizeId, resource.sizeValue)
+				local isPlaced = resource.placement ~= nil
+				local isStationAssigned = resource.stationId ~= nil
+				local detailSuffix = if isStationAssigned
+					then "In a station. Manage it there or sell it."
+					elseif isPlaced
+					then "On plot. Pick it up or sell it anytime."
+					else "In Vault. Place it or sell it."
 				table.insert(rows, {
 					kind = "resource",
 					id = resource.id,
 					title = getResourceLabel(resource),
-					detail = string.format(
-						"%s %s",
-						getSizeDetail(resource),
-						if resource.placement ~= nil then "On plot. Sell it anytime." else "In Vault. Place it or sell it."
-					),
+					detail = string.format("%s %s", getSizeDetail(resource), detailSuffix),
 					tint = definition and definition.color or Color3.fromRGB(240, 240, 255),
-					canPlace = resource.placement == nil and resource.stationId == nil,
+					actionText = if isPlaced then "Pick Up" else "Place",
+					canPrimaryAction = not isStationAssigned,
+					picksUp = isPlaced,
 					sellValue = VaultMath.getResourceSellValue(definition, trait, sizeDefinition),
 					resourceTypeId = resource.resourceTypeId,
 				})
@@ -274,19 +281,24 @@ function VaultController:start()
 				rowData.resourceTypeId
 			)
 
-			local place = createActionButton(row, "Place", Color3.fromRGB(122, 231, 184), -174)
-			place.Active = rowData.canPlace
-			place.AutoButtonColor = rowData.canPlace
-			place.BackgroundColor3 = if rowData.canPlace then Color3.fromRGB(122, 231, 184) else Color3.fromRGB(180, 180, 180)
+			local place = createActionButton(row, rowData.actionText or "Place", Color3.fromRGB(122, 231, 184), -174)
+			place.Active = rowData.canPrimaryAction
+			place.AutoButtonColor = rowData.canPrimaryAction
+			place.BackgroundColor3 = if rowData.canPrimaryAction then Color3.fromRGB(122, 231, 184) else Color3.fromRGB(180, 180, 180)
 			place.Activated:Connect(function()
-				if not rowData.canPlace then
+				if not rowData.canPrimaryAction then
 					return
 				end
-				screen:setVaultVisible(false)
-				if rowData.kind == "geode" then
-					app:beginGeodePlacement(rowData.id)
+
+				if rowData.kind == "resource" and rowData.picksUp == true then
+					app:requestPickupResource(rowData.id)
 				else
-					app:beginResourcePlacement(rowData.id)
+					screen:setVaultVisible(false)
+					if rowData.kind == "geode" then
+						app:beginGeodePlacement(rowData.id)
+					else
+						app:beginResourcePlacement(rowData.id)
+					end
 				end
 			end)
 

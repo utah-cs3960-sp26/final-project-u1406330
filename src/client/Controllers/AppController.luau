@@ -486,6 +486,24 @@ function AppController:requestPlaceResource(resourceId, x, y)
 	return ok, result
 end
 
+function AppController:requestPickupResource(resourceId)
+	if resourceId == nil then
+		return false, "missing_resource_id"
+	end
+
+	local ok, result = self:invokeRemote(RemoteNames.RequestPickupResource, resourceId)
+	if ok and type(result) == "table" and result.ok == true then
+		if self.pendingResourcePlacementId == resourceId then
+			self.pendingResourcePlacementId = nil
+		end
+		self:setStatus("Treasure returned to your Vault.")
+	else
+		local errorText = type(result) == "table" and result.errorCode or result
+		self:setStatus("Treasure pickup failed: " .. tostring(errorText))
+	end
+	return ok, result
+end
+
 function AppController:requestSellVaultItem(itemKind, itemId)
 	local ok, result = self:invokeRemote(RemoteNames.RequestSellVaultItem, itemKind, itemId)
 	if ok and type(result) == "table" and result.ok == true then
@@ -676,4 +694,3 @@ function AppController:start()
 end
 
 return AppController
-

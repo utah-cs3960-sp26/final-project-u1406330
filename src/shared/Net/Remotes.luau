@@ -12,6 +12,7 @@ local Remotes = {
 		[RemoteNames.RequestEquipPickaxe] = "RemoteFunction",
 		[RemoteNames.RequestPlaceGeode] = "RemoteFunction",
 		[RemoteNames.RequestPlaceResource] = "RemoteFunction",
+		[RemoteNames.RequestPickupResource] = "RemoteFunction",
 		[RemoteNames.RequestSellVaultItem] = "RemoteFunction",
 		[RemoteNames.RequestCrackGeode] = "RemoteFunction",
 		[RemoteNames.RequestClaimFinishedGeode] = "RemoteFunction",

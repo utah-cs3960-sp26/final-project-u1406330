@@ -4,6 +4,14 @@
 
 local WorldLabelPresentation = {}
 
+local RESOURCE_RARITY_LABEL_COLORS = {
+	Common = Color3.fromRGB(244, 249, 255),
+	Uncommon = Color3.fromRGB(188, 145, 255),
+	Rare = Color3.fromRGB(108, 228, 193),
+	Epic = Color3.fromRGB(118, 213, 255),
+	Legendary = Color3.fromRGB(255, 224, 117),
+}
+
 function WorldLabelPresentation.resolveHoveredResourceId(targetResourceId: string?, ancestorResourceId: string?): string?
 	if type(targetResourceId) == "string" and targetResourceId ~= "" then
 		return targetResourceId
@@ -22,6 +30,14 @@ function WorldLabelPresentation.shouldShowPlacedResourceLabel(resourceId: string
 	end
 
 	return resourceId == hoveredResourceId
+end
+
+function WorldLabelPresentation.getPlacedResourceLabelAccentColor(rarityLabel: string?): Color3
+	if type(rarityLabel) == "string" and RESOURCE_RARITY_LABEL_COLORS[rarityLabel] ~= nil then
+		return RESOURCE_RARITY_LABEL_COLORS[rarityLabel]
+	end
+
+	return RESOURCE_RARITY_LABEL_COLORS.Common
 end
 
 function WorldLabelPresentation.getPlacedResourceLabelText(

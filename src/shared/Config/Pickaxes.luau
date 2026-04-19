@@ -15,6 +15,8 @@ local geodeOrder = {
 	"sovereign_nova_geode",
 }
 
+local GEODE_FIND_CHANCE_SCALE = 0.75
+
 local function makeGeodeWeights(weights: { number })
 	local entries = {}
 
@@ -26,6 +28,11 @@ local function makeGeodeWeights(weights: { number })
 	end
 
 	return entries
+end
+
+local function scaleGeodeChance(baseChance: number): number
+	-- Keep one shared balance knob for "how often do geodes appear at all" so tier tables can stay intact.
+	return math.max(0, math.floor(baseChance * GEODE_FIND_CHANCE_SCALE + 0.5))
 end
 
 local function makePickaxe(
@@ -50,7 +57,7 @@ local function makePickaxe(
 		cooldownSeconds = cooldownSeconds,
 		coinRewardMin = coinRewardMin,
 		coinRewardMax = coinRewardMax,
-		geodeChance = geodeChance,
+		geodeChance = scaleGeodeChance(geodeChance),
 		geodeWeights = makeGeodeWeights(geodeWeights),
 		displayColor = displayColor,
 	}

@@ -80,10 +80,10 @@ return function()
 	queueState = geodeQueueService:getQueueState(profile, 105)
 	assert(queueState.entries[1].isPlaced == true, "queue state should expose explicitly placed geodes")
 
-	local tooEarlyResult, tooEarlyError = geodeService:openGeode(1, geodeInstanceId, 105, Random.new(7), "Tester")
+	local tooEarlyResult, tooEarlyError = geodeService:openGeode(1, geodeInstanceId, 114, Random.new(7), "Tester")
 	assert(tooEarlyResult == nil and tooEarlyError == "no_ready_geodes", "unfinished geodes should not open before the timer ends")
 
-	local openResult = geodeService:openGeode(1, geodeInstanceId, 111, Random.new(7), "Tester")
+	local openResult = geodeService:openGeode(1, geodeInstanceId, 115, Random.new(7), "Tester")
 	assert(openResult ~= nil, "finished placed geodes should be openable")
 	assert(#openResult.createdResourceIds == 1, "opening a geode should create exactly one resource in the MVP")
 	assert(profile.geodesById[geodeInstanceId] == nil, "opened geodes should be removed from owned state")

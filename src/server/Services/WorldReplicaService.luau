@@ -28,6 +28,8 @@ local SHOP_PROMPT_ATTRIBUTE = "GemFactoryShopPrompt"
 local MINE_TARGET_ATTRIBUTE = "GemFactoryMineTarget"
 local MINE_ZONE_ATTRIBUTE = "GemFactoryMineZone"
 local STATIC_WORLD_LAYOUT_VERSION = 3
+local PLOT_SURFACE_COLLIDER_NAME = "PlotSurfaceCollider"
+local REPLICA_TRANSPARENCY_ATTRIBUTE = "ReplicaTransparency"
 
 local ROCK_VARIANTS = {
 	{
@@ -331,8 +333,30 @@ local function createVisualBasePart(parent, className, name, size, position, col
 	part.Position = position
 	part.Color = color
 	part.Material = material
+	part:SetAttribute(REPLICA_TRANSPARENCY_ATTRIBUTE, 0)
 	part.Parent = parent
 	return part
+end
+
+local function setReplicaTransparency(part: BasePart, transparency: number)
+	part.Transparency = transparency
+	part:SetAttribute(REPLICA_TRANSPARENCY_ATTRIBUTE, transparency)
+end
+
+local function reapplyReplicaTransparency(resourcePart: BasePart)
+	for _, descendant in ipairs(resourcePart:GetDescendants()) do
+		if descendant:IsA("BasePart") then
+			local transparencyValue = descendant:GetAttribute(REPLICA_TRANSPARENCY_ATTRIBUTE)
+			if type(transparencyValue) == "number" then
+				descendant.Transparency = transparencyValue
+			end
+		end
+	end
+
+	local rootTransparencyValue = resourcePart:GetAttribute(REPLICA_TRANSPARENCY_ATTRIBUTE)
+	if type(rootTransparencyValue) == "number" then
+		resourcePart.Transparency = rootTransparencyValue
+	end
 end
 
 local function orientPart(part, yawRadians, pitchRadians, rollRadians)
@@ -367,6 +391,12 @@ local function createSparkEmitter(parent, texture, colorA, colorB, rate, lifetim
 	emitter.Drag = 1
 	emitter.Parent = parent
 	return emitter
+end
+
+local function createHoverQueryablePart(part: BasePart)
+	part.CanQuery = true
+	part.CanTouch = false
+	part.CanCollide = false
 end
 
 local function createResourceBillboard(parentPart, titleText, subtitleText, accentColor, rarityRank)
@@ -505,6 +535,15 @@ local function applyTraitEffects(parentPart, profile, traitId)
 	end
 
 	local traitDisplayName = resolveTraitDisplayName(traitId)
+	local aura = Instance.new("Highlight")
+	aura.Name = "TraitAura"
+	aura.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+	aura.FillColor = blendColor(profile.baseColor, preset.accent, 0.52)
+	aura.FillTransparency = 0.78
+	aura.OutlineColor = blendColor(preset.accent2, Color3.fromRGB(255, 255, 255), 0.18)
+	aura.OutlineTransparency = 0.16
+	aura.Parent = parentPart
+
 	local effectAttachment = Instance.new("Attachment")
 	effectAttachment.Name = "TraitEffectAttachment"
 	effectAttachment.Position = Vector3.new(0, parentPart.Size.Y * 0.18, 0)
@@ -523,14 +562,40 @@ local function applyTraitEffects(parentPart, profile, traitId)
 		preset.particleTexture,
 		preset.accent,
 		preset.accent2,
-		3 + (profile.rarityRank * 2),
-		0.7,
-		1.1,
-		0.25,
-		0.9 + (profile.rarityRank * 0.14),
-		0.18,
+		5 + (profile.rarityRank * 3),
+		0.82,
+		1.24,
+		0.3,
+		1.05 + (profile.rarityRank * 0.18),
+		0.26,
 		0
 	)
+
+	local traitBand = createVisualBasePart(
+		parentPart,
+		"Part",
+		"TraitBand",
+		Vector3.new(parentPart.Size.X * 1.08, math.max(0.18, parentPart.Size.Y * 0.18), parentPart.Size.Z * 1.08),
+		parentPart.Position,
+		blendColor(preset.accent, preset.accent2, 0.38),
+		Enum.Material.Neon
+	)
+	traitBand.Shape = Enum.PartType.Cylinder
+	traitBand.CFrame = CFrame.new(parentPart.Position + Vector3.new(0, parentPart.Size.Y * 0.2, 0)) * CFrame.Angles(0, 0, math.rad(90))
+	traitBand.Transparency = 0.52
+
+	local crest = createVisualBasePart(
+		parentPart,
+		"Part",
+		"TraitCrest",
+		Vector3.new(parentPart.Size.X * 0.18, parentPart.Size.Y * 0.92, parentPart.Size.Z * 0.18),
+		parentPart.Position,
+		blendColor(preset.accent2, Color3.fromRGB(255, 255, 255), 0.2),
+		Enum.Material.Neon
+	)
+	crest.CFrame = CFrame.new(parentPart.Position + Vector3.new(0, parentPart.Size.Y * 0.42, -parentPart.Size.Z * 0.18))
+		* CFrame.Angles(math.rad(-12), 0, math.rad(8))
+	crest.Transparency = 0.36
 
 	if normalizeVisualKey(traitId):find("fiery", 1, true) ~= nil or normalizeVisualKey(traitId):find("fire", 1, true) ~= nil then
 		createSparkEmitter(
@@ -574,6 +639,18 @@ local function applyTraitEffects(parentPart, profile, traitId)
 	return traitDisplayName
 end
 
+local function configureResourceHoverTargets(resourcePart: BasePart)
+	createHoverQueryablePart(resourcePart)
+
+	for _, descendant in ipairs(resourcePart:GetDescendants()) do
+		if descendant:IsA("BasePart") then
+			createHoverQueryablePart(descendant)
+			descendant:SetAttribute("ResourceId", resourcePart:GetAttribute("ResourceId"))
+			descendant:SetAttribute("ResourceTypeId", resourcePart:GetAttribute("ResourceTypeId"))
+		end
+	end
+end
+
 getResourceVariantShape = function(resourceTypeId, resourceDefinition)
 	return ResourceVisuals.getResourceVariantShape(resourceTypeId, resourceDefinition)
 end
@@ -602,7 +679,7 @@ local function buildOreShard(parentPart, profile, rootCFrame, baseTopY, shard, i
 		Enum.Material.Glass
 	)
 	body.CFrame = shardCFrame
-	body.Transparency = 0.08
+	setReplicaTransparency(body, 0.08)
 	body.Reflectance = 0.12
 
 	local capHeight = math.max(0.22, height * 0.22)
@@ -616,7 +693,7 @@ local function buildOreShard(parentPart, profile, rootCFrame, baseTopY, shard, i
 		Enum.Material.Glass
 	)
 	cap.CFrame = shardCFrame * CFrame.new(0, (height * 0.5) + (capHeight * 0.28), 0)
-	cap.Transparency = 0.02
+	setReplicaTransparency(cap, 0.02)
 	cap.Reflectance = 0.16
 
 	local frontFacet = createVisualBasePart(
@@ -629,7 +706,7 @@ local function buildOreShard(parentPart, profile, rootCFrame, baseTopY, shard, i
 		Enum.Material.Neon
 	)
 	frontFacet.CFrame = shardCFrame * CFrame.new(width * -0.24, height * 0.02, -(depth * 0.51))
-	frontFacet.Transparency = 0.38
+	setReplicaTransparency(frontFacet, 0.38)
 
 	local sideFacet = createVisualBasePart(
 		parentPart,
@@ -641,7 +718,7 @@ local function buildOreShard(parentPart, profile, rootCFrame, baseTopY, shard, i
 		Enum.Material.Neon
 	)
 	sideFacet.CFrame = shardCFrame * CFrame.new(width * 0.51, height * -0.02, depth * 0.08)
-	sideFacet.Transparency = 0.48
+	setReplicaTransparency(sideFacet, 0.48)
 end
 
 local function buildCrystalOreCluster(resourcePart, profile, rootYaw)
@@ -652,7 +729,7 @@ local function buildCrystalOreCluster(resourcePart, profile, rootYaw)
 	resourcePart.Size = baseSize
 	resourcePart.Color = blendColor(profile.baseColor, Color3.fromRGB(26, 24, 32), 0.70)
 	resourcePart.Material = Enum.Material.Slate
-	resourcePart.Transparency = 0
+	setReplicaTransparency(resourcePart, 0)
 	resourcePart.Reflectance = 0.02
 	resourcePart.CFrame = rootCFrame
 
@@ -667,7 +744,7 @@ local function buildCrystalOreCluster(resourcePart, profile, rootYaw)
 		Enum.Material.Slate
 	)
 	lip.CFrame = rootCFrame * CFrame.new(0, baseTopY + (0.035 * scale), 0)
-	lip.Transparency = 0.18
+	setReplicaTransparency(lip, 0.18)
 
 	for index, shard in ipairs(getOreCrystalDefinitions(profile.variantId)) do
 		buildOreShard(resourcePart, profile, rootCFrame, baseTopY, shard, index)
@@ -682,7 +759,7 @@ local function buildIngotResource(resourcePart, profile, rootYaw)
 	resourcePart.Size = baseSize
 	resourcePart.Color = blendColor(profile.baseColor, Color3.fromRGB(52, 46, 40), 0.20)
 	resourcePart.Material = Enum.Material.Metal
-	resourcePart.Transparency = 0
+	setReplicaTransparency(resourcePart, 0)
 	resourcePart.Reflectance = 0.10 + (profile.rarityRank * 0.012)
 	resourcePart.CFrame = rootCFrame
 
@@ -696,7 +773,7 @@ local function buildIngotResource(resourcePart, profile, rootYaw)
 		Enum.Material.Slate
 	)
 	roughBase.CFrame = rootCFrame * CFrame.new(0, -(baseSize.Y * 0.42), 0)
-	roughBase.Transparency = 0.04
+	setReplicaTransparency(roughBase, 0.04)
 
 	local crown = createVisualBasePart(
 		resourcePart,
@@ -746,7 +823,7 @@ local function buildIngotResource(resourcePart, profile, rootYaw)
 		if profile.rarityRank >= 4 then Enum.Material.Neon else Enum.Material.Metal
 	)
 	accentStrip.CFrame = rootCFrame * CFrame.new(0, (baseSize.Y * 0.42), 0)
-	accentStrip.Transparency = if profile.rarityRank >= 4 then 0.18 else 0.42
+	setReplicaTransparency(accentStrip, if profile.rarityRank >= 4 then 0.18 else 0.42)
 
 	local edgeGlint = createVisualBasePart(
 		resourcePart,
@@ -758,7 +835,7 @@ local function buildIngotResource(resourcePart, profile, rootYaw)
 		Enum.Material.Neon
 	)
 	edgeGlint.CFrame = rootCFrame * CFrame.new(baseSize.X * 0.34, 0.04 * scale, 0)
-	edgeGlint.Transparency = 0.62
+	setReplicaTransparency(edgeGlint, 0.62)
 end
 
 local function buildEldritchResource(resourcePart, profile, rootYaw)
@@ -769,7 +846,7 @@ local function buildEldritchResource(resourcePart, profile, rootYaw)
 	resourcePart.Size = pedestalSize
 	resourcePart.Color = blendColor(profile.baseColor, Color3.fromRGB(18, 18, 28), 0.62)
 	resourcePart.Material = Enum.Material.Slate
-	resourcePart.Transparency = 0
+	setReplicaTransparency(resourcePart, 0)
 	resourcePart.Reflectance = 0.03
 	resourcePart.CFrame = rootCFrame
 
@@ -783,7 +860,7 @@ local function buildEldritchResource(resourcePart, profile, rootYaw)
 		Enum.Material.Glass
 	)
 	innerCore.CFrame = rootCFrame * CFrame.new(0, 1.26 * scale, 0) * CFrame.Angles(math.rad(-4), math.rad(18), math.rad(3))
-	innerCore.Transparency = 0.10
+	setReplicaTransparency(innerCore, 0.10)
 	innerCore.Reflectance = 0.18
 
 	local heart = createVisualBasePart(
@@ -797,7 +874,7 @@ local function buildEldritchResource(resourcePart, profile, rootYaw)
 	)
 	heart.Shape = Enum.PartType.Ball
 	heart.CFrame = rootCFrame * CFrame.new(0, 1.18 * scale, 0)
-	heart.Transparency = 0.10
+	setReplicaTransparency(heart, 0.10)
 
 	local orbitDefs = getOreCrystalDefinitions("eldritch")
 	for index, shard in ipairs(orbitDefs) do
@@ -816,7 +893,7 @@ local function buildEldritchResource(resourcePart, profile, rootYaw)
 		Enum.Material.Neon
 	)
 	seam.CFrame = rootCFrame * CFrame.new(0.08 * scale, 1.24 * scale, -0.22 * scale) * CFrame.Angles(math.rad(-8), math.rad(14), math.rad(6))
-	seam.Transparency = 0.26
+	setReplicaTransparency(seam, 0.26)
 
 	if profile.rarityRank >= 5 then
 		local halo = createVisualBasePart(
@@ -830,7 +907,7 @@ local function buildEldritchResource(resourcePart, profile, rootYaw)
 		)
 		halo.Shape = Enum.PartType.Cylinder
 		halo.CFrame = rootCFrame * CFrame.new(0, 1.78 * scale, 0) * CFrame.Angles(0, 0, math.rad(90))
-		halo.Transparency = 0.42
+		setReplicaTransparency(halo, 0.42)
 	end
 end
 
@@ -838,11 +915,13 @@ local function buildResourceVisual(resourcePart, resourceTypeId, traitId, sizeId
 	local resourceDefinition = if resourceTypeId ~= nil then Resources[resourceTypeId] else nil
 	local profile = resolveResourceVisualProfile(resourceTypeId, resourceDefinition, sizeId, sizeValue)
 	local rootYaw = math.rad((getStringHash(resourcePart.Name) % 360) - 180)
+	local labelAccentColor = WorldLabelPresentation.getPlacedResourceLabelAccentColor(profile.rarity)
 
 	resourcePart:SetAttribute("ResourceVisualVariant", profile.variantId)
 	resourcePart:SetAttribute("ResourceRarity", profile.rarity)
 	resourcePart:SetAttribute("ResourceRarityRank", profile.rarityRank)
 	resourcePart:SetAttribute("TraitDisplayName", resolveTraitDisplayName(traitId) or "None")
+	resourcePart:SetAttribute("ResourceLabelAccentColor", labelAccentColor)
 
 	if profile.variantId == "ingot" then
 		buildIngotResource(resourcePart, profile, rootYaw)
@@ -872,9 +951,12 @@ local function buildResourceVisual(resourcePart, resourceTypeId, traitId, sizeId
 		resourcePart,
 		displayTitle,
 		displaySubtitle,
-		profile.accentColor,
+		labelAccentColor,
 		profile.rarityRank
 	)
+
+	configureResourceHoverTargets(resourcePart)
+	reapplyReplicaTransparency(resourcePart)
 end
 
 local function collectPlacedGeodes(profile, plotId, nowUnix)
@@ -922,6 +1004,8 @@ local function collectPlacedResources(profile, plotId)
 				id = resource.id or resourceId,
 				resourceTypeId = resource.resourceTypeId,
 				traitId = resource.traitId,
+				sizeId = resource.sizeId,
+				sizeValue = resource.sizeValue,
 				placement = placement,
 			})
 		end
@@ -989,6 +1073,8 @@ local function buildPlotSignature(plot, profile, nowUnix)
 				resource.id,
 				tostring(resource.resourceTypeId or "unknown"),
 				tostring(resource.traitId or "none"),
+				tostring(resource.sizeId or "medium"),
+				tostring(resource.sizeValue or "nil"),
 				tostring(resource.placement.x or "nil"),
 				tostring(resource.placement.y or "nil"),
 			}, ":"))
@@ -1651,6 +1737,20 @@ function WorldReplicaService:_buildPlot(plot, profile, signature, nowUnix)
 		Enum.Material.Rock
 	)
 	trim.Transparency = 0.1
+
+	-- Keep the visible trim non-blocking for presentation, but mirror it with an invisible
+	-- collider so the server-authored plot surface matches what players see in the world.
+	local surfaceCollider = createPart(
+		plotModel,
+		PLOT_SURFACE_COLLIDER_NAME,
+		Vector3.new(World.plotBaseSize.width - 6, 0.4, World.plotBaseSize.depth - 6),
+		Vector3.new(plot.position.x, plot.position.y + 1.2, plot.position.z),
+		Color3.fromRGB(58, 54, 78),
+		Enum.Material.SmoothPlastic
+	)
+	surfaceCollider.Transparency = 1
+	surfaceCollider.CanQuery = false
+	surfaceCollider.CanTouch = false
 
 	addRockSpikes(plotModel, plot)
 	addGeodes(plotModel, plot, profile, nowUnix)

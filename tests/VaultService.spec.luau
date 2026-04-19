@@ -18,7 +18,7 @@ return function()
 	local profile = PlayerProfile.new(100)
 	profile.plotState.plotId = "plot_1"
 
-	local geode = GeodeState.createInstance("geode_a", "starter_geode", 100, 10, "huge", 1.52)
+	local geode = GeodeState.createInstance("geode_a", "starter_geode", 100, 15, "huge", 1.52)
 	profile.geodesById[geode.id] = geode
 	table.insert(profile.geodeOrder, geode.id)
 	profile.inventory.geodes.starter_geode = 1
@@ -55,6 +55,17 @@ return function()
 	local duplicatePlace, duplicateError = service:placeResource(1, "resource_a", 2, 2)
 	assert(duplicatePlace == nil and duplicateError == "resource_already_placed", "placed resources should not place twice")
 
+	local pickedUpResource = service:pickupResource(1, "resource_a")
+	assert(pickedUpResource ~= nil, "placed resources should be returnable to the vault")
+	assert(profile.resourcesById.resource_a.placement == nil, "pickup should clear resource placement state")
+	assert(next(profile.placedObjects) == nil, "pickup should free occupied plot cells")
+
+	local duplicatePickup, duplicatePickupError = service:pickupResource(1, "resource_a")
+	assert(duplicatePickup == nil and duplicatePickupError == "resource_not_placed", "vault pickup should reject resources that are already stored")
+
+	local replacedResource = service:placeResource(1, "resource_a", 1, 1)
+	assert(replacedResource ~= nil, "picked up resources should still be placeable again")
+
 	local stationedResource = {
 		id = "resource_b",
 		resourceTypeId = "amethyst",
@@ -71,15 +82,18 @@ return function()
 	local stationedPlace, stationedError = service:placeResource(1, "resource_b", 2, 2)
 	assert(stationedPlace == nil and stationedError == "resource_assigned_to_station", "stationed resources should stay station-owned")
 
+	local stationedPickup, stationedPickupError = service:pickupResource(1, "resource_b")
+	assert(stationedPickup == nil and stationedPickupError == "resource_assigned_to_station", "stationed resources should not be picked up through the vault")
+
 	local soldGeode = service:sellGeode(1, "geode_a")
 	assert(soldGeode ~= nil, "stored geodes should be sellable")
 	assert(profile.geodesById.geode_a == nil, "selling a geode should remove it from owned geodes")
 	assert(profile.inventory.geodes.starter_geode == 0, "selling a geode should update vault counts")
-	assert(profile.currencies.coins == 280, "selling a starter geode should award configured coins")
+	assert(profile.currencies.coins == 295, "selling a starter geode should award configured coins")
 
 	assert(service:getResourceSellValue(profile.resourcesById.resource_a) == 43, "resource sell previews should include resolved size categories")
 	local soldResource = service:sellResource(1, "resource_a")
 	assert(soldResource ~= nil, "placed resources should be sellable")
 	assert(profile.resourcesById.resource_a == nil, "selling a resource should remove it from owned resources")
-	assert(profile.currencies.coins == 323, "selling quartz should award configured coins including size")
+	assert(profile.currencies.coins == 338, "selling quartz should award configured coins including size")
 end

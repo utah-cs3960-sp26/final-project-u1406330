@@ -6,6 +6,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
+local SoundService = game:GetService("SoundService")
+local Debris = game:GetService("Debris")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
@@ -13,6 +15,7 @@ local Geodes = require(Shared.Config.Geodes)
 local Resources = require(Shared.Config.Resources)
 local Traits = require(Shared.Config.Traits)
 local GeodePresentation = require(Shared.Domain.GeodePresentation)
+local ResourceGuide = require(Shared.Domain.ResourceGuide)
 local RewardPresentation = require(Shared.Domain.RewardPresentation)
 local Panel = require(script.Parent.Parent.Components.Panel)
 
@@ -23,6 +26,7 @@ local SHOP_BASE_Z_INDEX = 60
 local VAULT_BASE_Z_INDEX = 55
 local POPUP_Z_INDEX = 80
 local POPUP_QUEUE_LIMIT = 6
+local GUIDE_BASE_Z_INDEX = 58
 local GEODE_RARITY_ORDER = {
 	"Common",
 	"Uncommon",
@@ -139,6 +143,12 @@ local TRAIT_TONES = {
 	},
 }
 
+local AUDIO_LIBRARY = {
+	pop = "rbxasset://sounds/action_jump.mp3",
+	tick = "rbxasset://sounds/action_footsteps_plastic.mp3",
+	land = "rbxasset://sounds/action_jump_land.mp3",
+}
+
 local function makeRarityIndexMap(order)
 	local map = {}
 	for index, name in ipairs(order) do
@@ -236,6 +246,168 @@ local function getTraitReelWords()
 	end
 
 	return words
+end
+
+local function playLocalUiSound(soundId: string, volume: number, playbackSpeed: number)
+	local sound = Instance.new("Sound")
+	sound.Name = "HudUiSound"
+	sound.SoundId = soundId
+	sound.Volume = volume
+	sound.PlaybackSpeed = playbackSpeed
+	sound.RollOffMaxDistance = 0
+	sound.Parent = SoundService
+	SoundService:PlayLocalSound(sound)
+	Debris:AddItem(sound, 3)
+end
+
+local function playGuideButtonSound(opened: boolean)
+	local playbackSpeed = if opened then 1.06 else 0.94
+	playLocalUiSound(AUDIO_LIBRARY.pop, 0.22, playbackSpeed)
+end
+
+local function playCelebrationSound(spec)
+	if spec.kind == "geode_discovery" then
+		local rarityIndex = math.clamp(spec.rarityIndex or 1, 1, 10)
+		playLocalUiSound(AUDIO_LIBRARY.pop, math.clamp(0.14 + (rarityIndex * 0.028), 0.14, 0.4), 0.96 + (rarityIndex * 0.03))
+		if rarityIndex >= 4 then
+			task.delay(0.07, function()
+				playLocalUiSound(AUDIO_LIBRARY.land, math.clamp(0.1 + (rarityIndex * 0.02), 0.1, 0.28), 0.92 + (rarityIndex * 0.025))
+			end)
+		end
+	elseif spec.kind == "resource" or spec.kind == "attribute" then
+		local rarityIndex = math.clamp(spec.rarityIndex or 1, 1, 6)
+		playLocalUiSound(AUDIO_LIBRARY.land, math.clamp(0.12 + (rarityIndex * 0.025), 0.12, 0.28), 1 + (rarityIndex * 0.04))
+	end
+end
+
+local function createGuideRow(parent: Instance, rowData)
+	local row = Instance.new("Frame")
+	row.Name = rowData.rarity .. "Row"
+	row.BackgroundColor3 = rowData.backgroundColor
+	row.BorderSizePixel = 0
+	row.LayoutOrder = rowData.layoutOrder
+	row.Size = UDim2.new(1, 0, 0, 66)
+	row.ZIndex = GUIDE_BASE_Z_INDEX + 2
+	row.Parent = parent
+
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 18)
+	corner.Parent = row
+
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = rowData.highlightColor
+	stroke.Thickness = 3
+	stroke.Parent = row
+
+	local padding = Instance.new("UIPadding")
+	padding.PaddingTop = UDim.new(0, 10)
+	padding.PaddingBottom = UDim.new(0, 10)
+	padding.PaddingLeft = UDim.new(0, 12)
+	padding.PaddingRight = UDim.new(0, 12)
+	padding.Parent = row
+
+	local chip = Instance.new("TextLabel")
+	chip.BackgroundColor3 = rowData.accentColor
+	chip.BorderSizePixel = 0
+	chip.Size = UDim2.new(0, 118, 0, 44)
+	chip.Font = Enum.Font.FredokaOne
+	chip.Text = string.upper(rowData.rarity)
+	chip.TextColor3 = Color3.fromRGB(78, 48, 18)
+	chip.TextSize = 18
+	chip.ZIndex = GUIDE_BASE_Z_INDEX + 3
+	chip.Parent = row
+
+	local chipCorner = Instance.new("UICorner")
+	chipCorner.CornerRadius = UDim.new(0, 14)
+	chipCorner.Parent = chip
+
+	local chipStroke = Instance.new("UIStroke")
+	chipStroke.Color = rowData.accentColor:Lerp(Color3.fromRGB(255, 255, 255), 0.4)
+	chipStroke.Thickness = 3
+	chipStroke.Parent = chip
+
+	local percentLabel = Instance.new("TextLabel")
+	percentLabel.BackgroundTransparency = 1
+	percentLabel.AnchorPoint = Vector2.new(1, 0)
+	percentLabel.Position = UDim2.new(1, 0, 0, 0)
+	percentLabel.Size = UDim2.new(0, 92, 0, 24)
+	percentLabel.Font = Enum.Font.FredokaOne
+	percentLabel.Text = rowData.percentageText
+	percentLabel.TextColor3 = Color3.fromRGB(82, 52, 18)
+	percentLabel.TextSize = 24
+	percentLabel.TextXAlignment = Enum.TextXAlignment.Right
+	percentLabel.ZIndex = GUIDE_BASE_Z_INDEX + 3
+	percentLabel.Parent = row
+
+	local countLabel = Instance.new("TextLabel")
+	countLabel.BackgroundTransparency = 1
+	countLabel.AnchorPoint = Vector2.new(1, 1)
+	countLabel.Position = UDim2.new(1, 0, 1, 0)
+	countLabel.Size = UDim2.new(0, 150, 0, 18)
+	countLabel.Font = Enum.Font.GothamBold
+	countLabel.Text = rowData.countText
+	countLabel.TextColor3 = Color3.fromRGB(120, 92, 56)
+	countLabel.TextSize = 12
+	countLabel.TextXAlignment = Enum.TextXAlignment.Right
+	countLabel.ZIndex = GUIDE_BASE_Z_INDEX + 3
+	countLabel.Parent = row
+
+	local barFrame = Instance.new("Frame")
+	barFrame.BackgroundColor3 = Color3.fromRGB(255, 247, 223)
+	barFrame.BorderSizePixel = 0
+	barFrame.Position = UDim2.new(0, 128, 0, 10)
+	barFrame.Size = UDim2.new(1, -228, 0, 22)
+	barFrame.ZIndex = GUIDE_BASE_Z_INDEX + 2
+	barFrame.Parent = row
+
+	local barCorner = Instance.new("UICorner")
+	barCorner.CornerRadius = UDim.new(1, 0)
+	barCorner.Parent = barFrame
+
+	local barFill = Instance.new("Frame")
+	barFill.BackgroundColor3 = rowData.accentColor
+	barFill.BorderSizePixel = 0
+	barFill.Size = UDim2.new(math.clamp(rowData.barFillShare or rowData.share, 0.04, 1), 0, 1, 0)
+	barFill.ZIndex = GUIDE_BASE_Z_INDEX + 3
+	barFill.Parent = barFrame
+
+	local fillCorner = Instance.new("UICorner")
+	fillCorner.CornerRadius = UDim.new(1, 0)
+	fillCorner.Parent = barFill
+end
+
+local function rebuildGuideRows(guideRows: ScrollingFrame, rowDataList: { any }, hintText: string)
+	for _, child in ipairs(guideRows:GetChildren()) do
+		if not child:IsA("UIListLayout") and not child:IsA("UIPadding") then
+			child:Destroy()
+		end
+	end
+
+	local guideHint = Instance.new("TextLabel")
+	guideHint.BackgroundColor3 = Color3.fromRGB(255, 239, 186)
+	guideHint.BorderSizePixel = 0
+	guideHint.LayoutOrder = 0
+	guideHint.Size = UDim2.new(1, 0, 0, 56)
+	guideHint.Font = Enum.Font.GothamBold
+	guideHint.Text = hintText
+	guideHint.TextColor3 = Color3.fromRGB(94, 71, 28)
+	guideHint.TextSize = 13
+	guideHint.TextWrapped = true
+	guideHint.ZIndex = GUIDE_BASE_Z_INDEX + 3
+	guideHint.Parent = guideRows
+
+	local guideHintCorner = Instance.new("UICorner")
+	guideHintCorner.CornerRadius = UDim.new(0, 16)
+	guideHintCorner.Parent = guideHint
+
+	local guideHintStroke = Instance.new("UIStroke")
+	guideHintStroke.Color = Color3.fromRGB(255, 251, 217)
+	guideHintStroke.Thickness = 3
+	guideHintStroke.Parent = guideHint
+
+	for _, rowData in ipairs(rowDataList) do
+		createGuideRow(guideRows, rowData)
+	end
 end
 
 local function applyGuiZIndex(root, zIndex)
@@ -483,6 +655,151 @@ function RootScreen.new(context)
 	coinLabel.TextScaled = true
 	coinLabel.TextXAlignment = Enum.TextXAlignment.Left
 	coinLabel.Parent = coinCounter
+
+	local guideDock = Instance.new("Frame")
+	guideDock.Name = "GuideDock"
+	guideDock.AnchorPoint = Vector2.new(1, 1)
+	guideDock.BackgroundTransparency = 1
+	guideDock.BorderSizePixel = 0
+	guideDock.Position = UDim2.new(1, -20, 1, -20)
+	guideDock.Size = UDim2.new(0, 236, 0, 64)
+	guideDock.Parent = screenGui
+
+	local guideButton = Instance.new("TextButton")
+	guideButton.Name = "GuideButton"
+	guideButton.AutoButtonColor = true
+	guideButton.BackgroundColor3 = Color3.fromRGB(131, 230, 214)
+	guideButton.BorderSizePixel = 0
+	guideButton.Size = UDim2.new(1, 0, 1, 0)
+	guideButton.Font = Enum.Font.FredokaOne
+	guideButton.Text = "Resource Guide"
+	guideButton.TextColor3 = Color3.fromRGB(38, 76, 72)
+	guideButton.TextSize = 28
+	guideButton.Parent = guideDock
+
+	local guideButtonCorner = Instance.new("UICorner")
+	guideButtonCorner.CornerRadius = UDim.new(0, 18)
+	guideButtonCorner.Parent = guideButton
+
+	local guideButtonStroke = Instance.new("UIStroke")
+	guideButtonStroke.Color = Color3.fromRGB(218, 255, 246)
+	guideButtonStroke.Thickness = 5
+	guideButtonStroke.Parent = guideButton
+
+	local guideOverlay = Instance.new("Frame")
+	guideOverlay.Name = "GuideOverlay"
+	guideOverlay.BackgroundColor3 = Color3.fromRGB(8, 8, 12)
+	guideOverlay.BackgroundTransparency = 0.35
+	guideOverlay.BorderSizePixel = 0
+	guideOverlay.Size = UDim2.fromScale(1, 1)
+	guideOverlay.Visible = false
+	guideOverlay.ZIndex = GUIDE_BASE_Z_INDEX
+	guideOverlay.Parent = screenGui
+
+	local guidePanel = Instance.new("Frame")
+	guidePanel.Name = "GuidePanel"
+	guidePanel.AnchorPoint = Vector2.new(0.5, 0.5)
+	guidePanel.BackgroundColor3 = Color3.fromRGB(255, 248, 225)
+	guidePanel.BorderSizePixel = 0
+	guidePanel.Position = UDim2.fromScale(0.5, 0.5)
+	guidePanel.Size = UDim2.new(0.9, 0, 0.74, 0)
+	guidePanel.ZIndex = GUIDE_BASE_Z_INDEX + 1
+	guidePanel.Parent = guideOverlay
+
+	local guidePanelCorner = Instance.new("UICorner")
+	guidePanelCorner.CornerRadius = UDim.new(0, 22)
+	guidePanelCorner.Parent = guidePanel
+
+	local guidePanelStroke = Instance.new("UIStroke")
+	guidePanelStroke.Color = Color3.fromRGB(131, 230, 214)
+	guidePanelStroke.Thickness = 5
+	guidePanelStroke.Parent = guidePanel
+
+	local guideConstraint = Instance.new("UISizeConstraint")
+	guideConstraint.MinSize = Vector2.new(320, 340)
+	guideConstraint.MaxSize = Vector2.new(560, 620)
+	guideConstraint.Parent = guidePanel
+
+	local guidePadding = Instance.new("UIPadding")
+	guidePadding.PaddingTop = UDim.new(0, 18)
+	guidePadding.PaddingBottom = UDim.new(0, 18)
+	guidePadding.PaddingLeft = UDim.new(0, 18)
+	guidePadding.PaddingRight = UDim.new(0, 18)
+	guidePadding.Parent = guidePanel
+
+	local guideHeader = Instance.new("Frame")
+	guideHeader.Name = "GuideHeader"
+	guideHeader.BackgroundTransparency = 1
+	guideHeader.Size = UDim2.new(1, 0, 0, 70)
+	guideHeader.ZIndex = GUIDE_BASE_Z_INDEX + 2
+	guideHeader.Parent = guidePanel
+
+	local guideTitle = Instance.new("TextLabel")
+	guideTitle.BackgroundTransparency = 1
+	guideTitle.Size = UDim2.new(1, -52, 0, 34)
+	guideTitle.Font = Enum.Font.FredokaOne
+	guideTitle.Text = "Resource Guide"
+	guideTitle.TextColor3 = Color3.fromRGB(64, 48, 22)
+	guideTitle.TextSize = 34
+	guideTitle.TextXAlignment = Enum.TextXAlignment.Left
+	guideTitle.ZIndex = GUIDE_BASE_Z_INDEX + 2
+	guideTitle.Parent = guideHeader
+
+	local guideSubtitle = Instance.new("TextLabel")
+	guideSubtitle.BackgroundTransparency = 1
+	guideSubtitle.Position = UDim2.new(0, 0, 0, 36)
+	guideSubtitle.Size = UDim2.new(1, -56, 0, 30)
+	guideSubtitle.Font = Enum.Font.GothamBold
+	guideSubtitle.Text = "Current resource catalog share by rarity tier."
+	guideSubtitle.TextColor3 = Color3.fromRGB(107, 94, 72)
+	guideSubtitle.TextSize = 14
+	guideSubtitle.TextWrapped = true
+	guideSubtitle.TextXAlignment = Enum.TextXAlignment.Left
+	guideSubtitle.TextYAlignment = Enum.TextYAlignment.Top
+	guideSubtitle.ZIndex = GUIDE_BASE_Z_INDEX + 2
+	guideSubtitle.Parent = guideHeader
+
+	local guideClose = Instance.new("TextButton")
+	guideClose.Name = "CloseGuideButton"
+	guideClose.AnchorPoint = Vector2.new(1, 0)
+	guideClose.BackgroundColor3 = Color3.fromRGB(255, 136, 121)
+	guideClose.BorderSizePixel = 0
+	guideClose.Position = UDim2.new(1, 0, 0, 2)
+	guideClose.Size = UDim2.new(0, 44, 0, 40)
+	guideClose.Font = Enum.Font.FredokaOne
+	guideClose.Text = "X"
+	guideClose.TextColor3 = Color3.fromRGB(92, 32, 24)
+	guideClose.TextSize = 24
+	guideClose.ZIndex = GUIDE_BASE_Z_INDEX + 3
+	guideClose.Parent = guideHeader
+
+	local guideCloseCorner = Instance.new("UICorner")
+	guideCloseCorner.CornerRadius = UDim.new(0, 12)
+	guideCloseCorner.Parent = guideClose
+
+	local guideRows = Instance.new("ScrollingFrame")
+	guideRows.Name = "GuideRows"
+	guideRows.BackgroundTransparency = 1
+	guideRows.BorderSizePixel = 0
+	guideRows.Position = UDim2.new(0, 0, 0, 78)
+	guideRows.Size = UDim2.new(1, 0, 1, -78)
+	guideRows.ScrollBarThickness = 7
+	guideRows.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	guideRows.CanvasSize = UDim2.new(0, 0, 0, 0)
+	guideRows.ZIndex = GUIDE_BASE_Z_INDEX + 2
+	guideRows.Parent = guidePanel
+
+	local guideRowsPadding = Instance.new("UIPadding")
+	guideRowsPadding.PaddingBottom = UDim.new(0, 4)
+	guideRowsPadding.Parent = guideRows
+
+	local guideRowsLayout = Instance.new("UIListLayout")
+	guideRowsLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	guideRowsLayout.Padding = UDim.new(0, 10)
+	guideRowsLayout.Parent = guideRows
+
+	local initialGuideSummary = ResourceGuide.getGuideSummary(ResourceGuide.getDefaultPickaxeId())
+	rebuildGuideRows(guideRows, ResourceGuide.getGuideRows(initialGuideSummary.pickaxeId), initialGuideSummary.hintText)
 
 	local vaultOverlay = Instance.new("Frame")
 	vaultOverlay.Name = "VaultOverlay"
@@ -824,6 +1141,10 @@ function RootScreen.new(context)
 	shopPanel.ZIndex = SHOP_BASE_Z_INDEX + 1
 	shopOverlay.ZIndex = SHOP_BASE_Z_INDEX
 	shopClose.ZIndex = SHOP_BASE_Z_INDEX + 4
+	applyGuiZIndex(guidePanel, GUIDE_BASE_Z_INDEX + 2)
+	guidePanel.ZIndex = GUIDE_BASE_Z_INDEX + 1
+	guideOverlay.ZIndex = GUIDE_BASE_Z_INDEX
+	guideClose.ZIndex = GUIDE_BASE_Z_INDEX + 4
 
 	local miningPopupContainer = Instance.new("Frame")
 	miningPopupContainer.Name = "MiningPopups"
@@ -869,6 +1190,13 @@ function RootScreen.new(context)
 			closeButton = vaultClose,
 			coinLabel = coinLabel,
 		},
+		guide = {
+			overlay = guideOverlay,
+			button = guideButton,
+			closeButton = guideClose,
+			rows = guideRows,
+			subtitle = guideSubtitle,
+		},
 		miningPopupContainer = miningPopupContainer,
 		labels = {
 			status = status,
@@ -913,7 +1241,21 @@ function RootScreen.new(context)
 		vaultOverlay.Visible = false
 	end)
 
+	guideButton.Activated:Connect(function()
+		local nextVisible = not guideOverlay.Visible
+		guideOverlay.Visible = nextVisible
+		playGuideButtonSound(nextVisible)
+	end)
+
+	guideClose.Activated:Connect(function()
+		if guideOverlay.Visible then
+			guideOverlay.Visible = false
+			playGuideButtonSound(false)
+		end
+	end)
+
 	self:setShopMenuVisible(false)
+	self:setResourceGuideVisible(false)
 	self:setOpenReadyGeodeButton(false, "Open Ready Geode")
 	self:setOfflineButtonState(false, "Claim Offline Cache")
 	self:setPlaceStarterStationButton(true, "Place Starter Station")
@@ -1073,6 +1415,19 @@ local function createTextLabel(parent: Instance, text: string, fontSize: number,
 	return label
 end
 
+local function createFittedPopupLabel(parent: Instance, text: string, fontSize: number, textColor: Color3, height: number, minTextSize: number)
+	local label = createTextLabel(parent, text, fontSize, textColor, height)
+	label.TextScaled = true
+
+	local constraint = label:FindFirstChildWhichIsA("UITextSizeConstraint")
+	if constraint ~= nil then
+		constraint.MaxTextSize = fontSize
+		constraint.MinTextSize = minTextSize
+	end
+
+	return label
+end
+
 local function createReel(parent: Instance, tone, initialText: string)
 	local reel = Instance.new("Frame")
 	reel.BackgroundColor3 = tone.highlight
@@ -1117,20 +1472,20 @@ function RootScreen:_pumpCelebrationQueue()
 
 		local isCoin = spec.kind == "coin"
 		local width = if isCoin then 160 elseif spec.compact == true then 300 elseif spec.showSlotMachine == true then 460 else 360
-		local height = if isCoin then 36 elseif spec.compact == true then 68 elseif spec.showSlotMachine == true then 190 else 104
+		local height = if isCoin then 36 elseif spec.compact == true then 68 elseif spec.showSlotMachine == true then 212 else 104
 		if spec.kind == "geode_discovery" then
 			local ri = math.clamp(spec.rarityIndex or 1, 1, 10)
 			width = math.clamp(320 + (ri - 1) * 22, 320, 520)
 			height = math.clamp(110 + (ri - 1) * 18, 110, 280)
 		elseif spec.kind == "attribute" then
-			height = 210
+			height = if spec.showSlotMachine == true then 252 else 210
 		elseif spec.kind == "resource" then
-			height = if spec.showSlotMachine == true then 230 else 120
+			height = if spec.showSlotMachine == true then 252 else 120
 		elseif spec.kind == "geode" then
-			height = if spec.showSlotMachine == true then 230 else 120
+			height = if spec.showSlotMachine == true then 240 else 120
 		end
 		if spec.waitForClick == true then
-			height += 34
+			height += 40
 		end
 
 		local popup = makePopup(self.miningPopupContainer, tone.background, tone.accent, width, height)
@@ -1163,7 +1518,7 @@ function RootScreen:_pumpCelebrationQueue()
 		layout.SortOrder = Enum.SortOrder.LayoutOrder
 		layout.Padding = UDim.new(0, 6)
 		layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-		layout.VerticalAlignment = Enum.VerticalAlignment.Center
+		layout.VerticalAlignment = Enum.VerticalAlignment.Top
 		layout.Parent = popup
 
 		local titleText = if isCoin then spec.headline else string.upper(spec.headline)
@@ -1260,31 +1615,41 @@ function RootScreen:_pumpCelebrationQueue()
 						local stepDelay = 0.06 + progress * 0.14
 						local wordIndex = ((spinStep) % #spinWords) + 1
 						singleReelLabel.Text = tostring(spinWords[wordIndex])
+						if spinStep == 1 or spinStep % 3 == 0 then
+							playLocalUiSound(
+								AUDIO_LIBRARY.tick,
+								math.clamp(0.05 + ((spec.rarityIndex or 1) * 0.015), 0.05, 0.12),
+								1.08 + (progress * 0.28)
+							)
+						end
 						task.wait(stepDelay)
 					end
 					singleReelLabel.Text = tostring(spec.reelFinal or spec.primary)
+					playCelebrationSound(spec)
 					reelFinished = true
 					revealResolvedPopupText()
 				end)
 			end
 
-			primaryLabel = createTextLabel(
+			primaryLabel = createFittedPopupLabel(
 				popup,
 				if hideResolvedRevealText then "" else spec.primary,
 				if spec.showSlotMachine == true then 26 else 28,
 				spec.textColor or tone.text,
-				if spec.showSlotMachine == true then 32 else 34
+				if spec.showSlotMachine == true then 38 else 34,
+				if spec.showSlotMachine == true then 16 else 20
 			)
 			primaryLabel.LayoutOrder = if spec.showSlotMachine == true then 3 else 2
 			primaryLabel.Visible = not hideResolvedRevealText
 
 			if spec.detail ~= nil or spec.rarityLabel ~= nil then
-				detailLabel = createTextLabel(
+				detailLabel = createFittedPopupLabel(
 					popup,
 					if hideResolvedRevealText then "" else resolvedDetailText,
 					18,
 					tone.text,
-					if spec.showSlotMachine == true then 24 else 22
+					if spec.showSlotMachine == true then 28 else 22,
+					12
 				)
 				detailLabel.LayoutOrder = if spec.showSlotMachine == true then 4 else 3
 				detailLabel.Visible = not hideResolvedRevealText
@@ -1324,6 +1689,48 @@ function RootScreen:_pumpCelebrationQueue()
 			end
 		end
 
+		local continueButton
+		local continueLabel
+		if spec.waitForClick == true then
+			local promptSpacer = Instance.new("Frame")
+			promptSpacer.Name = "CelebrationPromptSpacer"
+			promptSpacer.BackgroundTransparency = 1
+			promptSpacer.LayoutOrder = 98
+			promptSpacer.Size = UDim2.new(1, 0, 0, 24)
+			promptSpacer.Parent = popup
+
+			continueLabel = Instance.new("TextLabel")
+			continueLabel.Name = "CelebrationContinuePrompt"
+			continueLabel.Active = false
+			continueLabel.BackgroundTransparency = 1
+			continueLabel.Size = UDim2.new(1, 0, 0, 22)
+			continueLabel.Font = Enum.Font.FredokaOne
+			continueLabel.Text = "Click anywhere to continue..."
+			continueLabel.TextColor3 = tone.text
+			continueLabel.TextSize = 14
+			continueLabel.TextTransparency = 1
+			continueLabel.ZIndex = POPUP_Z_INDEX + 4
+			continueLabel.LayoutOrder = 99
+			continueLabel.Parent = popup
+
+			continueButton = Instance.new("TextButton")
+			continueButton.Name = "CelebrationContinueButton"
+			continueButton.Active = false
+			continueButton.AutoButtonColor = false
+			continueButton.BackgroundTransparency = 1
+			continueButton.BorderSizePixel = 0
+			continueButton.Visible = false
+			continueButton.Size = UDim2.new(1, 0, 1, 0)
+			continueButton.Font = Enum.Font.FredokaOne
+			continueButton.Text = ""
+			continueButton.ZIndex = POPUP_Z_INDEX + 3
+			continueButton.Parent = popup
+		end
+
+		if spec.showSlotMachine ~= true and spec.kind ~= "coin" then
+			playCelebrationSound(spec)
+		end
+
 		local popInTime = 0.2
 		local popInTarget = 1
 		if spec.kind == "geode_discovery" then
@@ -1360,32 +1767,10 @@ function RootScreen:_pumpCelebrationQueue()
 		end
 		task.wait(holdDuration)
 
-		if spec.waitForClick == true then
-			local continueButton = Instance.new("TextButton")
-			continueButton.Name = "CelebrationContinueButton"
-			continueButton.AutoButtonColor = false
-			continueButton.BackgroundTransparency = 1
-			continueButton.BorderSizePixel = 0
-			continueButton.Size = UDim2.new(1, 0, 1, 0)
-			continueButton.Font = Enum.Font.FredokaOne
-			continueButton.Text = ""
-			continueButton.ZIndex = POPUP_Z_INDEX + 3
-			continueButton.Parent = popup
-
-			local continueLabel = Instance.new("TextLabel")
-			continueLabel.Name = "CelebrationContinuePrompt"
-			continueLabel.Active = false
-			continueLabel.BackgroundTransparency = 1
-			continueLabel.Size = UDim2.new(1, 0, 0, 22)
-			continueLabel.Font = Enum.Font.FredokaOne
-			continueLabel.Text = "Click anywhere to continue..."
-			continueLabel.TextColor3 = tone.text
-			continueLabel.TextSize = 14
+		if spec.waitForClick == true and continueButton ~= nil and continueLabel ~= nil then
+			continueButton.Visible = true
+			continueButton.Active = true
 			continueLabel.TextTransparency = 0.3
-			continueLabel.ZIndex = POPUP_Z_INDEX + 4
-			continueLabel.LayoutOrder = 99
-			continueLabel.Parent = popup
-
 			local clicked = false
 			local function setClicked()
 				clicked = true
@@ -1553,6 +1938,16 @@ end
 
 function RootScreen:setVaultVisible(visible)
 	self.vault.overlay.Visible = visible
+end
+
+function RootScreen:setResourceGuideVisible(visible)
+	self.guide.overlay.Visible = visible
+end
+
+function RootScreen:setResourceGuideData(pickaxeId: string?)
+	local summary = ResourceGuide.getGuideSummary(pickaxeId)
+	self.guide.subtitle.Text = summary.subtitleText
+	rebuildGuideRows(self.guide.rows, ResourceGuide.getGuideRows(summary.pickaxeId), summary.hintText)
 end
 
 function RootScreen:getVaultItemContainer()

@@ -9,6 +9,7 @@ local RemoteNames = {
 	RequestEquipPickaxe = "RequestEquipPickaxe",
 	RequestPlaceGeode = "RequestPlaceGeode",
 	RequestPlaceResource = "RequestPlaceResource",
+	RequestPickupResource = "RequestPickupResource",
 	RequestSellVaultItem = "RequestSellVaultItem",
 	RequestCrackGeode = "RequestCrackGeode",
 	RequestOpenGeode = "RequestCrackGeode",

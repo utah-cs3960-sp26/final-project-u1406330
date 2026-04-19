@@ -90,6 +90,52 @@ function VaultService:placeResource(userId, resourceId, x, y)
 	return result
 end
 
+function VaultService:pickupResource(userId, resourceId)
+	local playerData = self.dependencies.playerData
+	local placementService = self.dependencies.placementService
+	if placementService == nil then
+		return nil, "placement_unavailable"
+	end
+
+	local result
+	local _, mutateError = playerData:mutateProfile(userId, function(currentProfile)
+		local resource = currentProfile.resourcesById[resourceId]
+		if resource == nil then
+			return nil, "unknown_resource_instance"
+		end
+
+		if resource.stationId ~= nil then
+			return nil, "resource_assigned_to_station"
+		end
+
+		if resource.placement == nil then
+			return nil, "resource_not_placed"
+		end
+
+		-- Vault pickup is authoritative on the server because the plot footprint has to be
+		-- cleared in lockstep with the resource's placement field to avoid ghost occupancy.
+		local removed, removeReason = placementService:removeObjectByObjectId(currentProfile, "resource", resource.id)
+		if not removed then
+			return nil, removeReason or "resource_pickup_failed"
+		end
+
+		result = {
+			resource = resource,
+		}
+		return result
+	end)
+
+	if result ~= nil then
+		playerData:notifyProfileChanged(userId)
+	end
+
+	if result == nil and mutateError ~= nil then
+		return nil, mutateError
+	end
+
+	return result
+end
+
 function VaultService:sellResource(userId, resourceId)
 	local playerData = self.dependencies.playerData
 	local placementService = self.dependencies.placementService

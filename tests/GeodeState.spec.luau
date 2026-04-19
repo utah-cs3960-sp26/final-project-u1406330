@@ -8,10 +8,10 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local GeodeState = require(Shared.Domain.GeodeState)
 
 return function()
-	local instance = GeodeState.createInstance("geode_1", "starter_geode", 100, 10)
+	local instance = GeodeState.createInstance("geode_1", "starter_geode", 100, 15)
 	assert(instance.id == "geode_1", "created geode should keep the provided id")
 	assert(instance.geodeTypeId == "starter_geode", "created geode should keep the type id")
-	assert(instance.endsAt == 110, "created geode should derive its end time from the timer")
+	assert(instance.endsAt == 115, "created geode should derive its end time from the timer")
 
 	local profile = {
 		geodesById = {

@@ -45,14 +45,15 @@ end
 
 local function resolveResourcePart(target: BasePart?): BasePart?
 	local current: Instance? = target
+	local resolved: BasePart? = nil
 	while current ~= nil do
 		if current:IsA("BasePart") and current:GetAttribute("ResourceId") ~= nil then
-			return current
+			resolved = current
 		end
 		current = current.Parent
 	end
 
-	return nil
+	return resolved
 end
 
 local function findPlotModel(instance: Instance?): Model?
@@ -133,7 +134,13 @@ local function getResourceMarker(resourcePart: BasePart): BillboardGui?
 
 	local rarityRankValue = resourcePart:GetAttribute("ResourceRarityRank")
 	local rarityRank = if type(rarityRankValue) == "number" then rarityRankValue else 1
-	local accentColor = resourcePart.Color
+	local rarityValue = resourcePart:GetAttribute("ResourceRarity")
+	local accentColorValue = resourcePart:GetAttribute("ResourceLabelAccentColor")
+	local accentColor = if typeof(accentColorValue) == "Color3"
+		then accentColorValue
+		else WorldLabelPresentation.getPlacedResourceLabelAccentColor(
+			if type(rarityValue) == "string" then rarityValue else nil
+		)
 
 	local fallbackMarker = Instance.new("BillboardGui")
 	fallbackMarker.Name = resourcePart.Name .. "_Marker"

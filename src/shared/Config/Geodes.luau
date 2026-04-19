@@ -1,6 +1,7 @@
 --!strict
 
 -- Static shared configuration for Geodes used by deterministic gameplay logic on both client and server.
+-- Crack timers use a simple 15-second common baseline and then scale upward in clean steps so progression stays easy to inspect.
 
 local function makeRoll(resourceId: string, weight: number)
 	return {
@@ -33,7 +34,7 @@ local Geodes = {
 	starter_geode = makeGeode(
 		"starter_geode",
 		"Starter Geode",
-		10,
+		15,
 		Color3.fromRGB(124, 129, 150),
 		{
 			makeRoll("quartz", 30),
@@ -47,7 +48,7 @@ local Geodes = {
 	crystal_cavern_geode = makeGeode(
 		"crystal_cavern_geode",
 		"Crystal Cavern Geode",
-		18,
+		20,
 		Color3.fromRGB(92, 112, 150),
 		{
 			makeRoll("quartz", 16),
@@ -64,7 +65,7 @@ local Geodes = {
 	moonlit_geode = makeGeode(
 		"moonlit_geode",
 		"Moonlit Geode",
-		24,
+		25,
 		Color3.fromRGB(168, 176, 204),
 		{
 			makeRoll("quartz", 8),
@@ -101,7 +102,7 @@ local Geodes = {
 	verdant_rift_geode = makeGeode(
 		"verdant_rift_geode",
 		"Verdant Rift Geode",
-		36,
+		35,
 		Color3.fromRGB(88, 170, 112),
 		{
 			makeRoll("jade_fragment", 10),
@@ -118,7 +119,7 @@ local Geodes = {
 	aurora_shard_geode = makeGeode(
 		"aurora_shard_geode",
 		"Aurora Shard Geode",
-		42,
+		40,
 		Color3.fromRGB(90, 199, 214),
 		{
 			makeRoll("moonstone", 10),
@@ -175,7 +176,7 @@ local Geodes = {
 	prism_sun_geode = makeGeode(
 		"prism_sun_geode",
 		"Prism Sun Geode",
-		72,
+		75,
 		Color3.fromRGB(244, 204, 96),
 		{
 			makeRoll("sapphire_spire", 8),

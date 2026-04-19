@@ -32,6 +32,14 @@ return function()
 		WorldLabelPresentation.shouldShowPlacedResourceLabel(nil, "resource_123") == false,
 		"resources without a valid id should fail closed and keep their label hidden"
 	)
+	assert(
+		WorldLabelPresentation.getPlacedResourceLabelAccentColor("Rare") == Color3.fromRGB(108, 228, 193),
+		"placed resource hover labels should use the deterministic rarity accent color"
+	)
+	assert(
+		WorldLabelPresentation.getPlacedResourceLabelAccentColor("mystery") == Color3.fromRGB(244, 249, 255),
+		"unknown rarity labels should fall back to the common accent color"
+	)
 	local plainTitle, plainSubtitle = WorldLabelPresentation.getPlacedResourceLabelText("Quartz", nil, "Medium", "Common")
 	assert(plainTitle == "Quartz", "medium plain resources should show their base display name")
 	assert(plainSubtitle == "Common", "medium plain resources should show their rarity only")

@@ -22,6 +22,19 @@ local geodeOrder = {
 	"sovereign_nova_geode",
 }
 
+local expectedGeodeChanceByPickaxe = {
+	stone_pickaxe = 19,
+	copper_pickaxe = 21,
+	iron_pickaxe = 23,
+	steel_pickaxe = 24,
+	gold_pickaxe = 26,
+	platinum_pickaxe = 27,
+	emerald_pickaxe = 29,
+	obsidian_pickaxe = 30,
+	lunar_pickaxe = 32,
+	crown_pickaxe = 34,
+}
+
 local function makeRng(numberRoll: number, integerRoll: number)
 	local rng = {}
 
@@ -82,6 +95,17 @@ return function()
 
 	for _, pickaxeId in ipairs(Pickaxes.order) do
 		local pickaxe = Pickaxes.catalog[pickaxeId]
+		local expectedGeodeChance = expectedGeodeChanceByPickaxe[pickaxeId]
+		assert(expectedGeodeChance ~= nil, string.format("%s should have an expected scaled geode chance", pickaxeId))
+		assert(pickaxe.geodeChance == expectedGeodeChance, string.format("%s should use the scaled geode find chance", pickaxeId))
+
+		local geodeThreshold = pickaxe.geodeChance / 100
+		local belowThresholdReward = MiningRewards.rollReward(pickaxe, makeRng(math.max(0, geodeThreshold - 0.001), 1))
+		assert(belowThresholdReward ~= nil and belowThresholdReward.rewardType == "geode", string.format("%s should still award a geode just inside its scaled chance", pickaxeId))
+
+		local aboveThresholdReward = MiningRewards.rollReward(pickaxe, makeRng(math.min(0.999, geodeThreshold + 0.001), pickaxe.coinRewardMax))
+		assert(aboveThresholdReward ~= nil and aboveThresholdReward.rewardType == "coins", string.format("%s should award coins once the scaled geode chance is missed", pickaxeId))
+
 		local reward = MiningRewards.rollReward(pickaxe, makeRng(0.99, pickaxe.coinRewardMax))
 		assert(reward ~= nil and reward.rewardType == "coins", string.format("%s should be able to produce a coin reward", pickaxeId))
 		assert(reward.coins ~= nil, string.format("%s should return a coin amount on the coin path", pickaxeId))
@@ -90,4 +114,5 @@ return function()
 
 	assert(Geodes[geodeReward.geodeId] ~= nil, "rolled geodes should exist in the shared geode catalog")
 	assert(MiningRewards.getTotalGeodeWeight(stonePickaxe) == 100, "the stone pickaxe should have a full geode weight table")
+	assert(MiningRewards.getTotalGeodeWeight(crownPickaxe) == 100, "the crown pickaxe should keep its geode tier weighting after the chance rebalance")
 end

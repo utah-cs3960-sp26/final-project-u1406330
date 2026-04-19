@@ -368,6 +368,23 @@ function ServerBootstrap.start()
 		end)
 	end
 
+	remotes.RequestPickupResource.OnServerInvoke = function(player, resourceId)
+		return callAction("RequestPickupResource", function()
+			local pickupResult, errorCode = services.vault:pickupResource(player.UserId, resourceId)
+			if pickupResult == nil then
+				return {
+					ok = false,
+					errorCode = errorCode or "pickup_failed",
+				}
+			end
+
+			return {
+				ok = true,
+				resource = pickupResult.resource,
+			}
+		end)
+	end
+
 	remotes.RequestSellVaultItem.OnServerInvoke = function(player, itemKind, itemId)
 		return callAction("RequestSellVaultItem", function()
 			local sellResult, errorCode

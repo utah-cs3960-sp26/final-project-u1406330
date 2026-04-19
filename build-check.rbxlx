@@ -72,6 +72,7 @@ return Economy
             <string name="Source"><![CDATA[--!strict
 
 -- Static shared configuration for Geodes used by deterministic gameplay logic on both client and server.
+-- Crack timers use a simple 15-second common baseline and then scale upward in clean steps so progression stays easy to inspect.
 
 local function makeRoll(resourceId: string, weight: number)
 	return {
@@ -104,7 +105,7 @@ local Geodes = {
 	starter_geode = makeGeode(
 		"starter_geode",
 		"Starter Geode",
-		10,
+		15,
 		Color3.fromRGB(124, 129, 150),
 		{
 			makeRoll("quartz", 30),
@@ -118,7 +119,7 @@ local Geodes = {
 	crystal_cavern_geode = makeGeode(
 		"crystal_cavern_geode",
 		"Crystal Cavern Geode",
-		18,
+		20,
 		Color3.fromRGB(92, 112, 150),
 		{
 			makeRoll("quartz", 16),
@@ -135,7 +136,7 @@ local Geodes = {
 	moonlit_geode = makeGeode(
 		"moonlit_geode",
 		"Moonlit Geode",
-		24,
+		25,
 		Color3.fromRGB(168, 176, 204),
 		{
 			makeRoll("quartz", 8),
@@ -172,7 +173,7 @@ local Geodes = {
 	verdant_rift_geode = makeGeode(
 		"verdant_rift_geode",
 		"Verdant Rift Geode",
-		36,
+		35,
 		Color3.fromRGB(88, 170, 112),
 		{
 			makeRoll("jade_fragment", 10),
@@ -189,7 +190,7 @@ local Geodes = {
 	aurora_shard_geode = makeGeode(
 		"aurora_shard_geode",
 		"Aurora Shard Geode",
-		42,
+		40,
 		Color3.fromRGB(90, 199, 214),
 		{
 			makeRoll("moonstone", 10),
@@ -246,7 +247,7 @@ local Geodes = {
 	prism_sun_geode = makeGeode(
 		"prism_sun_geode",
 		"Prism Sun Geode",
-		72,
+		75,
 		Color3.fromRGB(244, 204, 96),
 		{
 			makeRoll("sapphire_spire", 8),
@@ -309,6 +310,8 @@ local geodeOrder = {
 	"sovereign_nova_geode",
 }
 
+local GEODE_FIND_CHANCE_SCALE = 0.75
+
 local function makeGeodeWeights(weights: { number })
 	local entries = {}
 
@@ -320,6 +323,11 @@ local function makeGeodeWeights(weights: { number })
 	end
 
 	return entries
+end
+
+local function scaleGeodeChance(baseChance: number): number
+	-- Keep one shared balance knob for "how often do geodes appear at all" so tier tables can stay intact.
+	return math.max(0, math.floor(baseChance * GEODE_FIND_CHANCE_SCALE + 0.5))
 end
 
 local function makePickaxe(
@@ -344,7 +352,7 @@ local function makePickaxe(
 		cooldownSeconds = cooldownSeconds,
 		coinRewardMin = coinRewardMin,
 		coinRewardMax = coinRewardMax,
-		geodeChance = geodeChance,
+		geodeChance = scaleGeodeChance(geodeChance),
 		geodeWeights = makeGeodeWeights(geodeWeights),
 		displayColor = displayColor,
 	}
@@ -1663,6 +1671,213 @@ return PlacementRules
         </Item>
         <Item class="ModuleScript" referent="23">
           <Properties>
+            <string name="Name">ResourceGuide</string>
+            <string name="Source"><![CDATA[--!strict
+
+-- Deterministic shared rules for the Resource Guide so the HUD can present rarity chart data from the shared resource catalog.
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+
+local Geodes = require(Shared.Config.Geodes)
+local Pickaxes = require(Shared.Config.Pickaxes)
+local Resources = require(Shared.Config.Resources)
+local ResourceVisuals = require(Shared.Domain.ResourceVisuals)
+
+local ResourceGuide = {}
+
+local RARITY_ORDER = {
+	"Common",
+	"Uncommon",
+	"Rare",
+	"Epic",
+	"Legendary",
+}
+
+local RARITY_ACCENTS = {
+	Common = Color3.fromRGB(255, 226, 122),
+	Uncommon = Color3.fromRGB(196, 155, 255),
+	Rare = Color3.fromRGB(101, 236, 199),
+	Epic = Color3.fromRGB(119, 214, 255),
+	Legendary = Color3.fromRGB(255, 189, 101),
+}
+
+local DEFAULT_PICKAXE_ID = "stone_pickaxe"
+
+local function roundToPlaces(value: number, places: number): number
+	local scalar = 10 ^ places
+	return math.floor((value * scalar) + 0.5) / scalar
+end
+
+local function formatPercent(percentValue: number): string
+	if percentValue <= 0 then
+		return "0.0%"
+	end
+
+	local places = 1
+	if percentValue < 10 then
+		places = 2
+	end
+	if percentValue < 1 then
+		places = 3
+	end
+
+	return string.format("%." .. tostring(places) .. "f%%", roundToPlaces(percentValue, places))
+end
+
+local function getResolvedPickaxe(pickaxeId: string?)
+	if type(pickaxeId) == "string" and Pickaxes.catalog[pickaxeId] ~= nil then
+		return Pickaxes.catalog[pickaxeId]
+	end
+
+	return Pickaxes.catalog[DEFAULT_PICKAXE_ID]
+end
+
+local function getTotalWeight(entries: { any }?): number
+	if type(entries) ~= "table" then
+		return 0
+	end
+
+	local totalWeight = 0
+
+	for _, entry in ipairs(entries) do
+		local weight = if type(entry.weight) == "number" then entry.weight else 0
+		if weight > 0 then
+			totalWeight += weight
+		end
+	end
+
+	return totalWeight
+end
+
+local function buildRarityChances(pickaxeDefinition: any)
+	local rarityChances = {}
+
+	for _, rarity in ipairs(RARITY_ORDER) do
+		rarityChances[rarity] = 0
+	end
+
+	if type(pickaxeDefinition) ~= "table" then
+		return rarityChances, 0
+	end
+
+	local geodeChance = math.max(0, tonumber(pickaxeDefinition.geodeChance) or 0) / 100
+	local geodeWeights = pickaxeDefinition.geodeWeights
+	local totalGeodeWeight = getTotalWeight(geodeWeights)
+
+	if geodeChance <= 0 or totalGeodeWeight <= 0 then
+		return rarityChances, 0
+	end
+
+	for _, geodeEntry in ipairs(geodeWeights) do
+		local geodeId = geodeEntry.geodeId
+		local geodeWeight = if type(geodeEntry.weight) == "number" then geodeEntry.weight else 0
+		local geodeDefinition = if type(geodeId) == "string" then Geodes[geodeId] else nil
+		if geodeWeight <= 0 or geodeDefinition == nil then
+			continue
+		end
+
+		local totalResourceWeight = getTotalWeight(geodeDefinition.rolls)
+		if totalResourceWeight <= 0 then
+			continue
+		end
+
+		local geodeShare = geodeChance * (geodeWeight / totalGeodeWeight)
+
+		for _, roll in ipairs(geodeDefinition.rolls) do
+			local resourceId = roll.resourceId
+			local resourceWeight = if type(roll.weight) == "number" then roll.weight else 0
+			local resourceDefinition = if type(resourceId) == "string" then Resources[resourceId] else nil
+			if resourceWeight <= 0 or resourceDefinition == nil then
+				continue
+			end
+
+			local rarity = if type(resourceDefinition.rarity) == "string" then resourceDefinition.rarity else "Common"
+			rarityChances[rarity] = (rarityChances[rarity] or 0) + (geodeShare * (resourceWeight / totalResourceWeight))
+		end
+	end
+
+	local totalChance = 0
+	for _, rarity in ipairs(RARITY_ORDER) do
+		totalChance += rarityChances[rarity] or 0
+	end
+
+	return rarityChances, totalChance
+end
+
+function ResourceGuide.getRarityOrder(): { string }
+	local order = table.clone(RARITY_ORDER)
+	return order
+end
+
+function ResourceGuide.getDefaultPickaxeId(): string
+	return DEFAULT_PICKAXE_ID
+end
+
+function ResourceGuide.getGuideSummary(pickaxeId: string?): any
+	local pickaxeDefinition = getResolvedPickaxe(pickaxeId)
+	local _, totalChance = buildRarityChances(pickaxeDefinition)
+
+	return {
+		pickaxeId = pickaxeDefinition.id,
+		pickaxeDisplayName = pickaxeDefinition.displayName,
+		totalResourceChance = totalChance,
+		totalResourceChanceText = formatPercent(totalChance * 100),
+		subtitleText = string.format("Per mine swing with %s equipped.", pickaxeDefinition.displayName),
+		hintText = string.format(
+			"Resource drops total %s per swing. Better pickaxes raise geode chance and shift weight toward rarer geodes.",
+			formatPercent(totalChance * 100)
+		),
+	}
+end
+
+function ResourceGuide.getGuideRows(pickaxeId: string?): { any }
+	local pickaxeDefinition = getResolvedPickaxe(pickaxeId)
+	local rarityChances, totalChance = buildRarityChances(pickaxeDefinition)
+	local rows = {}
+	local maxChance = 0
+
+	for _, rarity in ipairs(RARITY_ORDER) do
+		maxChance = math.max(maxChance, rarityChances[rarity] or 0)
+	end
+
+	for index, rarity in ipairs(RARITY_ORDER) do
+		local chance = rarityChances[rarity] or 0
+		local share = if totalChance > 0 then chance / totalChance else 0
+		local percent = chance * 100
+		local accentColor = RARITY_ACCENTS[rarity] or Color3.fromRGB(255, 226, 122)
+		local backgroundColor = accentColor:Lerp(Color3.fromRGB(255, 255, 255), 0.68)
+		local highlightColor = accentColor:Lerp(Color3.fromRGB(255, 255, 255), 0.36)
+		local rank = ResourceVisuals.getRarityRank(rarity)
+
+		table.insert(rows, {
+			layoutOrder = index,
+			rarity = rarity,
+			rank = rank,
+			pickaxeId = pickaxeDefinition.id,
+			pickaxeDisplayName = pickaxeDefinition.displayName,
+			chance = chance,
+			share = share,
+			barFillShare = if maxChance > 0 then chance / maxChance else 0,
+			percentage = percent,
+			percentageText = formatPercent(percent),
+			countText = string.format("Drop share %s", formatPercent(share * 100)),
+			accentColor = accentColor,
+			backgroundColor = backgroundColor,
+			highlightColor = highlightColor,
+		})
+	end
+
+	return rows
+end
+
+return ResourceGuide
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="24">
+          <Properties>
             <string name="Name">ResourceVisuals</string>
             <string name="Source"><![CDATA[--!strict
 
@@ -1880,7 +2095,7 @@ return ResourceVisuals
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="24">
+        <Item class="ModuleScript" referent="25">
           <Properties>
             <string name="Name">RewardPresentation</string>
             <string name="Source"><![CDATA[--!strict
@@ -1976,7 +2191,7 @@ return RewardPresentation
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="25">
+        <Item class="ModuleScript" referent="26">
           <Properties>
             <string name="Name">ShopRotation</string>
             <string name="Source"><![CDATA[--!strict
@@ -2010,7 +2225,7 @@ return ShopRotation
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="26">
+        <Item class="ModuleScript" referent="27">
           <Properties>
             <string name="Name">SizeRoller</string>
             <string name="Source"><![CDATA[--!strict
@@ -2096,7 +2311,7 @@ return SizeRoller
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="27">
+        <Item class="ModuleScript" referent="28">
           <Properties>
             <string name="Name">SizeRules</string>
             <string name="Source"><![CDATA[--!strict
@@ -2222,7 +2437,7 @@ return SizeRules
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="28">
+        <Item class="ModuleScript" referent="29">
           <Properties>
             <string name="Name">StationAssignment</string>
             <string name="Source"><![CDATA[--!strict
@@ -2360,7 +2575,7 @@ return StationAssignment
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="29">
+        <Item class="ModuleScript" referent="30">
           <Properties>
             <string name="Name">TraitRoller</string>
             <string name="Source"><![CDATA[--!strict
@@ -2419,7 +2634,7 @@ return TraitRoller
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="30">
+        <Item class="ModuleScript" referent="31">
           <Properties>
             <string name="Name">VaultMath</string>
             <string name="Source"><![CDATA[--!strict
@@ -2466,7 +2681,7 @@ return VaultMath
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="31">
+        <Item class="ModuleScript" referent="32">
           <Properties>
             <string name="Name">WorldLabelPresentation</string>
             <string name="Source"><![CDATA[--!strict
@@ -2474,6 +2689,14 @@ return VaultMath
 -- Deterministic shared rules for World Label Presentation so gameplay behavior can be reused by the server, client presentation, and specs.
 
 local WorldLabelPresentation = {}
+
+local RESOURCE_RARITY_LABEL_COLORS = {
+	Common = Color3.fromRGB(244, 249, 255),
+	Uncommon = Color3.fromRGB(188, 145, 255),
+	Rare = Color3.fromRGB(108, 228, 193),
+	Epic = Color3.fromRGB(118, 213, 255),
+	Legendary = Color3.fromRGB(255, 224, 117),
+}
 
 function WorldLabelPresentation.resolveHoveredResourceId(targetResourceId: string?, ancestorResourceId: string?): string?
 	if type(targetResourceId) == "string" and targetResourceId ~= "" then
@@ -2493,6 +2716,14 @@ function WorldLabelPresentation.shouldShowPlacedResourceLabel(resourceId: string
 	end
 
 	return resourceId == hoveredResourceId
+end
+
+function WorldLabelPresentation.getPlacedResourceLabelAccentColor(rarityLabel: string?): Color3
+	if type(rarityLabel) == "string" and RESOURCE_RARITY_LABEL_COLORS[rarityLabel] ~= nil then
+		return RESOURCE_RARITY_LABEL_COLORS[rarityLabel]
+	end
+
+	return RESOURCE_RARITY_LABEL_COLORS.Common
 end
 
 function WorldLabelPresentation.getPlacedResourceLabelText(
@@ -2538,11 +2769,11 @@ return WorldLabelPresentation
           </Properties>
         </Item>
       </Item>
-      <Item class="Folder" referent="32">
+      <Item class="Folder" referent="33">
         <Properties>
           <string name="Name">Net</string>
         </Properties>
-        <Item class="ModuleScript" referent="33">
+        <Item class="ModuleScript" referent="34">
           <Properties>
             <string name="Name">RemoteNames</string>
             <string name="Source"><![CDATA[--!strict
@@ -2556,6 +2787,7 @@ local RemoteNames = {
 	RequestEquipPickaxe = "RequestEquipPickaxe",
 	RequestPlaceGeode = "RequestPlaceGeode",
 	RequestPlaceResource = "RequestPlaceResource",
+	RequestPickupResource = "RequestPickupResource",
 	RequestSellVaultItem = "RequestSellVaultItem",
 	RequestCrackGeode = "RequestCrackGeode",
 	RequestOpenGeode = "RequestCrackGeode",
@@ -2577,7 +2809,7 @@ return RemoteNames
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="34">
+        <Item class="ModuleScript" referent="35">
           <Properties>
             <string name="Name">Remotes</string>
             <string name="Source"><![CDATA[--!strict
@@ -2594,6 +2826,7 @@ local Remotes = {
 		[RemoteNames.RequestEquipPickaxe] = "RemoteFunction",
 		[RemoteNames.RequestPlaceGeode] = "RemoteFunction",
 		[RemoteNames.RequestPlaceResource] = "RemoteFunction",
+		[RemoteNames.RequestPickupResource] = "RemoteFunction",
 		[RemoteNames.RequestSellVaultItem] = "RemoteFunction",
 		[RemoteNames.RequestCrackGeode] = "RemoteFunction",
 		[RemoteNames.RequestClaimFinishedGeode] = "RemoteFunction",
@@ -2615,11 +2848,11 @@ return Remotes
           </Properties>
         </Item>
       </Item>
-      <Item class="Folder" referent="35">
+      <Item class="Folder" referent="36">
         <Properties>
           <string name="Name">Types</string>
         </Properties>
-        <Item class="ModuleScript" referent="36">
+        <Item class="ModuleScript" referent="37">
           <Properties>
             <string name="Name">GeodeTypes</string>
             <string name="Source"><![CDATA[--!strict
@@ -2650,7 +2883,7 @@ return {}
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="37">
+        <Item class="ModuleScript" referent="38">
           <Properties>
             <string name="Name">PlayerProfile</string>
             <string name="Source"><![CDATA[--!strict
@@ -2806,7 +3039,7 @@ return PlayerProfile
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="38">
+        <Item class="ModuleScript" referent="39">
           <Properties>
             <string name="Name">ResourceTypes</string>
             <string name="Source"><![CDATA[--!strict
@@ -2835,7 +3068,7 @@ return {}
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="39">
+        <Item class="ModuleScript" referent="40">
           <Properties>
             <string name="Name">StationTypes</string>
             <string name="Source"><![CDATA[--!strict
@@ -2875,11 +3108,11 @@ return {}
           </Properties>
         </Item>
       </Item>
-      <Item class="Folder" referent="40">
+      <Item class="Folder" referent="41">
         <Properties>
           <string name="Name">Util</string>
         </Properties>
-        <Item class="ModuleScript" referent="41">
+        <Item class="ModuleScript" referent="42">
           <Properties>
             <string name="Name">Id</string>
             <string name="Source"><![CDATA[--!strict
@@ -2903,7 +3136,7 @@ return Id
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="42">
+        <Item class="ModuleScript" referent="43">
           <Properties>
             <string name="Name">Result</string>
             <string name="Source"><![CDATA[--!strict
@@ -2942,7 +3175,7 @@ return Result
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="43">
+        <Item class="ModuleScript" referent="44">
           <Properties>
             <string name="Name">Signal</string>
             <string name="Source"><![CDATA[--!strict
@@ -2991,7 +3224,7 @@ return Signal
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="44">
+        <Item class="ModuleScript" referent="45">
           <Properties>
             <string name="Name">TableUtil</string>
             <string name="Source"><![CDATA[--!strict
@@ -3057,7 +3290,7 @@ return TableUtil
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="45">
+        <Item class="ModuleScript" referent="46">
           <Properties>
             <string name="Name">Time</string>
             <string name="Source"><![CDATA[--!strict
@@ -3086,11 +3319,11 @@ return Time
       </Item>
     </Item>
   </Item>
-  <Item class="ServerScriptService" referent="46">
+  <Item class="ServerScriptService" referent="47">
     <Properties>
       <string name="Name">ServerScriptService</string>
     </Properties>
-    <Item class="Script" referent="47">
+    <Item class="Script" referent="48">
       <Properties>
         <string name="Name">Server</string>
         <token name="RunContext">0</token>
@@ -3099,11 +3332,11 @@ return Time
 ServerBootstrap.start()
 ]]></string>
       </Properties>
-      <Item class="Folder" referent="48">
+      <Item class="Folder" referent="49">
         <Properties>
           <string name="Name">Bootstrap</string>
         </Properties>
-        <Item class="ModuleScript" referent="49">
+        <Item class="ModuleScript" referent="50">
           <Properties>
             <string name="Name">ServerBootstrap</string>
             <string name="Source"><![CDATA[--!strict
@@ -3476,6 +3709,23 @@ function ServerBootstrap.start()
 		end)
 	end
 
+	remotes.RequestPickupResource.OnServerInvoke = function(player, resourceId)
+		return callAction("RequestPickupResource", function()
+			local pickupResult, errorCode = services.vault:pickupResource(player.UserId, resourceId)
+			if pickupResult == nil then
+				return {
+					ok = false,
+					errorCode = errorCode or "pickup_failed",
+				}
+			end
+
+			return {
+				ok = true,
+				resource = pickupResult.resource,
+			}
+		end)
+	end
+
 	remotes.RequestSellVaultItem.OnServerInvoke = function(player, itemKind, itemId)
 		return callAction("RequestSellVaultItem", function()
 			local sellResult, errorCode
@@ -3636,11 +3886,11 @@ return ServerBootstrap
           </Properties>
         </Item>
       </Item>
-      <Item class="Folder" referent="50">
+      <Item class="Folder" referent="51">
         <Properties>
           <string name="Name">Services</string>
         </Properties>
-        <Item class="ModuleScript" referent="51">
+        <Item class="ModuleScript" referent="52">
           <Properties>
             <string name="Name">DailyRewardsService</string>
             <string name="Source"><![CDATA[--!strict
@@ -3782,7 +4032,7 @@ return DailyRewardsService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="52">
+        <Item class="ModuleScript" referent="53">
           <Properties>
             <string name="Name">EconomyService</string>
             <string name="Source"><![CDATA[--!strict
@@ -3924,7 +4174,7 @@ return EconomyService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="53">
+        <Item class="ModuleScript" referent="54">
           <Properties>
             <string name="Name">GeodeQueueService</string>
             <string name="Source"><![CDATA[--!strict
@@ -4117,7 +4367,7 @@ return GeodeQueueService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="54">
+        <Item class="ModuleScript" referent="55">
           <Properties>
             <string name="Name">GeodeService</string>
             <string name="Source"><![CDATA[--!strict
@@ -4427,7 +4677,7 @@ return GeodeService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="55">
+        <Item class="ModuleScript" referent="56">
           <Properties>
             <string name="Name">GeodeToolService</string>
             <string name="Source"><![CDATA[--!strict
@@ -4587,7 +4837,7 @@ return GeodeToolService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="56">
+        <Item class="ModuleScript" referent="57">
           <Properties>
             <string name="Name">MiningService</string>
             <string name="Source"><![CDATA[--!strict
@@ -4850,7 +5100,7 @@ return MiningService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="57">
+        <Item class="ModuleScript" referent="58">
           <Properties>
             <string name="Name">MockPersistenceService</string>
             <string name="Source"><![CDATA[--!strict
@@ -4909,7 +5159,7 @@ return MockPersistenceService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="58">
+        <Item class="ModuleScript" referent="59">
           <Properties>
             <string name="Name">OfflineProgressService</string>
             <string name="Source"><![CDATA[--!strict
@@ -5006,7 +5256,7 @@ return OfflineProgressService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="59">
+        <Item class="ModuleScript" referent="60">
           <Properties>
             <string name="Name">PickaxeToolService</string>
             <string name="Source"><![CDATA[--!strict
@@ -5237,7 +5487,7 @@ return PickaxeToolService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="60">
+        <Item class="ModuleScript" referent="61">
           <Properties>
             <string name="Name">PlacementService</string>
             <string name="Source"><![CDATA[--!strict
@@ -5565,7 +5815,7 @@ return PlacementService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="61">
+        <Item class="ModuleScript" referent="62">
           <Properties>
             <string name="Name">PlayerDataService</string>
             <string name="Source"><![CDATA[--!strict
@@ -5788,7 +6038,7 @@ return PlayerDataService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="62">
+        <Item class="ModuleScript" referent="63">
           <Properties>
             <string name="Name">PlotService</string>
             <string name="Source"><![CDATA[--!strict
@@ -5929,7 +6179,7 @@ return PlotService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="63">
+        <Item class="ModuleScript" referent="64">
           <Properties>
             <string name="Name">ShopService</string>
             <string name="Source"><![CDATA[--!strict
@@ -6006,7 +6256,7 @@ return ShopService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="64">
+        <Item class="ModuleScript" referent="65">
           <Properties>
             <string name="Name">StationService</string>
             <string name="Source"><![CDATA[--!strict
@@ -6104,7 +6354,7 @@ return StationService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="65">
+        <Item class="ModuleScript" referent="66">
           <Properties>
             <string name="Name">VaultService</string>
             <string name="Source"><![CDATA[--!strict
@@ -6184,6 +6434,52 @@ function VaultService:placeResource(userId, resourceId, x, y)
 		result = {
 			resource = placedResource,
 			placement = placementOrReason,
+		}
+		return result
+	end)
+
+	if result ~= nil then
+		playerData:notifyProfileChanged(userId)
+	end
+
+	if result == nil and mutateError ~= nil then
+		return nil, mutateError
+	end
+
+	return result
+end
+
+function VaultService:pickupResource(userId, resourceId)
+	local playerData = self.dependencies.playerData
+	local placementService = self.dependencies.placementService
+	if placementService == nil then
+		return nil, "placement_unavailable"
+	end
+
+	local result
+	local _, mutateError = playerData:mutateProfile(userId, function(currentProfile)
+		local resource = currentProfile.resourcesById[resourceId]
+		if resource == nil then
+			return nil, "unknown_resource_instance"
+		end
+
+		if resource.stationId ~= nil then
+			return nil, "resource_assigned_to_station"
+		end
+
+		if resource.placement == nil then
+			return nil, "resource_not_placed"
+		end
+
+		-- Vault pickup is authoritative on the server because the plot footprint has to be
+		-- cleared in lockstep with the resource's placement field to avoid ghost occupancy.
+		local removed, removeReason = placementService:removeObjectByObjectId(currentProfile, "resource", resource.id)
+		if not removed then
+			return nil, removeReason or "resource_pickup_failed"
+		end
+
+		result = {
+			resource = resource,
 		}
 		return result
 	end)
@@ -6304,7 +6600,7 @@ return VaultService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="66">
+        <Item class="ModuleScript" referent="67">
           <Properties>
             <string name="Name">WorldReplicaService</string>
             <string name="Source"><![CDATA[--!strict
@@ -6337,6 +6633,8 @@ local SHOP_PROMPT_ATTRIBUTE = "GemFactoryShopPrompt"
 local MINE_TARGET_ATTRIBUTE = "GemFactoryMineTarget"
 local MINE_ZONE_ATTRIBUTE = "GemFactoryMineZone"
 local STATIC_WORLD_LAYOUT_VERSION = 3
+local PLOT_SURFACE_COLLIDER_NAME = "PlotSurfaceCollider"
+local REPLICA_TRANSPARENCY_ATTRIBUTE = "ReplicaTransparency"
 
 local ROCK_VARIANTS = {
 	{
@@ -6640,8 +6938,30 @@ local function createVisualBasePart(parent, className, name, size, position, col
 	part.Position = position
 	part.Color = color
 	part.Material = material
+	part:SetAttribute(REPLICA_TRANSPARENCY_ATTRIBUTE, 0)
 	part.Parent = parent
 	return part
+end
+
+local function setReplicaTransparency(part: BasePart, transparency: number)
+	part.Transparency = transparency
+	part:SetAttribute(REPLICA_TRANSPARENCY_ATTRIBUTE, transparency)
+end
+
+local function reapplyReplicaTransparency(resourcePart: BasePart)
+	for _, descendant in ipairs(resourcePart:GetDescendants()) do
+		if descendant:IsA("BasePart") then
+			local transparencyValue = descendant:GetAttribute(REPLICA_TRANSPARENCY_ATTRIBUTE)
+			if type(transparencyValue) == "number" then
+				descendant.Transparency = transparencyValue
+			end
+		end
+	end
+
+	local rootTransparencyValue = resourcePart:GetAttribute(REPLICA_TRANSPARENCY_ATTRIBUTE)
+	if type(rootTransparencyValue) == "number" then
+		resourcePart.Transparency = rootTransparencyValue
+	end
 end
 
 local function orientPart(part, yawRadians, pitchRadians, rollRadians)
@@ -6676,6 +6996,12 @@ local function createSparkEmitter(parent, texture, colorA, colorB, rate, lifetim
 	emitter.Drag = 1
 	emitter.Parent = parent
 	return emitter
+end
+
+local function createHoverQueryablePart(part: BasePart)
+	part.CanQuery = true
+	part.CanTouch = false
+	part.CanCollide = false
 end
 
 local function createResourceBillboard(parentPart, titleText, subtitleText, accentColor, rarityRank)
@@ -6814,6 +7140,15 @@ local function applyTraitEffects(parentPart, profile, traitId)
 	end
 
 	local traitDisplayName = resolveTraitDisplayName(traitId)
+	local aura = Instance.new("Highlight")
+	aura.Name = "TraitAura"
+	aura.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+	aura.FillColor = blendColor(profile.baseColor, preset.accent, 0.52)
+	aura.FillTransparency = 0.78
+	aura.OutlineColor = blendColor(preset.accent2, Color3.fromRGB(255, 255, 255), 0.18)
+	aura.OutlineTransparency = 0.16
+	aura.Parent = parentPart
+
 	local effectAttachment = Instance.new("Attachment")
 	effectAttachment.Name = "TraitEffectAttachment"
 	effectAttachment.Position = Vector3.new(0, parentPart.Size.Y * 0.18, 0)
@@ -6832,14 +7167,40 @@ local function applyTraitEffects(parentPart, profile, traitId)
 		preset.particleTexture,
 		preset.accent,
 		preset.accent2,
-		3 + (profile.rarityRank * 2),
-		0.7,
-		1.1,
-		0.25,
-		0.9 + (profile.rarityRank * 0.14),
-		0.18,
+		5 + (profile.rarityRank * 3),
+		0.82,
+		1.24,
+		0.3,
+		1.05 + (profile.rarityRank * 0.18),
+		0.26,
 		0
 	)
+
+	local traitBand = createVisualBasePart(
+		parentPart,
+		"Part",
+		"TraitBand",
+		Vector3.new(parentPart.Size.X * 1.08, math.max(0.18, parentPart.Size.Y * 0.18), parentPart.Size.Z * 1.08),
+		parentPart.Position,
+		blendColor(preset.accent, preset.accent2, 0.38),
+		Enum.Material.Neon
+	)
+	traitBand.Shape = Enum.PartType.Cylinder
+	traitBand.CFrame = CFrame.new(parentPart.Position + Vector3.new(0, parentPart.Size.Y * 0.2, 0)) * CFrame.Angles(0, 0, math.rad(90))
+	traitBand.Transparency = 0.52
+
+	local crest = createVisualBasePart(
+		parentPart,
+		"Part",
+		"TraitCrest",
+		Vector3.new(parentPart.Size.X * 0.18, parentPart.Size.Y * 0.92, parentPart.Size.Z * 0.18),
+		parentPart.Position,
+		blendColor(preset.accent2, Color3.fromRGB(255, 255, 255), 0.2),
+		Enum.Material.Neon
+	)
+	crest.CFrame = CFrame.new(parentPart.Position + Vector3.new(0, parentPart.Size.Y * 0.42, -parentPart.Size.Z * 0.18))
+		* CFrame.Angles(math.rad(-12), 0, math.rad(8))
+	crest.Transparency = 0.36
 
 	if normalizeVisualKey(traitId):find("fiery", 1, true) ~= nil or normalizeVisualKey(traitId):find("fire", 1, true) ~= nil then
 		createSparkEmitter(
@@ -6883,6 +7244,18 @@ local function applyTraitEffects(parentPart, profile, traitId)
 	return traitDisplayName
 end
 
+local function configureResourceHoverTargets(resourcePart: BasePart)
+	createHoverQueryablePart(resourcePart)
+
+	for _, descendant in ipairs(resourcePart:GetDescendants()) do
+		if descendant:IsA("BasePart") then
+			createHoverQueryablePart(descendant)
+			descendant:SetAttribute("ResourceId", resourcePart:GetAttribute("ResourceId"))
+			descendant:SetAttribute("ResourceTypeId", resourcePart:GetAttribute("ResourceTypeId"))
+		end
+	end
+end
+
 getResourceVariantShape = function(resourceTypeId, resourceDefinition)
 	return ResourceVisuals.getResourceVariantShape(resourceTypeId, resourceDefinition)
 end
@@ -6911,7 +7284,7 @@ local function buildOreShard(parentPart, profile, rootCFrame, baseTopY, shard, i
 		Enum.Material.Glass
 	)
 	body.CFrame = shardCFrame
-	body.Transparency = 0.08
+	setReplicaTransparency(body, 0.08)
 	body.Reflectance = 0.12
 
 	local capHeight = math.max(0.22, height * 0.22)
@@ -6925,7 +7298,7 @@ local function buildOreShard(parentPart, profile, rootCFrame, baseTopY, shard, i
 		Enum.Material.Glass
 	)
 	cap.CFrame = shardCFrame * CFrame.new(0, (height * 0.5) + (capHeight * 0.28), 0)
-	cap.Transparency = 0.02
+	setReplicaTransparency(cap, 0.02)
 	cap.Reflectance = 0.16
 
 	local frontFacet = createVisualBasePart(
@@ -6938,7 +7311,7 @@ local function buildOreShard(parentPart, profile, rootCFrame, baseTopY, shard, i
 		Enum.Material.Neon
 	)
 	frontFacet.CFrame = shardCFrame * CFrame.new(width * -0.24, height * 0.02, -(depth * 0.51))
-	frontFacet.Transparency = 0.38
+	setReplicaTransparency(frontFacet, 0.38)
 
 	local sideFacet = createVisualBasePart(
 		parentPart,
@@ -6950,7 +7323,7 @@ local function buildOreShard(parentPart, profile, rootCFrame, baseTopY, shard, i
 		Enum.Material.Neon
 	)
 	sideFacet.CFrame = shardCFrame * CFrame.new(width * 0.51, height * -0.02, depth * 0.08)
-	sideFacet.Transparency = 0.48
+	setReplicaTransparency(sideFacet, 0.48)
 end
 
 local function buildCrystalOreCluster(resourcePart, profile, rootYaw)
@@ -6961,7 +7334,7 @@ local function buildCrystalOreCluster(resourcePart, profile, rootYaw)
 	resourcePart.Size = baseSize
 	resourcePart.Color = blendColor(profile.baseColor, Color3.fromRGB(26, 24, 32), 0.70)
 	resourcePart.Material = Enum.Material.Slate
-	resourcePart.Transparency = 0
+	setReplicaTransparency(resourcePart, 0)
 	resourcePart.Reflectance = 0.02
 	resourcePart.CFrame = rootCFrame
 
@@ -6976,7 +7349,7 @@ local function buildCrystalOreCluster(resourcePart, profile, rootYaw)
 		Enum.Material.Slate
 	)
 	lip.CFrame = rootCFrame * CFrame.new(0, baseTopY + (0.035 * scale), 0)
-	lip.Transparency = 0.18
+	setReplicaTransparency(lip, 0.18)
 
 	for index, shard in ipairs(getOreCrystalDefinitions(profile.variantId)) do
 		buildOreShard(resourcePart, profile, rootCFrame, baseTopY, shard, index)
@@ -6991,7 +7364,7 @@ local function buildIngotResource(resourcePart, profile, rootYaw)
 	resourcePart.Size = baseSize
 	resourcePart.Color = blendColor(profile.baseColor, Color3.fromRGB(52, 46, 40), 0.20)
 	resourcePart.Material = Enum.Material.Metal
-	resourcePart.Transparency = 0
+	setReplicaTransparency(resourcePart, 0)
 	resourcePart.Reflectance = 0.10 + (profile.rarityRank * 0.012)
 	resourcePart.CFrame = rootCFrame
 
@@ -7005,7 +7378,7 @@ local function buildIngotResource(resourcePart, profile, rootYaw)
 		Enum.Material.Slate
 	)
 	roughBase.CFrame = rootCFrame * CFrame.new(0, -(baseSize.Y * 0.42), 0)
-	roughBase.Transparency = 0.04
+	setReplicaTransparency(roughBase, 0.04)
 
 	local crown = createVisualBasePart(
 		resourcePart,
@@ -7055,7 +7428,7 @@ local function buildIngotResource(resourcePart, profile, rootYaw)
 		if profile.rarityRank >= 4 then Enum.Material.Neon else Enum.Material.Metal
 	)
 	accentStrip.CFrame = rootCFrame * CFrame.new(0, (baseSize.Y * 0.42), 0)
-	accentStrip.Transparency = if profile.rarityRank >= 4 then 0.18 else 0.42
+	setReplicaTransparency(accentStrip, if profile.rarityRank >= 4 then 0.18 else 0.42)
 
 	local edgeGlint = createVisualBasePart(
 		resourcePart,
@@ -7067,7 +7440,7 @@ local function buildIngotResource(resourcePart, profile, rootYaw)
 		Enum.Material.Neon
 	)
 	edgeGlint.CFrame = rootCFrame * CFrame.new(baseSize.X * 0.34, 0.04 * scale, 0)
-	edgeGlint.Transparency = 0.62
+	setReplicaTransparency(edgeGlint, 0.62)
 end
 
 local function buildEldritchResource(resourcePart, profile, rootYaw)
@@ -7078,7 +7451,7 @@ local function buildEldritchResource(resourcePart, profile, rootYaw)
 	resourcePart.Size = pedestalSize
 	resourcePart.Color = blendColor(profile.baseColor, Color3.fromRGB(18, 18, 28), 0.62)
 	resourcePart.Material = Enum.Material.Slate
-	resourcePart.Transparency = 0
+	setReplicaTransparency(resourcePart, 0)
 	resourcePart.Reflectance = 0.03
 	resourcePart.CFrame = rootCFrame
 
@@ -7092,7 +7465,7 @@ local function buildEldritchResource(resourcePart, profile, rootYaw)
 		Enum.Material.Glass
 	)
 	innerCore.CFrame = rootCFrame * CFrame.new(0, 1.26 * scale, 0) * CFrame.Angles(math.rad(-4), math.rad(18), math.rad(3))
-	innerCore.Transparency = 0.10
+	setReplicaTransparency(innerCore, 0.10)
 	innerCore.Reflectance = 0.18
 
 	local heart = createVisualBasePart(
@@ -7106,7 +7479,7 @@ local function buildEldritchResource(resourcePart, profile, rootYaw)
 	)
 	heart.Shape = Enum.PartType.Ball
 	heart.CFrame = rootCFrame * CFrame.new(0, 1.18 * scale, 0)
-	heart.Transparency = 0.10
+	setReplicaTransparency(heart, 0.10)
 
 	local orbitDefs = getOreCrystalDefinitions("eldritch")
 	for index, shard in ipairs(orbitDefs) do
@@ -7125,7 +7498,7 @@ local function buildEldritchResource(resourcePart, profile, rootYaw)
 		Enum.Material.Neon
 	)
 	seam.CFrame = rootCFrame * CFrame.new(0.08 * scale, 1.24 * scale, -0.22 * scale) * CFrame.Angles(math.rad(-8), math.rad(14), math.rad(6))
-	seam.Transparency = 0.26
+	setReplicaTransparency(seam, 0.26)
 
 	if profile.rarityRank >= 5 then
 		local halo = createVisualBasePart(
@@ -7139,7 +7512,7 @@ local function buildEldritchResource(resourcePart, profile, rootYaw)
 		)
 		halo.Shape = Enum.PartType.Cylinder
 		halo.CFrame = rootCFrame * CFrame.new(0, 1.78 * scale, 0) * CFrame.Angles(0, 0, math.rad(90))
-		halo.Transparency = 0.42
+		setReplicaTransparency(halo, 0.42)
 	end
 end
 
@@ -7147,11 +7520,13 @@ local function buildResourceVisual(resourcePart, resourceTypeId, traitId, sizeId
 	local resourceDefinition = if resourceTypeId ~= nil then Resources[resourceTypeId] else nil
 	local profile = resolveResourceVisualProfile(resourceTypeId, resourceDefinition, sizeId, sizeValue)
 	local rootYaw = math.rad((getStringHash(resourcePart.Name) % 360) - 180)
+	local labelAccentColor = WorldLabelPresentation.getPlacedResourceLabelAccentColor(profile.rarity)
 
 	resourcePart:SetAttribute("ResourceVisualVariant", profile.variantId)
 	resourcePart:SetAttribute("ResourceRarity", profile.rarity)
 	resourcePart:SetAttribute("ResourceRarityRank", profile.rarityRank)
 	resourcePart:SetAttribute("TraitDisplayName", resolveTraitDisplayName(traitId) or "None")
+	resourcePart:SetAttribute("ResourceLabelAccentColor", labelAccentColor)
 
 	if profile.variantId == "ingot" then
 		buildIngotResource(resourcePart, profile, rootYaw)
@@ -7181,9 +7556,12 @@ local function buildResourceVisual(resourcePart, resourceTypeId, traitId, sizeId
 		resourcePart,
 		displayTitle,
 		displaySubtitle,
-		profile.accentColor,
+		labelAccentColor,
 		profile.rarityRank
 	)
+
+	configureResourceHoverTargets(resourcePart)
+	reapplyReplicaTransparency(resourcePart)
 end
 
 local function collectPlacedGeodes(profile, plotId, nowUnix)
@@ -7231,6 +7609,8 @@ local function collectPlacedResources(profile, plotId)
 				id = resource.id or resourceId,
 				resourceTypeId = resource.resourceTypeId,
 				traitId = resource.traitId,
+				sizeId = resource.sizeId,
+				sizeValue = resource.sizeValue,
 				placement = placement,
 			})
 		end
@@ -7298,6 +7678,8 @@ local function buildPlotSignature(plot, profile, nowUnix)
 				resource.id,
 				tostring(resource.resourceTypeId or "unknown"),
 				tostring(resource.traitId or "none"),
+				tostring(resource.sizeId or "medium"),
+				tostring(resource.sizeValue or "nil"),
 				tostring(resource.placement.x or "nil"),
 				tostring(resource.placement.y or "nil"),
 			}, ":"))
@@ -7961,6 +8343,20 @@ function WorldReplicaService:_buildPlot(plot, profile, signature, nowUnix)
 	)
 	trim.Transparency = 0.1
 
+	-- Keep the visible trim non-blocking for presentation, but mirror it with an invisible
+	-- collider so the server-authored plot surface matches what players see in the world.
+	local surfaceCollider = createPart(
+		plotModel,
+		PLOT_SURFACE_COLLIDER_NAME,
+		Vector3.new(World.plotBaseSize.width - 6, 0.4, World.plotBaseSize.depth - 6),
+		Vector3.new(plot.position.x, plot.position.y + 1.2, plot.position.z),
+		Color3.fromRGB(58, 54, 78),
+		Enum.Material.SmoothPlastic
+	)
+	surfaceCollider.Transparency = 1
+	surfaceCollider.CanQuery = false
+	surfaceCollider.CanTouch = false
+
 	addRockSpikes(plotModel, plot)
 	addGeodes(plotModel, plot, profile, nowUnix)
 	addResources(plotModel, plot, profile)
@@ -8109,11 +8505,11 @@ return WorldReplicaService
           </Properties>
         </Item>
       </Item>
-      <Item class="Folder" referent="67">
+      <Item class="Folder" referent="68">
         <Properties>
           <string name="Name">Systems</string>
         </Properties>
-        <Item class="ModuleScript" referent="68">
+        <Item class="ModuleScript" referent="69">
           <Properties>
             <string name="Name">RareAnnouncementSystem</string>
             <string name="Source"><![CDATA[--!strict
@@ -8153,11 +8549,11 @@ return RareAnnouncementSystem
           </Properties>
         </Item>
       </Item>
-      <Item class="Folder" referent="69">
+      <Item class="Folder" referent="70">
         <Properties>
           <string name="Name">Util</string>
         </Properties>
-        <Item class="ModuleScript" referent="70">
+        <Item class="ModuleScript" referent="71">
           <Properties>
             <string name="Name">PickaxeModelBuilder</string>
             <string name="Source"><![CDATA[--!strict
@@ -8327,21 +8723,21 @@ return PickaxeModelBuilder
       </Item>
     </Item>
   </Item>
-  <Item class="SoundService" referent="71">
+  <Item class="SoundService" referent="72">
     <Properties>
       <string name="Name">SoundService</string>
       <bool name="RespectFilteringEnabled">true</bool>
     </Properties>
   </Item>
-  <Item class="StarterPlayer" referent="72">
+  <Item class="StarterPlayer" referent="73">
     <Properties>
       <string name="Name">StarterPlayer</string>
     </Properties>
-    <Item class="StarterPlayerScripts" referent="73">
+    <Item class="StarterPlayerScripts" referent="74">
       <Properties>
         <string name="Name">StarterPlayerScripts</string>
       </Properties>
-      <Item class="LocalScript" referent="74">
+      <Item class="LocalScript" referent="75">
         <Properties>
           <string name="Name">Client</string>
           <string name="Source"><![CDATA[local ClientBootstrap = require(script.Bootstrap.ClientBootstrap)
@@ -8349,11 +8745,11 @@ return PickaxeModelBuilder
 ClientBootstrap.start()
 ]]></string>
         </Properties>
-        <Item class="Folder" referent="75">
+        <Item class="Folder" referent="76">
           <Properties>
             <string name="Name">Bootstrap</string>
           </Properties>
-          <Item class="ModuleScript" referent="76">
+          <Item class="ModuleScript" referent="77">
             <Properties>
               <string name="Name">ClientBootstrap</string>
               <string name="Source"><![CDATA[--!strict
@@ -8377,11 +8773,11 @@ return ClientBootstrap
             </Properties>
           </Item>
         </Item>
-        <Item class="Folder" referent="77">
+        <Item class="Folder" referent="78">
           <Properties>
             <string name="Name">Controllers</string>
           </Properties>
-          <Item class="ModuleScript" referent="78">
+          <Item class="ModuleScript" referent="79">
             <Properties>
               <string name="Name">AppController</string>
               <string name="Source"><![CDATA[--!strict
@@ -8872,6 +9268,24 @@ function AppController:requestPlaceResource(resourceId, x, y)
 	return ok, result
 end
 
+function AppController:requestPickupResource(resourceId)
+	if resourceId == nil then
+		return false, "missing_resource_id"
+	end
+
+	local ok, result = self:invokeRemote(RemoteNames.RequestPickupResource, resourceId)
+	if ok and type(result) == "table" and result.ok == true then
+		if self.pendingResourcePlacementId == resourceId then
+			self.pendingResourcePlacementId = nil
+		end
+		self:setStatus("Treasure returned to your Vault.")
+	else
+		local errorText = type(result) == "table" and result.errorCode or result
+		self:setStatus("Treasure pickup failed: " .. tostring(errorText))
+	end
+	return ok, result
+end
+
 function AppController:requestSellVaultItem(itemKind, itemId)
 	local ok, result = self:invokeRemote(RemoteNames.RequestSellVaultItem, itemKind, itemId)
 	if ok and type(result) == "table" and result.ok == true then
@@ -9062,11 +9476,10 @@ function AppController:start()
 end
 
 return AppController
-
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="79">
+          <Item class="ModuleScript" referent="80">
             <Properties>
               <string name="Name">DailyRewardsController</string>
               <string name="Source"><![CDATA[--!strict
@@ -9162,7 +9575,7 @@ return DailyRewardsController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="80">
+          <Item class="ModuleScript" referent="81">
             <Properties>
               <string name="Name">GeodeController</string>
               <string name="Source"><![CDATA[--!strict
@@ -9404,7 +9817,7 @@ return GeodeController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="81">
+          <Item class="ModuleScript" referent="82">
             <Properties>
               <string name="Name">GeodeInteractionController</string>
               <string name="Source"><![CDATA[--!strict
@@ -9454,14 +9867,15 @@ end
 
 local function resolveResourcePart(target: BasePart?): BasePart?
 	local current: Instance? = target
+	local resolved: BasePart? = nil
 	while current ~= nil do
 		if current:IsA("BasePart") and current:GetAttribute("ResourceId") ~= nil then
-			return current
+			resolved = current
 		end
 		current = current.Parent
 	end
 
-	return nil
+	return resolved
 end
 
 local function findPlotModel(instance: Instance?): Model?
@@ -9542,7 +9956,13 @@ local function getResourceMarker(resourcePart: BasePart): BillboardGui?
 
 	local rarityRankValue = resourcePart:GetAttribute("ResourceRarityRank")
 	local rarityRank = if type(rarityRankValue) == "number" then rarityRankValue else 1
-	local accentColor = resourcePart.Color
+	local rarityValue = resourcePart:GetAttribute("ResourceRarity")
+	local accentColorValue = resourcePart:GetAttribute("ResourceLabelAccentColor")
+	local accentColor = if typeof(accentColorValue) == "Color3"
+		then accentColorValue
+		else WorldLabelPresentation.getPlacedResourceLabelAccentColor(
+			if type(rarityValue) == "string" then rarityValue else nil
+		)
 
 	local fallbackMarker = Instance.new("BillboardGui")
 	fallbackMarker.Name = resourcePart.Name .. "_Marker"
@@ -10315,7 +10735,7 @@ return GeodeInteractionController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="82">
+          <Item class="ModuleScript" referent="83">
             <Properties>
               <string name="Name">GeodePlacementGhost</string>
               <string name="Source"><![CDATA[--!strict
@@ -10351,35 +10771,33 @@ local function getGeodeDefinition(geodeTypeId: string?)
 	return Geodes[geodeTypeId]
 end
 
+local function createGhostPart(parent: Instance, name: string, size: Vector3, color: Color3, material: Enum.Material, transparency: number): BasePart
+	local part = Instance.new("Part")
+	part.Name = name
+	part.Anchored = true
+	part.CanCollide = false
+	part.CanQuery = false
+	part.CanTouch = false
+	part.CastShadow = false
+	part.Shape = Enum.PartType.Ball
+	part.Size = size
+	part.Color = color
+	part.Material = material
+	part.Transparency = transparency
+	part.Parent = parent
+	return part
+end
+
 function GeodePlacementGhost.new()
 	local model = Instance.new("Model")
 	model.Name = "GeodePlacementGhost"
 
-	local shell = Instance.new("Part")
-	shell.Name = "Shell"
-	shell.Anchored = true
-	shell.CanCollide = false
-	shell.CanQuery = false
-	shell.CanTouch = false
-	shell.CastShadow = false
-	shell.Material = Enum.Material.SmoothPlastic
-	shell.Shape = Enum.PartType.Ball
-	shell.Size = Vector3.new(4.5, 4.5, 4.5)
-	shell.Transparency = 0.7
-	shell.Parent = model
+	local shell = createGhostPart(model, "Shell", Vector3.new(4.5, 4.5, 4.5), Color3.fromRGB(205, 210, 224), Enum.Material.Slate, 0.62)
+	local core = createGhostPart(model, "Core", Vector3.new(3.45, 3.45, 3.45), Color3.fromRGB(240, 240, 255), Enum.Material.Glass, 0.5)
 
-	local core = Instance.new("Part")
-	core.Name = "Core"
-	core.Anchored = true
-	core.CanCollide = false
-	core.CanQuery = false
-	core.CanTouch = false
-	core.CastShadow = false
-	core.Material = Enum.Material.Glass
-	core.Shape = Enum.PartType.Ball
-	core.Size = Vector3.new(3.2, 3.2, 3.2)
-	core.Transparency = 0.55
-	core.Parent = model
+	local gloss = createGhostPart(model, "Gloss", Vector3.new(4.66, 4.66, 4.66), Color3.fromRGB(228, 235, 255), Enum.Material.Glass, 0.78)
+	local highlight = createGhostPart(model, "Highlight", Vector3.new(0.92, 0.92, 0.92), Color3.fromRGB(255, 255, 255), Enum.Material.Neon, 0.42)
+	local crackGlow = createGhostPart(model, "CrackGlow", Vector3.new(0.34, 3.15, 0.42), Color3.fromRGB(255, 255, 255), Enum.Material.Neon, 0.7)
 
 	local prompt = Instance.new("BillboardGui")
 	prompt.Name = "Label"
@@ -10398,11 +10816,14 @@ function GeodePlacementGhost.new()
 	label.TextWrapped = true
 	label.Parent = prompt
 
-	model.PrimaryPart = core
+	model.PrimaryPart = shell
 
 	return setmetatable({
 		model = model,
 		core = core,
+		gloss = gloss,
+		highlight = highlight,
+		crackGlow = crackGlow,
 		label = label,
 		prompt = prompt,
 		shell = shell,
@@ -10441,8 +10862,23 @@ function GeodePlacementGhost:setGeodeTypeId(geodeTypeId: string?, sizeId: string
 	end
 
 	self.shell.Size = Vector3.new(4.5, 4.5, 4.5) * scaleValue
-	self.core.Size = Vector3.new(3.2, 3.2, 3.2) * scaleValue
-	self.prompt.StudsOffset = Vector3.new(0, 2.4 + scaleValue, 0)
+	self.core.Size = Vector3.new(3.45, 3.45, 3.45) * scaleValue
+	self.gloss.Size = Vector3.new(4.66, 4.66, 4.66) * scaleValue
+	self.highlight.Size = Vector3.new(0.92, 0.92, 0.92) * scaleValue
+	self.crackGlow.Size = Vector3.new(0.34, 3.15, 0.42) * scaleValue
+	self.gloss.Color = Color3.fromRGB(228, 235, 255)
+	self.highlight.Color = Color3.fromRGB(255, 255, 255)
+	self.crackGlow.Color = self.core.Color:Lerp(Color3.fromRGB(255, 255, 255), 0.28)
+	self.shell.Material = Enum.Material.Slate
+	self.core.Material = Enum.Material.Glass
+	self.gloss.Material = Enum.Material.Glass
+	self.highlight.Material = Enum.Material.Neon
+	self.crackGlow.Material = Enum.Material.Neon
+	self.core.Position = self.shell.Position + Vector3.new(0, 0.12 * scaleValue, 0)
+	self.gloss.Position = self.shell.Position
+	self.highlight.Position = self.shell.Position + (Vector3.new(1.0, 1.0, -0.8) * scaleValue)
+	self.crackGlow.CFrame = CFrame.new(self.shell.Position + (Vector3.new(0.08, 0.08, -0.18) * scaleValue)) * CFrame.Angles(math.rad(-10), math.rad(14), math.rad(4))
+	self.prompt.StudsOffset = Vector3.new(0, 2.55 + scaleValue, 0)
 end
 
 function GeodePlacementGhost:getSnappedCell(plotModel: Model, hitPosition: Vector3): (number?, number?, Vector3?)
@@ -10507,7 +10943,7 @@ return GeodePlacementGhost
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="83">
+          <Item class="ModuleScript" referent="84">
             <Properties>
               <string name="Name">HUDController</string>
               <string name="Source"><![CDATA[--!strict
@@ -10598,6 +11034,7 @@ function HUDController:start()
 
 		screen:setStatusText(state.connectionMessage or "Ready")
 		screen:setCoinCounterText(formatNumber(profile.currencies.coins))
+		screen:setResourceGuideData(profile.progression and profile.progression.equippedPickaxeId or nil)
 		screen:setOverviewText(string.format(
 			"Coins: %s\nPassive: %s / sec\nCavern Value: %s\nResources: %d\nStations: %d\nQueue: %d\nPlot: %s",
 			formatNumber(profile.currencies.coins),
@@ -10620,7 +11057,7 @@ return HUDController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="84">
+          <Item class="ModuleScript" referent="85">
             <Properties>
               <string name="Name">MiningController</string>
               <string name="Source"><![CDATA[--!strict
@@ -10926,7 +11363,7 @@ return MiningController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="85">
+          <Item class="ModuleScript" referent="86">
             <Properties>
               <string name="Name">NotificationsController</string>
               <string name="Source"><![CDATA[--!strict
@@ -11020,7 +11457,7 @@ return NotificationsController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="86">
+          <Item class="ModuleScript" referent="87">
             <Properties>
               <string name="Name">PlacementController</string>
               <string name="Source"><![CDATA[--!strict
@@ -11089,7 +11526,7 @@ return PlacementController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="87">
+          <Item class="ModuleScript" referent="88">
             <Properties>
               <string name="Name">PlotController</string>
               <string name="Source"><![CDATA[--!strict
@@ -11168,7 +11605,7 @@ return PlotController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="88">
+          <Item class="ModuleScript" referent="89">
             <Properties>
               <string name="Name">ResourcePlacementGhost</string>
               <string name="Source"><![CDATA[--!strict
@@ -11188,8 +11625,8 @@ local World = require(Shared.Config.World)
 local ResourcePlacementGhost = {}
 ResourcePlacementGhost.__index = ResourcePlacementGhost
 
-local function getPreviewHeightOffset(rootPartHeight: number): number
-	return (World.plotBaseSize.height / 2) + (rootPartHeight / 2)
+local function getPreviewHeightOffset(baseHeight: number): number
+	return (World.plotBaseSize.height / 2) + (baseHeight / 2)
 end
 
 local function getPlotBase(plotModel: Model): BasePart?
@@ -11201,25 +11638,145 @@ local function getPlotBase(plotModel: Model): BasePart?
 	return nil
 end
 
-function ResourcePlacementGhost.new()
-	local part = Instance.new("Part")
-	part.Name = "ResourcePlacementGhost"
+local function createGhostPart(parent: Instance, className: "Part" | "WedgePart", name: string, size: Vector3, color: Color3, material: Enum.Material, transparency: number): BasePart
+	local part: BasePart = Instance.new(className)
+	part.Name = name
 	part.Anchored = true
 	part.CanCollide = false
 	part.CanQuery = false
 	part.CanTouch = false
 	part.CastShadow = false
-	part.Material = Enum.Material.Neon
-	part.Shape = Enum.PartType.Ball
-	part.Size = Vector3.new(3, 3, 3)
-	part.Transparency = 0.55
+	part.Size = size
+	part.Color = color
+	part.Material = material
+	part.Transparency = transparency
+	part.Parent = parent
+	return part
+end
+
+local function blendColor(baseColor: Color3, targetColor: Color3, alpha: number): Color3
+	return baseColor:Lerp(targetColor, alpha)
+end
+
+local function clearGhostGeometry(model: Model, root: BasePart)
+	for _, child in ipairs(model:GetChildren()) do
+		if child ~= root then
+			child:Destroy()
+		end
+	end
+end
+
+local function addCrystalShard(parent: Instance, rootCFrame: CFrame, definition, scale: number, baseHeight: number, baseColor: Color3, glowColor: Color3, index: number)
+	local height = definition.height * scale
+	local width = definition.width * scale
+	local depth = definition.depth * scale
+	local shardColor = blendColor(baseColor, glowColor, definition.tint or 0.18)
+	local shardCFrame = rootCFrame
+		* CFrame.new((definition.x or 0) * scale, baseHeight + (height * 0.5), (definition.z or 0) * scale)
+		* CFrame.Angles(math.rad(definition.pitch or 0), math.rad(definition.yaw or 0), math.rad(definition.roll or 0))
+
+	local body = createGhostPart(parent, "Part", string.format("Shard_%d", index), Vector3.new(width, height, depth), shardColor, Enum.Material.Glass, 0.65)
+	body.CFrame = shardCFrame
+
+	local capHeight = math.max(0.16, height * 0.2)
+	local cap = createGhostPart(
+		parent,
+		"WedgePart",
+		string.format("ShardCap_%d", index),
+		Vector3.new(width * 1.04, capHeight, depth * 1.06),
+		blendColor(shardColor, glowColor, 0.28),
+		Enum.Material.Glass,
+		0.52
+	)
+	cap.CFrame = shardCFrame * CFrame.new(0, (height * 0.5) + (capHeight * 0.28), 0)
+end
+
+local function buildCrystalGhost(model: Model, profile)
+	local rootCFrame = CFrame.new() * CFrame.Angles(0, math.rad((profile.hash % 360) - 180), 0)
+	local baseSize = Vector3.new(2.1, 0.32, 1.64) * profile.scale
+	local base = createGhostPart(
+		model,
+		"Part",
+		"OreBase",
+		baseSize,
+		blendColor(profile.baseColor, Color3.fromRGB(28, 26, 34), 0.72),
+		Enum.Material.Slate,
+		0.48
+	)
+	base.CFrame = rootCFrame * CFrame.new(0, -0.42 * profile.scale, 0)
+
+	for index, shard in ipairs(ResourceVisuals.getOreCrystalDefinitions(profile.variantId)) do
+		addCrystalShard(model, rootCFrame, shard, profile.scale, -0.24 * profile.scale, profile.baseColor, profile.glowColor, index)
+	end
+end
+
+local function buildIngotGhost(model: Model, profile)
+	local rootCFrame = CFrame.new() * CFrame.Angles(0, math.rad((profile.hash % 360) - 180), 0)
+	for index, shard in ipairs(ResourceVisuals.getOreCrystalDefinitions("ingot")) do
+		local part = createGhostPart(
+			model,
+			"Part",
+			string.format("Ingot_%d", index),
+			Vector3.new(shard.width, shard.height, shard.depth) * profile.scale,
+			blendColor(profile.baseColor, profile.glowColor, shard.tint or 0.15),
+			if index == 1 then Enum.Material.Metal else Enum.Material.SmoothPlastic,
+			if index == 1 then 0.5 else 0.58
+		)
+		part.CFrame = rootCFrame * CFrame.new((shard.x or 0) * profile.scale, ((shard.height or 0.5) * profile.scale * 0.5) - (0.32 * profile.scale), (shard.z or 0) * profile.scale)
+	end
+end
+
+local function buildEldritchGhost(model: Model, profile)
+	local rootCFrame = CFrame.new() * CFrame.Angles(0, math.rad((profile.hash % 360) - 180), 0)
+	local core = createGhostPart(
+		model,
+		"Part",
+		"EldritchCore",
+		Vector3.new(1.12, 1.6, 1.12) * profile.scale,
+		blendColor(profile.baseColor, profile.glowColor, 0.2),
+		Enum.Material.Glass,
+		0.62
+	)
+	core.CFrame = rootCFrame * CFrame.new(0, 0.46 * profile.scale, 0)
+
+	local halo = createGhostPart(
+		model,
+		"Part",
+		"EldritchHalo",
+		Vector3.new(0.12, 1.6, 1.6) * profile.scale,
+		blendColor(profile.accentColor, profile.glowColor, 0.28),
+		Enum.Material.Neon,
+		0.7
+	)
+	halo.Shape = Enum.PartType.Cylinder
+	halo.CFrame = rootCFrame * CFrame.new(0, 0.86 * profile.scale, 0) * CFrame.Angles(0, 0, math.rad(90))
+
+	for index, shard in ipairs(ResourceVisuals.getOreCrystalDefinitions("eldritch")) do
+		addCrystalShard(model, rootCFrame, shard, profile.scale * 0.92, 0.02 * profile.scale, profile.baseColor, profile.glowColor, index)
+	end
+end
+
+function ResourcePlacementGhost.new()
+	local model = Instance.new("Model")
+	model.Name = "ResourcePlacementGhost"
+
+	local root = Instance.new("Part")
+	root.Name = "Root"
+	root.Anchored = true
+	root.CanCollide = false
+	root.CanQuery = false
+	root.CanTouch = false
+	root.CastShadow = false
+	root.Transparency = 1
+	root.Size = Vector3.new(0.25, 0.25, 0.25)
+	root.Parent = model
 
 	local prompt = Instance.new("BillboardGui")
 	prompt.Name = "Label"
 	prompt.AlwaysOnTop = true
 	prompt.Size = UDim2.fromOffset(140, 24)
 	prompt.StudsOffset = Vector3.new(0, 2.6, 0)
-	prompt.Parent = part
+	prompt.Parent = root
 
 	local label = Instance.new("TextLabel")
 	label.BackgroundTransparency = 1
@@ -11232,11 +11789,14 @@ function ResourcePlacementGhost.new()
 	label.Parent = prompt
 
 	return setmetatable({
-		part = part,
+		model = model,
+		root = root,
+		prompt = prompt,
 		label = label,
 		resourceTypeId = nil,
 		sizeId = nil,
 		sizeValue = nil,
+		baseHeight = ResourceVisuals.getPlacedBaseHeight(nil, nil),
 		footprintWidth = 1,
 		footprintHeight = 1,
 		visible = false,
@@ -11253,18 +11813,29 @@ function ResourcePlacementGhost:setResourceTypeId(resourceTypeId: string?, sizeI
 	self.sizeValue = sizeValue
 	local definition = if resourceTypeId ~= nil then Resources[resourceTypeId] else nil
 	local rootSize = ResourceVisuals.getPlacedRootSize(sizeId, sizeValue)
+	self.baseHeight = ResourceVisuals.getPlacedBaseHeight(sizeId, sizeValue)
+	local profile = ResourceVisuals.resolveRevealProfile(resourceTypeId, nil, sizeId, sizeValue)
 	if definition ~= nil then
 		self.footprintWidth = definition.gridSize and definition.gridSize.width or 1
 		self.footprintHeight = definition.gridSize and definition.gridSize.height or 1
-		self.part.Color = definition.color or Color3.fromRGB(240, 240, 255)
 		self.label.Text = string.format("%s %s", SizeRules.getDisplayName(sizeId, sizeValue), definition.displayName or "Treasure")
 	else
 		self.footprintWidth = 1
 		self.footprintHeight = 1
-		self.part.Color = Color3.fromRGB(240, 240, 255)
 		self.label.Text = "Treasure"
 	end
-	self.part.Size = rootSize
+
+	clearGhostGeometry(self.model, self.root)
+	if profile.variantId == "ingot" then
+		buildIngotGhost(self.model, profile)
+	elseif profile.variantId == "eldritch" then
+		buildEldritchGhost(self.model, profile)
+	else
+		buildCrystalGhost(self.model, profile)
+	end
+
+	self.root.Size = rootSize
+	self.prompt.StudsOffset = Vector3.new(0, math.max(2.6, rootSize.Y + 1.2), 0)
 end
 
 function ResourcePlacementGhost:getSnappedCell(plotModel: Model, hitPosition: Vector3): (number?, number?, Vector3?)
@@ -11292,7 +11863,7 @@ function ResourcePlacementGhost:getSnappedCell(plotModel: Model, hitPosition: Ve
 	local gridOriginZ = plotBase.Position.Z - ((World.plotGridHeight * World.cellSize) / 2) + (World.cellSize / 2)
 	local worldPosition = Vector3.new(
 		gridOriginX + ((cellX - 1) * World.cellSize) + (((self.footprintWidth - 1) * World.cellSize) / 2),
-		plotBase.Position.Y + getPreviewHeightOffset(self.part.Size.Y),
+		plotBase.Position.Y + getPreviewHeightOffset(self.baseHeight),
 		gridOriginZ + ((cellY - 1) * World.cellSize) + (((self.footprintHeight - 1) * World.cellSize) / 2)
 	)
 
@@ -11306,8 +11877,8 @@ function ResourcePlacementGhost:showAt(plotModel: Model, hitPosition: Vector3): 
 		return nil, nil, nil
 	end
 
-	self.part.Parent = Workspace
-	self.part.Position = worldPosition
+	self.model.Parent = Workspace
+	self.model:PivotTo(CFrame.new(worldPosition))
 	self.visible = true
 	return cellX, cellY, worldPosition
 end
@@ -11318,18 +11889,18 @@ function ResourcePlacementGhost:hide()
 	end
 
 	self.visible = false
-	self.part.Parent = nil
+	self.model.Parent = nil
 end
 
 function ResourcePlacementGhost:destroy()
-	self.part:Destroy()
+	self.model:Destroy()
 end
 
 return ResourcePlacementGhost
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="89">
+          <Item class="ModuleScript" referent="90">
             <Properties>
               <string name="Name">ShopController</string>
               <string name="Source"><![CDATA[--!strict
@@ -11597,7 +12168,7 @@ return ShopController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="90">
+          <Item class="ModuleScript" referent="91">
             <Properties>
               <string name="Name">SprintController</string>
               <string name="Source"><![CDATA[--!strict
@@ -11660,7 +12231,7 @@ return SprintController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="91">
+          <Item class="ModuleScript" referent="92">
             <Properties>
               <string name="Name">VaultController</string>
               <string name="Source"><![CDATA[--!strict
@@ -11877,7 +12448,9 @@ function VaultController:start()
 						if geode.placement ~= nil then "On plot. Crack it when ready or sell it." else "In Vault. Place it or sell it."
 					),
 					tint = definition and definition.displayColor or Color3.fromRGB(180, 190, 210),
-					canPlace = geode.placement == nil,
+					actionText = "Place",
+					canPrimaryAction = geode.placement == nil,
+					picksUp = false,
 					sellValue = VaultMath.getGeodeSellValue(definition),
 					resourceTypeId = nil,
 				})
@@ -11890,17 +12463,22 @@ function VaultController:start()
 				local definition = Resources[resource.resourceTypeId]
 				local trait = Traits[resource.traitId or "none"] or Traits.none
 				local sizeDefinition = SizeRules.resolveDefinition(resource.sizeId, resource.sizeValue)
+				local isPlaced = resource.placement ~= nil
+				local isStationAssigned = resource.stationId ~= nil
+				local detailSuffix = if isStationAssigned
+					then "In a station. Manage it there or sell it."
+					elseif isPlaced
+					then "On plot. Pick it up or sell it anytime."
+					else "In Vault. Place it or sell it."
 				table.insert(rows, {
 					kind = "resource",
 					id = resource.id,
 					title = getResourceLabel(resource),
-					detail = string.format(
-						"%s %s",
-						getSizeDetail(resource),
-						if resource.placement ~= nil then "On plot. Sell it anytime." else "In Vault. Place it or sell it."
-					),
+					detail = string.format("%s %s", getSizeDetail(resource), detailSuffix),
 					tint = definition and definition.color or Color3.fromRGB(240, 240, 255),
-					canPlace = resource.placement == nil and resource.stationId == nil,
+					actionText = if isPlaced then "Pick Up" else "Place",
+					canPrimaryAction = not isStationAssigned,
+					picksUp = isPlaced,
 					sellValue = VaultMath.getResourceSellValue(definition, trait, sizeDefinition),
 					resourceTypeId = resource.resourceTypeId,
 				})
@@ -11939,19 +12517,24 @@ function VaultController:start()
 				rowData.resourceTypeId
 			)
 
-			local place = createActionButton(row, "Place", Color3.fromRGB(122, 231, 184), -174)
-			place.Active = rowData.canPlace
-			place.AutoButtonColor = rowData.canPlace
-			place.BackgroundColor3 = if rowData.canPlace then Color3.fromRGB(122, 231, 184) else Color3.fromRGB(180, 180, 180)
+			local place = createActionButton(row, rowData.actionText or "Place", Color3.fromRGB(122, 231, 184), -174)
+			place.Active = rowData.canPrimaryAction
+			place.AutoButtonColor = rowData.canPrimaryAction
+			place.BackgroundColor3 = if rowData.canPrimaryAction then Color3.fromRGB(122, 231, 184) else Color3.fromRGB(180, 180, 180)
 			place.Activated:Connect(function()
-				if not rowData.canPlace then
+				if not rowData.canPrimaryAction then
 					return
 				end
-				screen:setVaultVisible(false)
-				if rowData.kind == "geode" then
-					app:beginGeodePlacement(rowData.id)
+
+				if rowData.kind == "resource" and rowData.picksUp == true then
+					app:requestPickupResource(rowData.id)
 				else
-					app:beginResourcePlacement(rowData.id)
+					screen:setVaultVisible(false)
+					if rowData.kind == "geode" then
+						app:beginGeodePlacement(rowData.id)
+					else
+						app:beginResourcePlacement(rowData.id)
+					end
 				end
 			end)
 
@@ -11971,15 +12554,15 @@ return VaultController
             </Properties>
           </Item>
         </Item>
-        <Item class="Folder" referent="92">
+        <Item class="Folder" referent="93">
           <Properties>
             <string name="Name">UI</string>
           </Properties>
-          <Item class="Folder" referent="93">
+          <Item class="Folder" referent="94">
             <Properties>
               <string name="Name">Components</string>
             </Properties>
-            <Item class="ModuleScript" referent="94">
+            <Item class="ModuleScript" referent="95">
               <Properties>
                 <string name="Name">Panel</string>
                 <string name="Source"><![CDATA[--!strict
@@ -12094,11 +12677,11 @@ return Panel
               </Properties>
             </Item>
           </Item>
-          <Item class="Folder" referent="95">
+          <Item class="Folder" referent="96">
             <Properties>
               <string name="Name">Screens</string>
             </Properties>
-            <Item class="ModuleScript" referent="96">
+            <Item class="ModuleScript" referent="97">
               <Properties>
                 <string name="Name">RootScreen</string>
                 <string name="Source"><![CDATA[--!strict
@@ -12109,6 +12692,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
+local SoundService = game:GetService("SoundService")
+local Debris = game:GetService("Debris")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
@@ -12116,6 +12701,7 @@ local Geodes = require(Shared.Config.Geodes)
 local Resources = require(Shared.Config.Resources)
 local Traits = require(Shared.Config.Traits)
 local GeodePresentation = require(Shared.Domain.GeodePresentation)
+local ResourceGuide = require(Shared.Domain.ResourceGuide)
 local RewardPresentation = require(Shared.Domain.RewardPresentation)
 local Panel = require(script.Parent.Parent.Components.Panel)
 
@@ -12126,6 +12712,7 @@ local SHOP_BASE_Z_INDEX = 60
 local VAULT_BASE_Z_INDEX = 55
 local POPUP_Z_INDEX = 80
 local POPUP_QUEUE_LIMIT = 6
+local GUIDE_BASE_Z_INDEX = 58
 local GEODE_RARITY_ORDER = {
 	"Common",
 	"Uncommon",
@@ -12242,6 +12829,12 @@ local TRAIT_TONES = {
 	},
 }
 
+local AUDIO_LIBRARY = {
+	pop = "rbxasset://sounds/action_jump.mp3",
+	tick = "rbxasset://sounds/action_footsteps_plastic.mp3",
+	land = "rbxasset://sounds/action_jump_land.mp3",
+}
+
 local function makeRarityIndexMap(order)
 	local map = {}
 	for index, name in ipairs(order) do
@@ -12339,6 +12932,168 @@ local function getTraitReelWords()
 	end
 
 	return words
+end
+
+local function playLocalUiSound(soundId: string, volume: number, playbackSpeed: number)
+	local sound = Instance.new("Sound")
+	sound.Name = "HudUiSound"
+	sound.SoundId = soundId
+	sound.Volume = volume
+	sound.PlaybackSpeed = playbackSpeed
+	sound.RollOffMaxDistance = 0
+	sound.Parent = SoundService
+	SoundService:PlayLocalSound(sound)
+	Debris:AddItem(sound, 3)
+end
+
+local function playGuideButtonSound(opened: boolean)
+	local playbackSpeed = if opened then 1.06 else 0.94
+	playLocalUiSound(AUDIO_LIBRARY.pop, 0.22, playbackSpeed)
+end
+
+local function playCelebrationSound(spec)
+	if spec.kind == "geode_discovery" then
+		local rarityIndex = math.clamp(spec.rarityIndex or 1, 1, 10)
+		playLocalUiSound(AUDIO_LIBRARY.pop, math.clamp(0.14 + (rarityIndex * 0.028), 0.14, 0.4), 0.96 + (rarityIndex * 0.03))
+		if rarityIndex >= 4 then
+			task.delay(0.07, function()
+				playLocalUiSound(AUDIO_LIBRARY.land, math.clamp(0.1 + (rarityIndex * 0.02), 0.1, 0.28), 0.92 + (rarityIndex * 0.025))
+			end)
+		end
+	elseif spec.kind == "resource" or spec.kind == "attribute" then
+		local rarityIndex = math.clamp(spec.rarityIndex or 1, 1, 6)
+		playLocalUiSound(AUDIO_LIBRARY.land, math.clamp(0.12 + (rarityIndex * 0.025), 0.12, 0.28), 1 + (rarityIndex * 0.04))
+	end
+end
+
+local function createGuideRow(parent: Instance, rowData)
+	local row = Instance.new("Frame")
+	row.Name = rowData.rarity .. "Row"
+	row.BackgroundColor3 = rowData.backgroundColor
+	row.BorderSizePixel = 0
+	row.LayoutOrder = rowData.layoutOrder
+	row.Size = UDim2.new(1, 0, 0, 66)
+	row.ZIndex = GUIDE_BASE_Z_INDEX + 2
+	row.Parent = parent
+
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 18)
+	corner.Parent = row
+
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = rowData.highlightColor
+	stroke.Thickness = 3
+	stroke.Parent = row
+
+	local padding = Instance.new("UIPadding")
+	padding.PaddingTop = UDim.new(0, 10)
+	padding.PaddingBottom = UDim.new(0, 10)
+	padding.PaddingLeft = UDim.new(0, 12)
+	padding.PaddingRight = UDim.new(0, 12)
+	padding.Parent = row
+
+	local chip = Instance.new("TextLabel")
+	chip.BackgroundColor3 = rowData.accentColor
+	chip.BorderSizePixel = 0
+	chip.Size = UDim2.new(0, 118, 0, 44)
+	chip.Font = Enum.Font.FredokaOne
+	chip.Text = string.upper(rowData.rarity)
+	chip.TextColor3 = Color3.fromRGB(78, 48, 18)
+	chip.TextSize = 18
+	chip.ZIndex = GUIDE_BASE_Z_INDEX + 3
+	chip.Parent = row
+
+	local chipCorner = Instance.new("UICorner")
+	chipCorner.CornerRadius = UDim.new(0, 14)
+	chipCorner.Parent = chip
+
+	local chipStroke = Instance.new("UIStroke")
+	chipStroke.Color = rowData.accentColor:Lerp(Color3.fromRGB(255, 255, 255), 0.4)
+	chipStroke.Thickness = 3
+	chipStroke.Parent = chip
+
+	local percentLabel = Instance.new("TextLabel")
+	percentLabel.BackgroundTransparency = 1
+	percentLabel.AnchorPoint = Vector2.new(1, 0)
+	percentLabel.Position = UDim2.new(1, 0, 0, 0)
+	percentLabel.Size = UDim2.new(0, 92, 0, 24)
+	percentLabel.Font = Enum.Font.FredokaOne
+	percentLabel.Text = rowData.percentageText
+	percentLabel.TextColor3 = Color3.fromRGB(82, 52, 18)
+	percentLabel.TextSize = 24
+	percentLabel.TextXAlignment = Enum.TextXAlignment.Right
+	percentLabel.ZIndex = GUIDE_BASE_Z_INDEX + 3
+	percentLabel.Parent = row
+
+	local countLabel = Instance.new("TextLabel")
+	countLabel.BackgroundTransparency = 1
+	countLabel.AnchorPoint = Vector2.new(1, 1)
+	countLabel.Position = UDim2.new(1, 0, 1, 0)
+	countLabel.Size = UDim2.new(0, 150, 0, 18)
+	countLabel.Font = Enum.Font.GothamBold
+	countLabel.Text = rowData.countText
+	countLabel.TextColor3 = Color3.fromRGB(120, 92, 56)
+	countLabel.TextSize = 12
+	countLabel.TextXAlignment = Enum.TextXAlignment.Right
+	countLabel.ZIndex = GUIDE_BASE_Z_INDEX + 3
+	countLabel.Parent = row
+
+	local barFrame = Instance.new("Frame")
+	barFrame.BackgroundColor3 = Color3.fromRGB(255, 247, 223)
+	barFrame.BorderSizePixel = 0
+	barFrame.Position = UDim2.new(0, 128, 0, 10)
+	barFrame.Size = UDim2.new(1, -228, 0, 22)
+	barFrame.ZIndex = GUIDE_BASE_Z_INDEX + 2
+	barFrame.Parent = row
+
+	local barCorner = Instance.new("UICorner")
+	barCorner.CornerRadius = UDim.new(1, 0)
+	barCorner.Parent = barFrame
+
+	local barFill = Instance.new("Frame")
+	barFill.BackgroundColor3 = rowData.accentColor
+	barFill.BorderSizePixel = 0
+	barFill.Size = UDim2.new(math.clamp(rowData.barFillShare or rowData.share, 0.04, 1), 0, 1, 0)
+	barFill.ZIndex = GUIDE_BASE_Z_INDEX + 3
+	barFill.Parent = barFrame
+
+	local fillCorner = Instance.new("UICorner")
+	fillCorner.CornerRadius = UDim.new(1, 0)
+	fillCorner.Parent = barFill
+end
+
+local function rebuildGuideRows(guideRows: ScrollingFrame, rowDataList: { any }, hintText: string)
+	for _, child in ipairs(guideRows:GetChildren()) do
+		if not child:IsA("UIListLayout") and not child:IsA("UIPadding") then
+			child:Destroy()
+		end
+	end
+
+	local guideHint = Instance.new("TextLabel")
+	guideHint.BackgroundColor3 = Color3.fromRGB(255, 239, 186)
+	guideHint.BorderSizePixel = 0
+	guideHint.LayoutOrder = 0
+	guideHint.Size = UDim2.new(1, 0, 0, 56)
+	guideHint.Font = Enum.Font.GothamBold
+	guideHint.Text = hintText
+	guideHint.TextColor3 = Color3.fromRGB(94, 71, 28)
+	guideHint.TextSize = 13
+	guideHint.TextWrapped = true
+	guideHint.ZIndex = GUIDE_BASE_Z_INDEX + 3
+	guideHint.Parent = guideRows
+
+	local guideHintCorner = Instance.new("UICorner")
+	guideHintCorner.CornerRadius = UDim.new(0, 16)
+	guideHintCorner.Parent = guideHint
+
+	local guideHintStroke = Instance.new("UIStroke")
+	guideHintStroke.Color = Color3.fromRGB(255, 251, 217)
+	guideHintStroke.Thickness = 3
+	guideHintStroke.Parent = guideHint
+
+	for _, rowData in ipairs(rowDataList) do
+		createGuideRow(guideRows, rowData)
+	end
 end
 
 local function applyGuiZIndex(root, zIndex)
@@ -12586,6 +13341,151 @@ function RootScreen.new(context)
 	coinLabel.TextScaled = true
 	coinLabel.TextXAlignment = Enum.TextXAlignment.Left
 	coinLabel.Parent = coinCounter
+
+	local guideDock = Instance.new("Frame")
+	guideDock.Name = "GuideDock"
+	guideDock.AnchorPoint = Vector2.new(1, 1)
+	guideDock.BackgroundTransparency = 1
+	guideDock.BorderSizePixel = 0
+	guideDock.Position = UDim2.new(1, -20, 1, -20)
+	guideDock.Size = UDim2.new(0, 236, 0, 64)
+	guideDock.Parent = screenGui
+
+	local guideButton = Instance.new("TextButton")
+	guideButton.Name = "GuideButton"
+	guideButton.AutoButtonColor = true
+	guideButton.BackgroundColor3 = Color3.fromRGB(131, 230, 214)
+	guideButton.BorderSizePixel = 0
+	guideButton.Size = UDim2.new(1, 0, 1, 0)
+	guideButton.Font = Enum.Font.FredokaOne
+	guideButton.Text = "Resource Guide"
+	guideButton.TextColor3 = Color3.fromRGB(38, 76, 72)
+	guideButton.TextSize = 28
+	guideButton.Parent = guideDock
+
+	local guideButtonCorner = Instance.new("UICorner")
+	guideButtonCorner.CornerRadius = UDim.new(0, 18)
+	guideButtonCorner.Parent = guideButton
+
+	local guideButtonStroke = Instance.new("UIStroke")
+	guideButtonStroke.Color = Color3.fromRGB(218, 255, 246)
+	guideButtonStroke.Thickness = 5
+	guideButtonStroke.Parent = guideButton
+
+	local guideOverlay = Instance.new("Frame")
+	guideOverlay.Name = "GuideOverlay"
+	guideOverlay.BackgroundColor3 = Color3.fromRGB(8, 8, 12)
+	guideOverlay.BackgroundTransparency = 0.35
+	guideOverlay.BorderSizePixel = 0
+	guideOverlay.Size = UDim2.fromScale(1, 1)
+	guideOverlay.Visible = false
+	guideOverlay.ZIndex = GUIDE_BASE_Z_INDEX
+	guideOverlay.Parent = screenGui
+
+	local guidePanel = Instance.new("Frame")
+	guidePanel.Name = "GuidePanel"
+	guidePanel.AnchorPoint = Vector2.new(0.5, 0.5)
+	guidePanel.BackgroundColor3 = Color3.fromRGB(255, 248, 225)
+	guidePanel.BorderSizePixel = 0
+	guidePanel.Position = UDim2.fromScale(0.5, 0.5)
+	guidePanel.Size = UDim2.new(0.9, 0, 0.74, 0)
+	guidePanel.ZIndex = GUIDE_BASE_Z_INDEX + 1
+	guidePanel.Parent = guideOverlay
+
+	local guidePanelCorner = Instance.new("UICorner")
+	guidePanelCorner.CornerRadius = UDim.new(0, 22)
+	guidePanelCorner.Parent = guidePanel
+
+	local guidePanelStroke = Instance.new("UIStroke")
+	guidePanelStroke.Color = Color3.fromRGB(131, 230, 214)
+	guidePanelStroke.Thickness = 5
+	guidePanelStroke.Parent = guidePanel
+
+	local guideConstraint = Instance.new("UISizeConstraint")
+	guideConstraint.MinSize = Vector2.new(320, 340)
+	guideConstraint.MaxSize = Vector2.new(560, 620)
+	guideConstraint.Parent = guidePanel
+
+	local guidePadding = Instance.new("UIPadding")
+	guidePadding.PaddingTop = UDim.new(0, 18)
+	guidePadding.PaddingBottom = UDim.new(0, 18)
+	guidePadding.PaddingLeft = UDim.new(0, 18)
+	guidePadding.PaddingRight = UDim.new(0, 18)
+	guidePadding.Parent = guidePanel
+
+	local guideHeader = Instance.new("Frame")
+	guideHeader.Name = "GuideHeader"
+	guideHeader.BackgroundTransparency = 1
+	guideHeader.Size = UDim2.new(1, 0, 0, 70)
+	guideHeader.ZIndex = GUIDE_BASE_Z_INDEX + 2
+	guideHeader.Parent = guidePanel
+
+	local guideTitle = Instance.new("TextLabel")
+	guideTitle.BackgroundTransparency = 1
+	guideTitle.Size = UDim2.new(1, -52, 0, 34)
+	guideTitle.Font = Enum.Font.FredokaOne
+	guideTitle.Text = "Resource Guide"
+	guideTitle.TextColor3 = Color3.fromRGB(64, 48, 22)
+	guideTitle.TextSize = 34
+	guideTitle.TextXAlignment = Enum.TextXAlignment.Left
+	guideTitle.ZIndex = GUIDE_BASE_Z_INDEX + 2
+	guideTitle.Parent = guideHeader
+
+	local guideSubtitle = Instance.new("TextLabel")
+	guideSubtitle.BackgroundTransparency = 1
+	guideSubtitle.Position = UDim2.new(0, 0, 0, 36)
+	guideSubtitle.Size = UDim2.new(1, -56, 0, 30)
+	guideSubtitle.Font = Enum.Font.GothamBold
+	guideSubtitle.Text = "Current resource catalog share by rarity tier."
+	guideSubtitle.TextColor3 = Color3.fromRGB(107, 94, 72)
+	guideSubtitle.TextSize = 14
+	guideSubtitle.TextWrapped = true
+	guideSubtitle.TextXAlignment = Enum.TextXAlignment.Left
+	guideSubtitle.TextYAlignment = Enum.TextYAlignment.Top
+	guideSubtitle.ZIndex = GUIDE_BASE_Z_INDEX + 2
+	guideSubtitle.Parent = guideHeader
+
+	local guideClose = Instance.new("TextButton")
+	guideClose.Name = "CloseGuideButton"
+	guideClose.AnchorPoint = Vector2.new(1, 0)
+	guideClose.BackgroundColor3 = Color3.fromRGB(255, 136, 121)
+	guideClose.BorderSizePixel = 0
+	guideClose.Position = UDim2.new(1, 0, 0, 2)
+	guideClose.Size = UDim2.new(0, 44, 0, 40)
+	guideClose.Font = Enum.Font.FredokaOne
+	guideClose.Text = "X"
+	guideClose.TextColor3 = Color3.fromRGB(92, 32, 24)
+	guideClose.TextSize = 24
+	guideClose.ZIndex = GUIDE_BASE_Z_INDEX + 3
+	guideClose.Parent = guideHeader
+
+	local guideCloseCorner = Instance.new("UICorner")
+	guideCloseCorner.CornerRadius = UDim.new(0, 12)
+	guideCloseCorner.Parent = guideClose
+
+	local guideRows = Instance.new("ScrollingFrame")
+	guideRows.Name = "GuideRows"
+	guideRows.BackgroundTransparency = 1
+	guideRows.BorderSizePixel = 0
+	guideRows.Position = UDim2.new(0, 0, 0, 78)
+	guideRows.Size = UDim2.new(1, 0, 1, -78)
+	guideRows.ScrollBarThickness = 7
+	guideRows.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	guideRows.CanvasSize = UDim2.new(0, 0, 0, 0)
+	guideRows.ZIndex = GUIDE_BASE_Z_INDEX + 2
+	guideRows.Parent = guidePanel
+
+	local guideRowsPadding = Instance.new("UIPadding")
+	guideRowsPadding.PaddingBottom = UDim.new(0, 4)
+	guideRowsPadding.Parent = guideRows
+
+	local guideRowsLayout = Instance.new("UIListLayout")
+	guideRowsLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	guideRowsLayout.Padding = UDim.new(0, 10)
+	guideRowsLayout.Parent = guideRows
+
+	local initialGuideSummary = ResourceGuide.getGuideSummary(ResourceGuide.getDefaultPickaxeId())
+	rebuildGuideRows(guideRows, ResourceGuide.getGuideRows(initialGuideSummary.pickaxeId), initialGuideSummary.hintText)
 
 	local vaultOverlay = Instance.new("Frame")
 	vaultOverlay.Name = "VaultOverlay"
@@ -12927,6 +13827,10 @@ function RootScreen.new(context)
 	shopPanel.ZIndex = SHOP_BASE_Z_INDEX + 1
 	shopOverlay.ZIndex = SHOP_BASE_Z_INDEX
 	shopClose.ZIndex = SHOP_BASE_Z_INDEX + 4
+	applyGuiZIndex(guidePanel, GUIDE_BASE_Z_INDEX + 2)
+	guidePanel.ZIndex = GUIDE_BASE_Z_INDEX + 1
+	guideOverlay.ZIndex = GUIDE_BASE_Z_INDEX
+	guideClose.ZIndex = GUIDE_BASE_Z_INDEX + 4
 
 	local miningPopupContainer = Instance.new("Frame")
 	miningPopupContainer.Name = "MiningPopups"
@@ -12972,6 +13876,13 @@ function RootScreen.new(context)
 			closeButton = vaultClose,
 			coinLabel = coinLabel,
 		},
+		guide = {
+			overlay = guideOverlay,
+			button = guideButton,
+			closeButton = guideClose,
+			rows = guideRows,
+			subtitle = guideSubtitle,
+		},
 		miningPopupContainer = miningPopupContainer,
 		labels = {
 			status = status,
@@ -13016,7 +13927,21 @@ function RootScreen.new(context)
 		vaultOverlay.Visible = false
 	end)
 
+	guideButton.Activated:Connect(function()
+		local nextVisible = not guideOverlay.Visible
+		guideOverlay.Visible = nextVisible
+		playGuideButtonSound(nextVisible)
+	end)
+
+	guideClose.Activated:Connect(function()
+		if guideOverlay.Visible then
+			guideOverlay.Visible = false
+			playGuideButtonSound(false)
+		end
+	end)
+
 	self:setShopMenuVisible(false)
+	self:setResourceGuideVisible(false)
 	self:setOpenReadyGeodeButton(false, "Open Ready Geode")
 	self:setOfflineButtonState(false, "Claim Offline Cache")
 	self:setPlaceStarterStationButton(true, "Place Starter Station")
@@ -13176,6 +14101,19 @@ local function createTextLabel(parent: Instance, text: string, fontSize: number,
 	return label
 end
 
+local function createFittedPopupLabel(parent: Instance, text: string, fontSize: number, textColor: Color3, height: number, minTextSize: number)
+	local label = createTextLabel(parent, text, fontSize, textColor, height)
+	label.TextScaled = true
+
+	local constraint = label:FindFirstChildWhichIsA("UITextSizeConstraint")
+	if constraint ~= nil then
+		constraint.MaxTextSize = fontSize
+		constraint.MinTextSize = minTextSize
+	end
+
+	return label
+end
+
 local function createReel(parent: Instance, tone, initialText: string)
 	local reel = Instance.new("Frame")
 	reel.BackgroundColor3 = tone.highlight
@@ -13220,20 +14158,20 @@ function RootScreen:_pumpCelebrationQueue()
 
 		local isCoin = spec.kind == "coin"
 		local width = if isCoin then 160 elseif spec.compact == true then 300 elseif spec.showSlotMachine == true then 460 else 360
-		local height = if isCoin then 36 elseif spec.compact == true then 68 elseif spec.showSlotMachine == true then 190 else 104
+		local height = if isCoin then 36 elseif spec.compact == true then 68 elseif spec.showSlotMachine == true then 212 else 104
 		if spec.kind == "geode_discovery" then
 			local ri = math.clamp(spec.rarityIndex or 1, 1, 10)
 			width = math.clamp(320 + (ri - 1) * 22, 320, 520)
 			height = math.clamp(110 + (ri - 1) * 18, 110, 280)
 		elseif spec.kind == "attribute" then
-			height = 210
+			height = if spec.showSlotMachine == true then 252 else 210
 		elseif spec.kind == "resource" then
-			height = if spec.showSlotMachine == true then 230 else 120
+			height = if spec.showSlotMachine == true then 252 else 120
 		elseif spec.kind == "geode" then
-			height = if spec.showSlotMachine == true then 230 else 120
+			height = if spec.showSlotMachine == true then 240 else 120
 		end
 		if spec.waitForClick == true then
-			height += 34
+			height += 40
 		end
 
 		local popup = makePopup(self.miningPopupContainer, tone.background, tone.accent, width, height)
@@ -13266,7 +14204,7 @@ function RootScreen:_pumpCelebrationQueue()
 		layout.SortOrder = Enum.SortOrder.LayoutOrder
 		layout.Padding = UDim.new(0, 6)
 		layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-		layout.VerticalAlignment = Enum.VerticalAlignment.Center
+		layout.VerticalAlignment = Enum.VerticalAlignment.Top
 		layout.Parent = popup
 
 		local titleText = if isCoin then spec.headline else string.upper(spec.headline)
@@ -13363,31 +14301,41 @@ function RootScreen:_pumpCelebrationQueue()
 						local stepDelay = 0.06 + progress * 0.14
 						local wordIndex = ((spinStep) % #spinWords) + 1
 						singleReelLabel.Text = tostring(spinWords[wordIndex])
+						if spinStep == 1 or spinStep % 3 == 0 then
+							playLocalUiSound(
+								AUDIO_LIBRARY.tick,
+								math.clamp(0.05 + ((spec.rarityIndex or 1) * 0.015), 0.05, 0.12),
+								1.08 + (progress * 0.28)
+							)
+						end
 						task.wait(stepDelay)
 					end
 					singleReelLabel.Text = tostring(spec.reelFinal or spec.primary)
+					playCelebrationSound(spec)
 					reelFinished = true
 					revealResolvedPopupText()
 				end)
 			end
 
-			primaryLabel = createTextLabel(
+			primaryLabel = createFittedPopupLabel(
 				popup,
 				if hideResolvedRevealText then "" else spec.primary,
 				if spec.showSlotMachine == true then 26 else 28,
 				spec.textColor or tone.text,
-				if spec.showSlotMachine == true then 32 else 34
+				if spec.showSlotMachine == true then 38 else 34,
+				if spec.showSlotMachine == true then 16 else 20
 			)
 			primaryLabel.LayoutOrder = if spec.showSlotMachine == true then 3 else 2
 			primaryLabel.Visible = not hideResolvedRevealText
 
 			if spec.detail ~= nil or spec.rarityLabel ~= nil then
-				detailLabel = createTextLabel(
+				detailLabel = createFittedPopupLabel(
 					popup,
 					if hideResolvedRevealText then "" else resolvedDetailText,
 					18,
 					tone.text,
-					if spec.showSlotMachine == true then 24 else 22
+					if spec.showSlotMachine == true then 28 else 22,
+					12
 				)
 				detailLabel.LayoutOrder = if spec.showSlotMachine == true then 4 else 3
 				detailLabel.Visible = not hideResolvedRevealText
@@ -13427,6 +14375,48 @@ function RootScreen:_pumpCelebrationQueue()
 			end
 		end
 
+		local continueButton
+		local continueLabel
+		if spec.waitForClick == true then
+			local promptSpacer = Instance.new("Frame")
+			promptSpacer.Name = "CelebrationPromptSpacer"
+			promptSpacer.BackgroundTransparency = 1
+			promptSpacer.LayoutOrder = 98
+			promptSpacer.Size = UDim2.new(1, 0, 0, 24)
+			promptSpacer.Parent = popup
+
+			continueLabel = Instance.new("TextLabel")
+			continueLabel.Name = "CelebrationContinuePrompt"
+			continueLabel.Active = false
+			continueLabel.BackgroundTransparency = 1
+			continueLabel.Size = UDim2.new(1, 0, 0, 22)
+			continueLabel.Font = Enum.Font.FredokaOne
+			continueLabel.Text = "Click anywhere to continue..."
+			continueLabel.TextColor3 = tone.text
+			continueLabel.TextSize = 14
+			continueLabel.TextTransparency = 1
+			continueLabel.ZIndex = POPUP_Z_INDEX + 4
+			continueLabel.LayoutOrder = 99
+			continueLabel.Parent = popup
+
+			continueButton = Instance.new("TextButton")
+			continueButton.Name = "CelebrationContinueButton"
+			continueButton.Active = false
+			continueButton.AutoButtonColor = false
+			continueButton.BackgroundTransparency = 1
+			continueButton.BorderSizePixel = 0
+			continueButton.Visible = false
+			continueButton.Size = UDim2.new(1, 0, 1, 0)
+			continueButton.Font = Enum.Font.FredokaOne
+			continueButton.Text = ""
+			continueButton.ZIndex = POPUP_Z_INDEX + 3
+			continueButton.Parent = popup
+		end
+
+		if spec.showSlotMachine ~= true and spec.kind ~= "coin" then
+			playCelebrationSound(spec)
+		end
+
 		local popInTime = 0.2
 		local popInTarget = 1
 		if spec.kind == "geode_discovery" then
@@ -13463,32 +14453,10 @@ function RootScreen:_pumpCelebrationQueue()
 		end
 		task.wait(holdDuration)
 
-		if spec.waitForClick == true then
-			local continueButton = Instance.new("TextButton")
-			continueButton.Name = "CelebrationContinueButton"
-			continueButton.AutoButtonColor = false
-			continueButton.BackgroundTransparency = 1
-			continueButton.BorderSizePixel = 0
-			continueButton.Size = UDim2.new(1, 0, 1, 0)
-			continueButton.Font = Enum.Font.FredokaOne
-			continueButton.Text = ""
-			continueButton.ZIndex = POPUP_Z_INDEX + 3
-			continueButton.Parent = popup
-
-			local continueLabel = Instance.new("TextLabel")
-			continueLabel.Name = "CelebrationContinuePrompt"
-			continueLabel.Active = false
-			continueLabel.BackgroundTransparency = 1
-			continueLabel.Size = UDim2.new(1, 0, 0, 22)
-			continueLabel.Font = Enum.Font.FredokaOne
-			continueLabel.Text = "Click anywhere to continue..."
-			continueLabel.TextColor3 = tone.text
-			continueLabel.TextSize = 14
+		if spec.waitForClick == true and continueButton ~= nil and continueLabel ~= nil then
+			continueButton.Visible = true
+			continueButton.Active = true
 			continueLabel.TextTransparency = 0.3
-			continueLabel.ZIndex = POPUP_Z_INDEX + 4
-			continueLabel.LayoutOrder = 99
-			continueLabel.Parent = popup
-
 			local clicked = false
 			local function setClicked()
 				clicked = true
@@ -13658,6 +14626,16 @@ function RootScreen:setVaultVisible(visible)
 	self.vault.overlay.Visible = visible
 end
 
+function RootScreen:setResourceGuideVisible(visible)
+	self.guide.overlay.Visible = visible
+end
+
+function RootScreen:setResourceGuideData(pickaxeId: string?)
+	local summary = ResourceGuide.getGuideSummary(pickaxeId)
+	self.guide.subtitle.Text = summary.subtitleText
+	rebuildGuideRows(self.guide.rows, ResourceGuide.getGuideRows(summary.pickaxeId), summary.hintText)
+end
+
 function RootScreen:getVaultItemContainer()
 	return self.vault.items
 end
@@ -13715,11 +14693,11 @@ return RootScreen
               </Properties>
             </Item>
           </Item>
-          <Item class="Folder" referent="97">
+          <Item class="Folder" referent="98">
             <Properties>
               <string name="Name">Theme</string>
             </Properties>
-            <Item class="ModuleScript" referent="98">
+            <Item class="ModuleScript" referent="99">
               <Properties>
                 <string name="Name">Palette</string>
                 <string name="Source"><![CDATA[--!strict
@@ -13751,13 +14729,13 @@ return Palette
       </Item>
     </Item>
   </Item>
-  <Item class="Workspace" referent="99">
+  <Item class="Workspace" referent="100">
     <Properties>
       <string name="Name">Workspace</string>
       <bool name="FilteringEnabled">true</bool>
       <bool name="NeedsPivotMigration">false</bool>
     </Properties>
-    <Item class="Part" referent="100">
+    <Item class="Part" referent="101">
       <Properties>
         <string name="Name">Baseplate</string>
         <bool name="Anchored">true</bool>

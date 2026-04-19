@@ -2,7 +2,7 @@
 
 ## Summary
 
-Gem Factory is at a mine-first MVP stage in Roblox Studio. The current early loop is mine-first: players equip a pickaxe, click inside the mine to earn either coins or geodes, open the Vault to place or sell owned geodes, wait for placed geodes to finish, crack ready geodes in the world, store revealed resources in the Vault, and either place or sell those resources.
+Gem Factory is at a mine-first MVP stage in Roblox Studio. The current early loop is mine-first: players equip a pickaxe, click inside the mine to earn either coins or geodes, open the Vault to place or sell owned geodes, wait for placed geodes to finish, crack ready geodes in the world, store revealed resources in the Vault, and either place, pick up, or sell those resources.
 
 The project is still a prototype. The backend gameplay slice is more complete than the presentation layer, persistence is still mocked for development, and the repo is being documented for agent-friendly maintenance through synchronized docs plus concise module comments in the Luau source tree.
 
@@ -14,9 +14,9 @@ The project is still a prototype. The backend gameplay slice is more complete th
 - Player profiles load through `MockPersistenceService` and reconcile into the current profile schema (schema version 2). New players start with 250 coins and 10 gems.
 - Remote names and remote setup are centralized under `src/shared/Net`.
 - Shared config exists for resources, geodes, traits, stations, economy, shops, pickaxes, daily rewards, and world settings.
-- The shared pickaxe catalog defines ten pickaxe tiers, each with coin payouts, geode chance, weighted geode tables, rarity tier, display color, and per-tier `cooldownSeconds`.
+- The shared pickaxe catalog defines ten pickaxe tiers, each with coin payouts, scaled geode chance, weighted geode tables, rarity tier, display color, and per-tier `cooldownSeconds`. A shared config scale now makes geodes overall rarer to find while preserving each pickaxe's relative rarity ladder.
 - Deterministic shared domain modules exist for economy, placement, geode state, geode rolling, mining rewards, station assignment, shop rotation, trait rolling, Vault sell values, and offline math.
-- HUD panels cover plot state, daily rewards, offline rewards, overview, and announcements, with a large bottom-left coin counter and Vault button as the primary player-facing HUD. The legacy Geode Inventory panel remains in the UI shell but is currently hidden.
+- HUD panels cover plot state, daily rewards, offline rewards, overview, and announcements, with a large bottom-left coin counter and Vault button as the primary player-facing HUD. A bubbly bottom-right Resource Guide button now opens a visible color-coded rarity chart derived from the actual mining path for the currently equipped pickaxe instead of raw catalog counts. The legacy Geode Inventory panel remains in the UI shell but is currently hidden.
 - A mine exists on the west no-plot side of the shared world plate.
 - The mine sign is attached to the mine face so it reads as part of the mine facade.
 - A roofless pickaxe shop exists on the east no-plot side of the shared world plate and sells pickaxes only.
@@ -29,25 +29,28 @@ The project is still a prototype. The backend gameplay slice is more complete th
 - Equipped pickaxes play a short local swing animation when the player clicks with one held.
 - Players can sprint by holding Left Shift, which increases walk speed from 16 to 28. Speed resets on release or respawn.
 - Geodes and revealed resources live in the Vault instead of the Roblox backpack.
-- Players can choose a Vault geode or resource, see a transparent placement ghost, and place it onto their own plot grid.
+- Players can choose a Vault geode or resource, see a transparent model-style placement ghost that better matches the item being placed, and place it onto their own plot grid.
+- Plot surfaces now include an invisible server-authored collider aligned to the visible trim layer, so players stand on the plot floor instead of falling through the thin decorative surface.
 - Vault rows now show size information for both geodes and resources, including the display category and numeric scale multiplier.
 - Vault selling is server-authoritative and awards coins from deterministic geode/resource sell value math.
-- Placed geodes render in the world and progress toward ready state. Cracking geodes now show a live countdown above the world model until they become ready.
+- Placed resources can now be picked back up into the Vault through a server-authoritative Vault action, which clears their occupied plot cells without relying on client-only world state.
+- Placed geodes render in the world and progress toward ready state. Cracking geodes now show a live countdown above the world model until they become ready, using a clean 15-second common baseline that scales up to 90 seconds for the rarest geodes.
 - Ready geodes can be clicked in the world to crack open.
 - Cracking a geode grants a resource into the Vault and removes the geode from placed state.
 - Revealed resources can now roll independent collectible attributes (see full list under Implemented Content). Attributes are stored on the resource instance through `traitId` and increase resource sell value through deterministic multiplier math.
 - Geodes receive a random numeric size scale when mined. That scale resolves into the existing size categories (Tiny, Small, Medium, Large, Huge, Colossal), carries over to the resource on cracking, and now makes geode/resource placement ghosts plus placed geodes/resources physically larger or smaller in the world. Placed resources now scale their actual root world part from that size value instead of only scaling decorative child visuals.
 - Placed resources render directly on the player's plot.
-- Placed resource nameplates now stay hidden until the player's mouse is hovering that specific placed resource, and hover labels reliably show the resolved resource name even if the world marker needs to rebuild from replicated attributes.
+- Placed resource nameplates now stay hidden until the player's mouse is hovering that specific placed resource, and hover labels reliably show the resolved resource name even when the player is hovering decorative child parts instead of the root world part.
 - Placed resources now use five procedural visual families chosen per resource definition: gemstone, cluster, artifact, ingot, and eldritch. Gemstone/cluster/artifact resources keep the crystal-ore language inspired by `reference/Blue_Crystal_Ore.webp`, while ingots read as dense raw trade materials and eldritch resources read as otherworldly relics. All resource visuals scale by a `sizeId` field (tiny/small/medium/large/huge/colossal) defined in `src/shared/Config/Sizes.luau`.
 - Placed resource clusters and their placement ghosts now sit on the plot surface instead of hovering above it, keeping the rock base grounded like the `reference/modo.png` target.
+- Trait-bearing placed resources now use stronger world-space presentation, including clearer aura/band/crest silhouettes and more attribute-matched particles so rolled attributes read at a glance.
 - Starter station placement works, including deterministic first-fit placement when coordinates are not provided.
 - Station assignment and passive income systems still exist, but geode cracking now puts revealed resources in the Vault first instead of immediately auto-slotting them.
 - Passive income accrues online.
 - Offline reward summaries work.
 - Offline geode progress preserves finished geodes as ready to open instead of auto-opening them.
 - World replica renders plots, stations, displayed resources, placed resources, geodes, the mine, and the pickaxe shop.
-- A lightweight local geode reveal effect exists. Mining geode drops show a rarity-scaled discovery popup (bigger, bolder, longer duration at higher rarities) without rolling. Cracking a geode now bursts open into a floating crystal-ore reveal model that reuses the resource silhouette language instead of the old placeholder orb, then triggers two sequential single-reel rolls: first the resource reel spins and lands on the base resource, then the attribute reel spins and lands if a non-none attribute was rolled. Resource and attribute names stay hidden until their reel finishes so the outcome is not revealed early. The click-to-continue pause between these rolls now advances on left click or touch while the prompt is visible, and the prompt text has dedicated layout space instead of being clipped at the popup edge. The Geode Inventory HUD panel is hidden.
+- A lightweight local geode reveal effect exists. Mining geode drops show a rarity-scaled discovery popup (bigger, bolder, longer duration at higher rarities) without rolling. Cracking a geode now bursts open into a floating crystal-ore reveal model that reuses the resource silhouette language instead of the old placeholder orb, then triggers two sequential single-reel rolls: first the resource reel spins and lands on the base resource, then the attribute reel spins and lands if a non-none attribute was rolled. Resource and attribute names stay hidden until their reel finishes so the outcome is not revealed early. The click-to-continue pause between these rolls now advances on left click or touch while the prompt is visible, the prompt keeps reserved footer space from the start of the popup, and fitted text sizing prevents long attribute labels from clipping during the resource-to-attribute handoff. Local HUD audio now adds small discovery and reveal chimes tied to geode-find rarity plus cracked-resource and attribute reel reveals. The Geode Inventory HUD panel is hidden.
 - Daily rewards, pickaxe shop rotation data, and rare reveal announcements are represented in the current slice.
 - `rojo build default.project.json -o build-check.rbxlx` has succeeded locally.
 
@@ -59,7 +62,7 @@ The project is still a prototype. The backend gameplay slice is more complete th
 4. Open the Vault and place a geode onto your plot, or sell extra geodes.
 5. Wait for the timer to finish.
 6. Click the ready geode on the plot to crack it open.
-7. Keep the revealed resource in the Vault, place it on the plot, or sell it.
+7. Keep the revealed resource in the Vault, place it on the plot, pick it back up later, or sell it.
 8. Place the starter station.
 9. Watch station and passive income flows continue to mature.
 
@@ -83,19 +86,19 @@ The project is still a prototype. The backend gameplay slice is more complete th
 - `GeodeQueueService` manages geode queue cache sync, claimable entries, and timed geode lifecycle management on the server.
 - More Studio playtesting is needed for mining, pickaxe purchases, placement, cracking, reconnect, and offline edge cases.
 - Mining click feedback now includes bubbly Fredoka-style center-screen action popups for rewards and important mining prompts. Geode discoveries use a rarity-scaled popup (size, text, duration, and border all grow with rarity) instead of slot-machine reels. Slot-machine reels are reserved for geode cracking and resource reveals.
-- Placement UX uses transparent geode and resource ghost previews that reflect rolled size, but item art and interaction polish still need playtesting.
+- Placement UX uses transparent geode and resource ghost previews that reflect rolled size and now mimic the placed item silhouettes more closely, but final art and interaction polish still need playtesting.
 - The reveal effect is client-side and lightweight, while placed-resource visuals are replicated through the server world projection.
 - Specs exist under `tests/`, but a terminal-integrated automated Luau test runner is not wired in yet.
 - World visuals are readable for debugging but still need stronger cave/factory art direction.
 - Move and upgrade flows are present in the remote plan but not fully built out as complete player-facing systems. `RequestMovePlacedObject` and `RequestUpgradeStation` remotes exist but currently return `not_implemented`. `RequestBuyGeode` returns `geode_shop_removed`; geodes now come only from mining.
-- Vault sell values, resource placement, remote names, and geode tool cleanup have focused specs, but need Studio playtesting for the final UI feel.
+- Vault sell values, resource placement and pickup, remote names, and geode tool cleanup have focused specs, but need Studio playtesting for the final UI feel.
 
 ## Next Up
 
 - Playtest the full mine-to-Vault-to-geode-to-resource lifecycle in Studio and record reproducible edge cases.
 - Playtest pickaxe Tool sync and held model alignment across respawn.
 - Playtest mine standing-zone validation, mine target hit detection, and reward messages.
-- Playtest Vault place/sell actions, especially resource placement on plot edges, occupied cells, and after reconnect.
+- Playtest Vault place/pick-up/sell actions, especially resource placement on plot edges, occupied cells, and after reconnect.
 - Continue tuning mining feedback timing and presentation after Studio playtests.
 - Continue tuning the upgraded geode cracking feedback after Studio playtests, especially shell timing, hover motion, and trait readability.
 - Add or document a repeatable local way to execute the Luau specs outside manual Studio checks.
@@ -106,6 +109,7 @@ The project is still a prototype. The backend gameplay slice is more complete th
 
 - `src/shared` holds deterministic rules, configs, types, remote names, and utility modules.
 - Resource attribute odds, multipliers, and presentation metadata live in `src/shared/Config/Traits.luau`; deterministic reveal classification helpers live in `src/shared/Domain/RewardPresentation.luau`.
+- Resource Guide chart rows, rarity ordering, and equipped-pickaxe probability labels live in `src/shared/Domain/ResourceGuide.luau` so the HUD does not hard-code rarity data or fake catalog-count percentages.
 - Geode countdown text and staged reveal visibility rules live in `src/shared/Domain/GeodePresentation.luau`.
 - Size bucket definitions (weights, numeric scale ranges, default scales, sell multipliers) live in `src/shared/Config/Sizes.luau`; range resolution lives in `src/shared/Domain/SizeRules.luau`; the weighted roller lives in `src/shared/Domain/SizeRoller.luau`.
 - Shared reveal visual profiles for floating crack reveals live in `src/shared/Domain/ResourceVisuals.luau`.
@@ -120,12 +124,12 @@ The project is still a prototype. The backend gameplay slice is more complete th
 - Non-trivial Luau modules are expected to carry short purpose comments so future agents can identify ownership and trace data flow without re-reading the entire repo first.
 - Workspace objects are a projection of authoritative state, not the source of truth.
 - Mining rewards are rolled on the server; the client only requests mining after a local mine-target click.
-- Vault sell and placement requests are validated by the server before profile mutation.
+- Vault sell, placement, and pickup requests are validated by the server before profile mutation.
 - Geode and resource Vault placement both reuse shared grid occupancy rules through server placement services.
 - The important geode state distinction is owned, placed, ready, and cracked/opened.
 
 ## Verification Notes
 
 - Run `rojo build default.project.json -o build-check.rbxlx` after structural changes.
-- Twenty-two spec files currently live in `tests/`: EconomyMath, GeodeLifecycle, GeodePresentation, GeodeRoller, GeodeState, GeodeToolService, MiningRewards, MiningService, OfflineMath, PlacementRules, RemoteNames, Resources, ResourceVisuals, RewardPresentation, ShopCatalog, ShopRotation, SizeRoller, SizeRules, StationAssignment, VaultMath, VaultService, and WorldLabelPresentation.
+- Twenty-four spec files currently live in `tests/`: EconomyMath, GeodeLifecycle, GeodePresentation, GeodeRoller, Geodes, GeodeState, GeodeToolService, MiningRewards, MiningService, OfflineMath, PlacementRules, RemoteNames, ResourceGuide, Resources, ResourceVisuals, RewardPresentation, ShopCatalog, ShopRotation, SizeRoller, SizeRules, StationAssignment, VaultMath, VaultService, and WorldLabelPresentation.
 - The repo does not yet have a terminal test command, so new deterministic logic should either add specs for future runner use or be accompanied by a small reproducible validation path.

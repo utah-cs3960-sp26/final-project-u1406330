@@ -31,35 +31,33 @@ local function getGeodeDefinition(geodeTypeId: string?)
 	return Geodes[geodeTypeId]
 end
 
+local function createGhostPart(parent: Instance, name: string, size: Vector3, color: Color3, material: Enum.Material, transparency: number): BasePart
+	local part = Instance.new("Part")
+	part.Name = name
+	part.Anchored = true
+	part.CanCollide = false
+	part.CanQuery = false
+	part.CanTouch = false
+	part.CastShadow = false
+	part.Shape = Enum.PartType.Ball
+	part.Size = size
+	part.Color = color
+	part.Material = material
+	part.Transparency = transparency
+	part.Parent = parent
+	return part
+end
+
 function GeodePlacementGhost.new()
 	local model = Instance.new("Model")
 	model.Name = "GeodePlacementGhost"
 
-	local shell = Instance.new("Part")
-	shell.Name = "Shell"
-	shell.Anchored = true
-	shell.CanCollide = false
-	shell.CanQuery = false
-	shell.CanTouch = false
-	shell.CastShadow = false
-	shell.Material = Enum.Material.SmoothPlastic
-	shell.Shape = Enum.PartType.Ball
-	shell.Size = Vector3.new(4.5, 4.5, 4.5)
-	shell.Transparency = 0.7
-	shell.Parent = model
+	local shell = createGhostPart(model, "Shell", Vector3.new(4.5, 4.5, 4.5), Color3.fromRGB(205, 210, 224), Enum.Material.Slate, 0.62)
+	local core = createGhostPart(model, "Core", Vector3.new(3.45, 3.45, 3.45), Color3.fromRGB(240, 240, 255), Enum.Material.Glass, 0.5)
 
-	local core = Instance.new("Part")
-	core.Name = "Core"
-	core.Anchored = true
-	core.CanCollide = false
-	core.CanQuery = false
-	core.CanTouch = false
-	core.CastShadow = false
-	core.Material = Enum.Material.Glass
-	core.Shape = Enum.PartType.Ball
-	core.Size = Vector3.new(3.2, 3.2, 3.2)
-	core.Transparency = 0.55
-	core.Parent = model
+	local gloss = createGhostPart(model, "Gloss", Vector3.new(4.66, 4.66, 4.66), Color3.fromRGB(228, 235, 255), Enum.Material.Glass, 0.78)
+	local highlight = createGhostPart(model, "Highlight", Vector3.new(0.92, 0.92, 0.92), Color3.fromRGB(255, 255, 255), Enum.Material.Neon, 0.42)
+	local crackGlow = createGhostPart(model, "CrackGlow", Vector3.new(0.34, 3.15, 0.42), Color3.fromRGB(255, 255, 255), Enum.Material.Neon, 0.7)
 
 	local prompt = Instance.new("BillboardGui")
 	prompt.Name = "Label"
@@ -78,11 +76,14 @@ function GeodePlacementGhost.new()
 	label.TextWrapped = true
 	label.Parent = prompt
 
-	model.PrimaryPart = core
+	model.PrimaryPart = shell
 
 	return setmetatable({
 		model = model,
 		core = core,
+		gloss = gloss,
+		highlight = highlight,
+		crackGlow = crackGlow,
 		label = label,
 		prompt = prompt,
 		shell = shell,
@@ -121,8 +122,23 @@ function GeodePlacementGhost:setGeodeTypeId(geodeTypeId: string?, sizeId: string
 	end
 
 	self.shell.Size = Vector3.new(4.5, 4.5, 4.5) * scaleValue
-	self.core.Size = Vector3.new(3.2, 3.2, 3.2) * scaleValue
-	self.prompt.StudsOffset = Vector3.new(0, 2.4 + scaleValue, 0)
+	self.core.Size = Vector3.new(3.45, 3.45, 3.45) * scaleValue
+	self.gloss.Size = Vector3.new(4.66, 4.66, 4.66) * scaleValue
+	self.highlight.Size = Vector3.new(0.92, 0.92, 0.92) * scaleValue
+	self.crackGlow.Size = Vector3.new(0.34, 3.15, 0.42) * scaleValue
+	self.gloss.Color = Color3.fromRGB(228, 235, 255)
+	self.highlight.Color = Color3.fromRGB(255, 255, 255)
+	self.crackGlow.Color = self.core.Color:Lerp(Color3.fromRGB(255, 255, 255), 0.28)
+	self.shell.Material = Enum.Material.Slate
+	self.core.Material = Enum.Material.Glass
+	self.gloss.Material = Enum.Material.Glass
+	self.highlight.Material = Enum.Material.Neon
+	self.crackGlow.Material = Enum.Material.Neon
+	self.core.Position = self.shell.Position + Vector3.new(0, 0.12 * scaleValue, 0)
+	self.gloss.Position = self.shell.Position
+	self.highlight.Position = self.shell.Position + (Vector3.new(1.0, 1.0, -0.8) * scaleValue)
+	self.crackGlow.CFrame = CFrame.new(self.shell.Position + (Vector3.new(0.08, 0.08, -0.18) * scaleValue)) * CFrame.Angles(math.rad(-10), math.rad(14), math.rad(4))
+	self.prompt.StudsOffset = Vector3.new(0, 2.55 + scaleValue, 0)
 end
 
 function GeodePlacementGhost:getSnappedCell(plotModel: Model, hitPosition: Vector3): (number?, number?, Vector3?)
