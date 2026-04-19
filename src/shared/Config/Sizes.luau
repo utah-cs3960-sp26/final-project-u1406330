@@ -3,6 +3,9 @@
 -- Static shared configuration for Sizes used by deterministic gameplay logic on both client and server.
 
 local Sizes = {
+	-- Resource visuals intentionally render larger than the raw rolled size values so the default
+	-- placed models read clearly on plots without changing size bucket odds, labels, or sell math.
+	resourceVisualScaleMultiplier = 3,
 	tiny = {
 		id = "tiny",
 		displayName = "Tiny",

@@ -15,10 +15,6 @@ local World = require(Shared.Config.World)
 local ResourcePlacementGhost = {}
 ResourcePlacementGhost.__index = ResourcePlacementGhost
 
-local function getPreviewHeightOffset(baseHeight: number): number
-	return (World.plotBaseSize.height / 2) + (baseHeight / 2)
-end
-
 local function getPlotBase(plotModel: Model): BasePart?
 	local plotBase = plotModel:FindFirstChild("PlotBase")
 	if plotBase ~= nil and plotBase:IsA("BasePart") then
@@ -26,6 +22,29 @@ local function getPlotBase(plotModel: Model): BasePart?
 	end
 
 	return nil
+end
+
+local function getPlotSurfacePart(plotModel: Model): BasePart?
+	local surfaceCollider = plotModel:FindFirstChild("PlotSurfaceCollider")
+	if surfaceCollider ~= nil and surfaceCollider:IsA("BasePart") then
+		return surfaceCollider
+	end
+
+	local trim = plotModel:FindFirstChild("PlotTrim")
+	if trim ~= nil and trim:IsA("BasePart") then
+		return trim
+	end
+
+	return getPlotBase(plotModel)
+end
+
+local function getPlotSurfaceTopY(plotModel: Model): number?
+	local surfacePart = getPlotSurfacePart(plotModel)
+	if surfacePart == nil then
+		return nil
+	end
+
+	return surfacePart.Position.Y + (surfacePart.Size.Y / 2)
 end
 
 local function createGhostPart(parent: Instance, className: "Part" | "WedgePart", name: string, size: Vector3, color: Color3, material: Enum.Material, transparency: number): BasePart
@@ -48,12 +67,119 @@ local function blendColor(baseColor: Color3, targetColor: Color3, alpha: number)
 	return baseColor:Lerp(targetColor, alpha)
 end
 
+local function resolvePlacedVisualProfile(resourceTypeId: string?, sizeId: string?, sizeValue: number?, stableVisualId: any)
+	local resolvePlacedProfile = ResourceVisuals.resolvePlacedVisualProfile
+	if type(resolvePlacedProfile) == "function" then
+		local ok, profile = pcall(resolvePlacedProfile, resourceTypeId, nil, sizeId, sizeValue, stableVisualId)
+		if ok and type(profile) == "table" then
+			return profile
+		end
+	end
+
+	return ResourceVisuals.resolveRevealProfile(resourceTypeId, nil, sizeId, sizeValue, stableVisualId)
+end
+
+local function normalizeLayoutCandidate(layout, fallbackVariantId: string): { variantId: string, pieces: { [number]: any } }?
+	if type(layout) ~= "table" then
+		return nil
+	end
+
+	local pieces = nil
+	if #layout > 0 then
+		pieces = layout
+	elseif type(layout.pieces) == "table" then
+		pieces = layout.pieces
+	elseif type(layout.shards) == "table" then
+		pieces = layout.shards
+	elseif type(layout.crystals) == "table" then
+		pieces = layout.crystals
+	end
+
+	if pieces == nil then
+		return nil
+	end
+
+	local variantId = if type(layout.variantId) == "string" then layout.variantId else fallbackVariantId
+	return {
+		variantId = variantId,
+		pieces = pieces,
+	}
+end
+
+local function resolveProceduralLayout(profile, seedKey: string): { variantId: string, pieces: { [number]: any } }
+	local fallbackVariantId = profile.variantId or "gemstone"
+	local profileCandidates = {
+		profile.crystalDefinitions,
+		profile.proceduralLayout,
+		profile.placedLayout,
+		profile.visualLayout,
+		profile.shapeLayout,
+	}
+
+	for _, candidate in ipairs(profileCandidates) do
+		local normalized = normalizeLayoutCandidate(candidate, fallbackVariantId)
+		if normalized ~= nil then
+			return normalized
+		end
+	end
+
+	local resolver = ResourceVisuals.resolvePlacedLayout or ResourceVisuals.resolveProceduralLayout
+	if type(resolver) == "function" then
+		local ok, layout = pcall(resolver, profile, seedKey)
+		local normalized = if ok then normalizeLayoutCandidate(layout, fallbackVariantId) else nil
+		if normalized ~= nil then
+			return normalized
+		end
+	end
+
+	return {
+		variantId = fallbackVariantId,
+		pieces = ResourceVisuals.getOreCrystalDefinitions(fallbackVariantId),
+	}
+end
+
+local function getPartVerticalBounds(part: BasePart): (number, number)
+	local halfHeight = (math.abs(part.CFrame.XVector.Y) * part.Size.X * 0.5)
+		+ (math.abs(part.CFrame.YVector.Y) * part.Size.Y * 0.5)
+		+ (math.abs(part.CFrame.ZVector.Y) * part.Size.Z * 0.5)
+	return part.Position.Y - halfHeight, part.Position.Y + halfHeight
+end
+
 local function clearGhostGeometry(model: Model, root: BasePart)
 	for _, child in ipairs(model:GetChildren()) do
 		if child ~= root then
 			child:Destroy()
 		end
 	end
+end
+
+local function groundGhostGeometry(model: Model, root: BasePart): number
+	local minY = math.huge
+	local maxY = -math.huge
+	local parts = {}
+
+	for _, descendant in ipairs(model:GetDescendants()) do
+		if descendant:IsA("BasePart") and descendant ~= root then
+			local partMinY, partMaxY = getPartVerticalBounds(descendant)
+			minY = math.min(minY, partMinY)
+			maxY = math.max(maxY, partMaxY)
+			table.insert(parts, descendant)
+		end
+	end
+
+	if #parts == 0 then
+		return 0
+	end
+
+	if minY ~= 0 then
+		local lift = -minY
+		for _, part in ipairs(parts) do
+			part.CFrame += Vector3.new(0, lift, 0)
+		end
+		maxY += lift
+	end
+
+	return maxY
 end
 
 local function addCrystalShard(parent: Instance, rootCFrame: CFrame, definition, scale: number, baseHeight: number, baseColor: Color3, glowColor: Color3, index: number)
@@ -81,7 +207,7 @@ local function addCrystalShard(parent: Instance, rootCFrame: CFrame, definition,
 	cap.CFrame = shardCFrame * CFrame.new(0, (height * 0.5) + (capHeight * 0.28), 0)
 end
 
-local function buildCrystalGhost(model: Model, profile)
+local function buildCrystalGhost(model: Model, profile, layout)
 	local rootCFrame = CFrame.new() * CFrame.Angles(0, math.rad((profile.hash % 360) - 180), 0)
 	local baseSize = Vector3.new(2.1, 0.32, 1.64) * profile.scale
 	local base = createGhostPart(
@@ -95,14 +221,14 @@ local function buildCrystalGhost(model: Model, profile)
 	)
 	base.CFrame = rootCFrame * CFrame.new(0, -0.42 * profile.scale, 0)
 
-	for index, shard in ipairs(ResourceVisuals.getOreCrystalDefinitions(profile.variantId)) do
+	for index, shard in ipairs(layout.pieces) do
 		addCrystalShard(model, rootCFrame, shard, profile.scale, -0.24 * profile.scale, profile.baseColor, profile.glowColor, index)
 	end
 end
 
-local function buildIngotGhost(model: Model, profile)
+local function buildIngotGhost(model: Model, profile, layout)
 	local rootCFrame = CFrame.new() * CFrame.Angles(0, math.rad((profile.hash % 360) - 180), 0)
-	for index, shard in ipairs(ResourceVisuals.getOreCrystalDefinitions("ingot")) do
+	for index, shard in ipairs(layout.pieces) do
 		local part = createGhostPart(
 			model,
 			"Part",
@@ -116,7 +242,7 @@ local function buildIngotGhost(model: Model, profile)
 	end
 end
 
-local function buildEldritchGhost(model: Model, profile)
+local function buildEldritchGhost(model: Model, profile, layout)
 	local rootCFrame = CFrame.new() * CFrame.Angles(0, math.rad((profile.hash % 360) - 180), 0)
 	local core = createGhostPart(
 		model,
@@ -141,7 +267,7 @@ local function buildEldritchGhost(model: Model, profile)
 	halo.Shape = Enum.PartType.Cylinder
 	halo.CFrame = rootCFrame * CFrame.new(0, 0.86 * profile.scale, 0) * CFrame.Angles(0, 0, math.rad(90))
 
-	for index, shard in ipairs(ResourceVisuals.getOreCrystalDefinitions("eldritch")) do
+	for index, shard in ipairs(layout.pieces) do
 		addCrystalShard(model, rootCFrame, shard, profile.scale * 0.92, 0.02 * profile.scale, profile.baseColor, profile.glowColor, index)
 	end
 end
@@ -160,6 +286,7 @@ function ResourcePlacementGhost.new()
 	root.Transparency = 1
 	root.Size = Vector3.new(0.25, 0.25, 0.25)
 	root.Parent = model
+	model.PrimaryPart = root
 
 	local prompt = Instance.new("BillboardGui")
 	prompt.Name = "Label"
@@ -186,7 +313,6 @@ function ResourcePlacementGhost.new()
 		resourceTypeId = nil,
 		sizeId = nil,
 		sizeValue = nil,
-		baseHeight = ResourceVisuals.getPlacedBaseHeight(nil, nil),
 		footprintWidth = 1,
 		footprintHeight = 1,
 		visible = false,
@@ -203,8 +329,9 @@ function ResourcePlacementGhost:setResourceTypeId(resourceTypeId: string?, sizeI
 	self.sizeValue = sizeValue
 	local definition = if resourceTypeId ~= nil then Resources[resourceTypeId] else nil
 	local rootSize = ResourceVisuals.getPlacedRootSize(sizeId, sizeValue)
-	self.baseHeight = ResourceVisuals.getPlacedBaseHeight(sizeId, sizeValue)
-	local profile = ResourceVisuals.resolveRevealProfile(resourceTypeId, nil, sizeId, sizeValue)
+	local stableVisualId = string.format("%s:%s:%s", resourceTypeId or "resource", sizeId or "medium", tostring(sizeValue))
+	local profile = resolvePlacedVisualProfile(resourceTypeId, sizeId, sizeValue, stableVisualId)
+	local layout = resolveProceduralLayout(profile, stableVisualId)
 	if definition ~= nil then
 		self.footprintWidth = definition.gridSize and definition.gridSize.width or 1
 		self.footprintHeight = definition.gridSize and definition.gridSize.height or 1
@@ -216,21 +343,25 @@ function ResourcePlacementGhost:setResourceTypeId(resourceTypeId: string?, sizeI
 	end
 
 	clearGhostGeometry(self.model, self.root)
-	if profile.variantId == "ingot" then
-		buildIngotGhost(self.model, profile)
-	elseif profile.variantId == "eldritch" then
-		buildEldritchGhost(self.model, profile)
+	if layout.variantId == "ingot" then
+		buildIngotGhost(self.model, profile, layout)
+	elseif layout.variantId == "eldritch" then
+		buildEldritchGhost(self.model, profile, layout)
 	else
-		buildCrystalGhost(self.model, profile)
+		buildCrystalGhost(self.model, profile, layout)
 	end
+	local visualTopY = groundGhostGeometry(self.model, self.root)
 
 	self.root.Size = rootSize
-	self.prompt.StudsOffset = Vector3.new(0, math.max(2.6, rootSize.Y + 1.2), 0)
+	-- Ground the actual ghost parts first, then place the label from the real visual top
+	-- so future procedural layouts can change silhouette without breaking floor alignment.
+	self.prompt.StudsOffset = Vector3.new(0, math.max(2.6, visualTopY + 1.2), 0)
 end
 
 function ResourcePlacementGhost:getSnappedCell(plotModel: Model, hitPosition: Vector3): (number?, number?, Vector3?)
 	local plotBase = getPlotBase(plotModel)
-	if plotBase == nil then
+	local plotSurfaceTopY = getPlotSurfaceTopY(plotModel)
+	if plotBase == nil or plotSurfaceTopY == nil then
 		return nil, nil, nil
 	end
 
@@ -253,7 +384,7 @@ function ResourcePlacementGhost:getSnappedCell(plotModel: Model, hitPosition: Ve
 	local gridOriginZ = plotBase.Position.Z - ((World.plotGridHeight * World.cellSize) / 2) + (World.cellSize / 2)
 	local worldPosition = Vector3.new(
 		gridOriginX + ((cellX - 1) * World.cellSize) + (((self.footprintWidth - 1) * World.cellSize) / 2),
-		plotBase.Position.Y + getPreviewHeightOffset(self.baseHeight),
+		plotSurfaceTopY,
 		gridOriginZ + ((cellY - 1) * World.cellSize) + (((self.footprintHeight - 1) * World.cellSize) / 2)
 	)
 

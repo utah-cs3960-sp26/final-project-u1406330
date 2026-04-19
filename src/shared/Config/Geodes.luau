@@ -1,7 +1,7 @@
 --!strict
 
 -- Static shared configuration for Geodes used by deterministic gameplay logic on both client and server.
--- Crack timers use a simple 15-second common baseline and then scale upward in clean steps so progression stays easy to inspect.
+-- Crack timers now start at a 30-second common baseline and widen in clean late-tier steps so progression stays easy to inspect.
 
 local function makeRoll(resourceId: string, weight: number)
 	return {
@@ -34,7 +34,7 @@ local Geodes = {
 	starter_geode = makeGeode(
 		"starter_geode",
 		"Starter Geode",
-		15,
+		30,
 		Color3.fromRGB(124, 129, 150),
 		{
 			makeRoll("quartz", 30),
@@ -48,7 +48,7 @@ local Geodes = {
 	crystal_cavern_geode = makeGeode(
 		"crystal_cavern_geode",
 		"Crystal Cavern Geode",
-		20,
+		45,
 		Color3.fromRGB(92, 112, 150),
 		{
 			makeRoll("quartz", 16),
@@ -65,7 +65,7 @@ local Geodes = {
 	moonlit_geode = makeGeode(
 		"moonlit_geode",
 		"Moonlit Geode",
-		25,
+		60,
 		Color3.fromRGB(168, 176, 204),
 		{
 			makeRoll("quartz", 8),
@@ -83,7 +83,7 @@ local Geodes = {
 	ember_glass_geode = makeGeode(
 		"ember_glass_geode",
 		"Ember Glass Geode",
-		30,
+		75,
 		Color3.fromRGB(214, 116, 72),
 		{
 			makeRoll("smoky_quartz", 8),
@@ -102,7 +102,7 @@ local Geodes = {
 	verdant_rift_geode = makeGeode(
 		"verdant_rift_geode",
 		"Verdant Rift Geode",
-		35,
+		90,
 		Color3.fromRGB(88, 170, 112),
 		{
 			makeRoll("jade_fragment", 10),
@@ -119,7 +119,7 @@ local Geodes = {
 	aurora_shard_geode = makeGeode(
 		"aurora_shard_geode",
 		"Aurora Shard Geode",
-		40,
+		110,
 		Color3.fromRGB(90, 199, 214),
 		{
 			makeRoll("moonstone", 10),
@@ -138,7 +138,7 @@ local Geodes = {
 	thunder_core_geode = makeGeode(
 		"thunder_core_geode",
 		"Thunder Core Geode",
-		50,
+		130,
 		Color3.fromRGB(80, 96, 128),
 		{
 			makeRoll("garnet_node", 8),
@@ -157,7 +157,7 @@ local Geodes = {
 	fossil_vault_geode = makeGeode(
 		"fossil_vault_geode",
 		"Fossil Vault Geode",
-		60,
+		150,
 		Color3.fromRGB(168, 149, 120),
 		{
 			makeRoll("smoky_quartz", 12),
@@ -176,7 +176,7 @@ local Geodes = {
 	prism_sun_geode = makeGeode(
 		"prism_sun_geode",
 		"Prism Sun Geode",
-		75,
+		175,
 		Color3.fromRGB(244, 204, 96),
 		{
 			makeRoll("sapphire_spire", 8),
@@ -196,7 +196,7 @@ local Geodes = {
 	sovereign_nova_geode = makeGeode(
 		"sovereign_nova_geode",
 		"Sovereign Nova Geode",
-		90,
+		200,
 		Color3.fromRGB(235, 230, 214),
 		{
 			makeRoll("sapphire_spire", 6),

@@ -53,4 +53,25 @@ return function()
 		GeodePresentation.shouldAdvanceRevealOnInput(Enum.UserInputType.MouseButton2) == false,
 		"right click should not advance reveal prompts"
 	)
+
+	assert(
+		GeodePresentation.getRevealAnimationGraceSeconds() == 0.6,
+		"reveal animation grace timing should stay stable for the crack opener"
+	)
+	assert(
+		GeodePresentation.shouldKeepRevealAnimationAlive(0.2, false, 0) == true,
+		"reveal animation should stay alive through its opening grace beat"
+	)
+	assert(
+		GeodePresentation.shouldKeepRevealAnimationAlive(0.7, true, 0) == true,
+		"active reveal celebrations should keep the crack animation visible"
+	)
+	assert(
+		GeodePresentation.shouldKeepRevealAnimationAlive(0.7, false, 2) == true,
+		"queued follow-up celebrations should keep the crack animation alive between reels"
+	)
+	assert(
+		GeodePresentation.shouldKeepRevealAnimationAlive(0.7, false, 0) == false,
+		"the crack animation should end once the grace beat and reveal celebrations are done"
+	)
 end

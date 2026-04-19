@@ -7,6 +7,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 
 local Resources = require(Shared.Config.Resources)
 local DailyRewardsConfig = require(Shared.Config.DailyRewards)
+local ResourceGuide = require(Shared.Domain.ResourceGuide)
 local Id = require(Shared.Util.Id)
 local Time = require(Shared.Util.Time)
 
@@ -49,6 +50,8 @@ local function applyReward(profile, reward, nowUnix)
 					placement = nil,
 				}
 				table.insert(profile.resourceOrder, resourceId)
+				-- Daily resource rewards count as real collection progress, even though they skip geode rolling.
+				ResourceGuide.recordDiscovery(profile, resourceDefinition.id, "none")
 			end
 		end
 	end

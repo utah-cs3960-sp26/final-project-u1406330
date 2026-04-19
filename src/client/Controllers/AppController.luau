@@ -145,6 +145,10 @@ local function normalizeProfileState(currentProfile, payload, nowUnix)
 		profile.inventory = TableUtil.reconcile(profile.inventory, payload.inventory)
 	end
 
+	if payload.resourceGuide ~= nil then
+		profile.resourceGuide = TableUtil.reconcile(profile.resourceGuide, payload.resourceGuide)
+	end
+
 	if payload.stationsById ~= nil then
 		profile.stationsById = TableUtil.reconcile(profile.stationsById, payload.stationsById)
 	end
@@ -248,6 +252,7 @@ local function getResourceCelebrationSpec(resource)
 		accentColor = if resourceDefinition ~= nil then resourceDefinition.color else nil,
 		reelFinal = displayName,
 		showSlotMachine = rarityIndex > 0,
+		continuePrompt = "Click to roll attribute!",
 	}
 end
 

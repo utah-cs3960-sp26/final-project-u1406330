@@ -24,7 +24,7 @@ local GeodeInteractionController = {}
 GeodeInteractionController.__index = GeodeInteractionController
 
 local CLICK_COOLDOWN_SECONDS = 0.35
-local REVEAL_DURATION_SECONDS = 2.4
+local REVEAL_CLEANUP_FALLBACK_SECONDS = 20
 
 local function resolveGeodePart(target: BasePart?): BasePart?
 	if target == nil then
@@ -221,6 +221,16 @@ local function extractPrimaryResource(openResult: any)
 	end
 
 	return nil
+end
+
+local function getCelebrationPlaybackState(screen): (boolean, number)
+	if type(screen) ~= "table" then
+		return false, 0
+	end
+
+	local celebrationPlaying = screen.celebrationPlaying == true
+	local queuedCelebrationCount = if type(screen.celebrationQueue) == "table" then #screen.celebrationQueue else 0
+	return celebrationPlaying, queuedCelebrationCount
 end
 
 local function blendColor(baseColor: Color3, targetColor: Color3, alpha: number): Color3
@@ -459,7 +469,7 @@ local function createRevealModel(resourceTypeId: string?, traitId: string?): (Mo
 	return model, light, sparkleEmitter, mistEmitter, profile
 end
 
-local function playRevealAnimation(geodePart: BasePart, openResult: any)
+local function playRevealAnimation(geodePart: BasePart, openResult: any, screen)
 	local corePart = geodePart:FindFirstChild("GeodeCore")
 	local shellColor = if corePart ~= nil and corePart:IsA("BasePart") then corePart.Color else geodePart.Color
 	local shellSize = if corePart ~= nil and corePart:IsA("BasePart") then corePart.Size else Vector3.new(3.35, 3.35, 3.35)
@@ -468,7 +478,7 @@ local function playRevealAnimation(geodePart: BasePart, openResult: any)
 	local effectFolder = Instance.new("Folder")
 	effectFolder.Name = "GeodeRevealFx"
 	effectFolder.Parent = Workspace
-	Debris:AddItem(effectFolder, REVEAL_DURATION_SECONDS + 1)
+	Debris:AddItem(effectFolder, REVEAL_CLEANUP_FALLBACK_SECONDS)
 
 	local leftShell = Instance.new("Part")
 	leftShell.Name = "LeftShell"
@@ -543,10 +553,15 @@ local function playRevealAnimation(geodePart: BasePart, openResult: any)
 		local baseHeight = 2.55 + (profile.rarityRank * 0.16) + ((profile.burstScale - 1) * 0.25)
 		local baseYaw = math.rad((profile.hash % 360) - 180)
 		local connection
+		local fading = false
 		connection = RunService.RenderStepped:Connect(function()
 			local elapsed = os.clock() - startedAt
-			local fadeLead = 0.38
-			if elapsed >= REVEAL_DURATION_SECONDS - fadeLead then
+			local celebrationPlaying, queuedCelebrationCount = getCelebrationPlaybackState(screen)
+			if not GeodePresentation.shouldKeepRevealAnimationAlive(elapsed, celebrationPlaying, queuedCelebrationCount) then
+				if fading then
+					return
+				end
+				fading = true
 				connection:Disconnect()
 				TweenService:Create(revealLight, TweenInfo.new(0.2), {
 					Brightness = 0,
@@ -902,7 +917,7 @@ function GeodeInteractionController:start()
 		local ok, result = app:requestOpenReadyGeode(resolvedGeodeId)
 		if ok and type(result) == "table" and result.ok == true then
 			local openResult = result.open or result.claim
-			playRevealAnimation(geodePart, openResult)
+			playRevealAnimation(geodePart, openResult, app.context.screen)
 		end
 	end
 

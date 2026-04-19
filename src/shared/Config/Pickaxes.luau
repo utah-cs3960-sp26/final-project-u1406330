@@ -15,7 +15,9 @@ local geodeOrder = {
 	"sovereign_nova_geode",
 }
 
-local GEODE_FIND_CHANCE_SCALE = 0.75
+-- Keep one economy-wide geode rarity lever so drops can be tuned without rewriting every tier table.
+-- The todo rebalance asked for geodes to become roughly twice as rare as the previous live tuning.
+local GEODE_FIND_CHANCE_SCALE = 0.375
 
 local function makeGeodeWeights(weights: { number })
 	local entries = {}
@@ -81,7 +83,7 @@ local Pickaxes = {
 			"stone_pickaxe",
 			"Stone Pickaxe",
 			"Common",
-			75,
+			500,
 			"coins",
 			0.6,
 			4,
@@ -94,7 +96,7 @@ local Pickaxes = {
 			"copper_pickaxe",
 			"Copper Pickaxe",
 			"Uncommon",
-			150,
+			3500,
 			"coins",
 			0.55,
 			6,
@@ -107,7 +109,7 @@ local Pickaxes = {
 			"iron_pickaxe",
 			"Iron Pickaxe",
 			"Rare",
-			260,
+			17500,
 			"coins",
 			0.5,
 			9,
@@ -120,7 +122,7 @@ local Pickaxes = {
 			"steel_pickaxe",
 			"Steel Pickaxe",
 			"Epic",
-			420,
+			57500,
 			"coins",
 			0.48,
 			12,
@@ -133,7 +135,7 @@ local Pickaxes = {
 			"gold_pickaxe",
 			"Gold Pickaxe",
 			"Legendary",
-			650,
+			135000,
 			"coins",
 			0.45,
 			16,
@@ -146,7 +148,7 @@ local Pickaxes = {
 			"platinum_pickaxe",
 			"Platinum Pickaxe",
 			"Mythic",
-			950,
+			275000,
 			"coins",
 			0.42,
 			22,
@@ -159,7 +161,7 @@ local Pickaxes = {
 			"emerald_pickaxe",
 			"Emerald Pickaxe",
 			"Ancient",
-			1400,
+			510000,
 			"coins",
 			0.4,
 			30,
@@ -172,7 +174,7 @@ local Pickaxes = {
 			"obsidian_pickaxe",
 			"Obsidian Pickaxe",
 			"Prismatic",
-			2000,
+			865000,
 			"coins",
 			0.38,
 			40,
@@ -185,7 +187,7 @@ local Pickaxes = {
 			"lunar_pickaxe",
 			"Lunar Pickaxe",
 			"Sovereign",
-			2900,
+			1400000,
 			"coins",
 			0.35,
 			52,
@@ -198,7 +200,7 @@ local Pickaxes = {
 			"crown_pickaxe",
 			"Crown Pickaxe",
 			"Apex",
-			4000,
+			2250000,
 			"coins",
 			0.3,
 			68,

@@ -19,7 +19,7 @@ return function()
 	assert(VaultMath.getResourceSellValue(Resources.quartz, Traits.none, Sizes.huge) == 43, "size categories should increase sell value deterministically")
 	assert(VaultMath.getResourceSellValue(nil, Traits.none) == 0, "unknown resources should have no sell value")
 
-	assert(VaultMath.getGeodeSellValue(Geodes.starter_geode) == 45, "geode sell value should derive from crack timer")
+	assert(VaultMath.getGeodeSellValue(Geodes.starter_geode) == 90, "geode sell value should derive from the shared crack timer baseline")
 	assert(VaultMath.getGeodeSellValue(nil) == 0, "unknown geodes should have no sell value")
 
 	assert(VaultMath.getResourceRarityTier(Resources.quartz) == 0, "common resources should not start the slot machine reveal")

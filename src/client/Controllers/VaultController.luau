@@ -2,6 +2,7 @@
 
 -- Client controller for Vault Controller that coordinates UI, local input, and app-state updates for this slice.
 
+local ProximityPromptService = game:GetService("ProximityPromptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
@@ -13,6 +14,8 @@ local VaultMath = require(Shared.Domain.VaultMath)
 
 local VaultController = {}
 VaultController.__index = VaultController
+
+local VAULT_PROMPT_ATTRIBUTE = "GemFactoryVaultPrompt"
 
 local RESOURCE_SWATCH_COLORS = {
 	quartz = Color3.fromRGB(230, 238, 245),
@@ -189,6 +192,11 @@ function VaultController.new(context)
 	}, VaultController)
 end
 
+function VaultController:_openVault()
+	self.context.screen:setVaultVisible(true)
+	self.context.app:setStatus("Vault opened.")
+end
+
 function VaultController:start()
 	local screen = self.context.screen
 	local app = self.context.app
@@ -310,6 +318,12 @@ function VaultController:start()
 	end
 
 	self.context.stateChanged:Connect(refresh)
+	ProximityPromptService.PromptTriggered:Connect(function(prompt)
+		if prompt ~= nil and prompt:IsA("ProximityPrompt") and prompt:GetAttribute(VAULT_PROMPT_ATTRIBUTE) == true then
+			self:_openVault()
+		end
+	end)
+	screen:setVaultVisible(false)
 	refresh(app:getState())
 end
 

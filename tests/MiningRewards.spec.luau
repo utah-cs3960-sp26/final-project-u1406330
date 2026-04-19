@@ -23,16 +23,16 @@ local geodeOrder = {
 }
 
 local expectedGeodeChanceByPickaxe = {
-	stone_pickaxe = 19,
-	copper_pickaxe = 21,
-	iron_pickaxe = 23,
-	steel_pickaxe = 24,
-	gold_pickaxe = 26,
-	platinum_pickaxe = 27,
-	emerald_pickaxe = 29,
-	obsidian_pickaxe = 30,
-	lunar_pickaxe = 32,
-	crown_pickaxe = 34,
+	stone_pickaxe = 9,
+	copper_pickaxe = 11,
+	iron_pickaxe = 11,
+	steel_pickaxe = 12,
+	gold_pickaxe = 13,
+	platinum_pickaxe = 14,
+	emerald_pickaxe = 14,
+	obsidian_pickaxe = 15,
+	lunar_pickaxe = 16,
+	crown_pickaxe = 17,
 }
 
 local function makeRng(numberRoll: number, integerRoll: number)

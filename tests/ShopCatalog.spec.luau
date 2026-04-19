@@ -5,9 +5,50 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
+local Geodes = require(Shared.Config.Geodes)
 local Pickaxes = require(Shared.Config.Pickaxes)
 local Shops = require(Shared.Config.Shops)
+local VaultMath = require(Shared.Domain.VaultMath)
 local ShopService = require(game:GetService("ServerScriptService"):WaitForChild("Server").Services.ShopService)
+
+local upgradeTargetsByPickaxe = {
+	copper_pickaxe = {
+		previousPickaxeId = "stone_pickaxe",
+		targetMinutes = 1.75,
+	},
+	iron_pickaxe = {
+		previousPickaxeId = "copper_pickaxe",
+		targetMinutes = 5,
+	},
+	steel_pickaxe = {
+		previousPickaxeId = "iron_pickaxe",
+		targetMinutes = 10,
+	},
+	gold_pickaxe = {
+		previousPickaxeId = "steel_pickaxe",
+		targetMinutes = 15,
+	},
+	platinum_pickaxe = {
+		previousPickaxeId = "gold_pickaxe",
+		targetMinutes = 20,
+	},
+	emerald_pickaxe = {
+		previousPickaxeId = "platinum_pickaxe",
+		targetMinutes = 25,
+	},
+	obsidian_pickaxe = {
+		previousPickaxeId = "emerald_pickaxe",
+		targetMinutes = 30,
+	},
+	lunar_pickaxe = {
+		previousPickaxeId = "obsidian_pickaxe",
+		targetMinutes = 35,
+	},
+	crown_pickaxe = {
+		previousPickaxeId = "lunar_pickaxe",
+		targetMinutes = 40,
+	},
+}
 
 local function sumWeights(rolls)
 	local total = 0
@@ -15,6 +56,25 @@ local function sumWeights(rolls)
 		total += roll.weight
 	end
 	return total
+end
+
+local function getAverageGeodeSellValue(pickaxe)
+	local totalWeight = sumWeights(pickaxe.geodeWeights)
+	local totalSellValue = 0
+
+	for _, entry in ipairs(pickaxe.geodeWeights) do
+		local geodeDefinition = Geodes[entry.geodeId]
+		totalSellValue += VaultMath.getGeodeSellValue(geodeDefinition) * entry.weight
+	end
+
+	return totalSellValue / math.max(1, totalWeight)
+end
+
+local function getMiningCoinsPerMinute(pickaxe)
+	local averageCoinReward = (pickaxe.coinRewardMin + pickaxe.coinRewardMax) / 2
+	local geodeChanceShare = pickaxe.geodeChance / 100
+	local averageSwingValue = (averageCoinReward * (1 - geodeChanceShare)) + (getAverageGeodeSellValue(pickaxe) * geodeChanceShare)
+	return averageSwingValue * (60 / pickaxe.cooldownSeconds)
 end
 
 return function()
@@ -48,8 +108,37 @@ return function()
 	local starterOffer = shopService:getOffer("stone_pickaxe", 0)
 	assert(starterOffer ~= nil, "stone pickaxe should remain available")
 	assert(starterOffer.source == "starter", "stone pickaxe should resolve from starter offers")
-	assert(starterOffer.price == 75, "stone pickaxe price should stay anchored")
+	assert(starterOffer.price == 500, "stone pickaxe price should stay anchored to the new economy ramp")
 	assert(starterOffer.currency == "coins", "stone pickaxe should stay coin priced")
+
+	local previousPrice = 0
+	for _, pickaxeId in ipairs(Pickaxes.order) do
+		local pickaxe = Pickaxes.catalog[pickaxeId]
+		assert(pickaxe.price > previousPrice, string.format("%s should cost more than the previous pickaxe tier", pickaxeId))
+		previousPrice = pickaxe.price
+	end
+
+	local starterCoins = 250
+	for pickaxeId, target in pairs(upgradeTargetsByPickaxe) do
+		local pickaxe = Pickaxes.catalog[pickaxeId]
+		local previousPickaxe = Pickaxes.catalog[target.previousPickaxeId]
+		assert(pickaxe ~= nil and previousPickaxe ~= nil, string.format("%s should have a valid previous tier", pickaxeId))
+
+		local priceDelta = pickaxe.price - previousPickaxe.price
+		local effectiveDelta = if target.previousPickaxeId == "stone_pickaxe" then pickaxe.price - starterCoins else priceDelta
+		local miningMinutes = effectiveDelta / getMiningCoinsPerMinute(previousPickaxe)
+		local minMinutes = target.targetMinutes * 0.85
+		local maxMinutes = target.targetMinutes * 1.2
+		assert(
+			miningMinutes >= minMinutes and miningMinutes <= maxMinutes,
+			string.format(
+				"%s should land near its intended affordability window; expected about %.2f minutes, got %.2f",
+				pickaxeId,
+				target.targetMinutes,
+				miningMinutes
+			)
+		)
+	end
 
 	local hourlyOffer, hourlyIndex, secondsRemaining = shopService:getHourlyOffer(0)
 	assert(hourlyOffer ~= nil, "hourly rotation should return the first offer at hour zero")

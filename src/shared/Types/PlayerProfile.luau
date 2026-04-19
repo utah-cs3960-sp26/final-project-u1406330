@@ -29,6 +29,15 @@ export type GeodeQueueEntry = {
 	status: string,
 }
 
+export type ResourceGuideDiscovery = {
+	found: boolean,
+	discoveredTraits: { [string]: boolean },
+}
+
+export type ResourceGuideProgress = {
+	discoveredResources: { [string]: ResourceGuideDiscovery },
+}
+
 export type PlayerProfile = {
 	currencies: {
 		coins: number,
@@ -46,6 +55,7 @@ export type PlayerProfile = {
 		items: { [string]: number },
 		pickaxes: { [string]: boolean },
 	},
+	resourceGuide: ResourceGuideProgress,
 	geodeQueue: { GeodeQueueEntry },
 	unclaimedOfflineRewards: OfflineRewardSummary?,
 	dailyRewards: {
@@ -76,7 +86,7 @@ export type PlayerProfile = {
 }
 
 local PlayerProfile = {}
-PlayerProfile.SCHEMA_VERSION = 2
+PlayerProfile.SCHEMA_VERSION = 3
 
 local function createTemplate(nowUnix: number): PlayerProfile
 	return {
@@ -97,6 +107,9 @@ local function createTemplate(nowUnix: number): PlayerProfile
 			pickaxes = {
 				stone_pickaxe = true,
 			},
+		},
+		resourceGuide = {
+			discoveredResources = {},
 		},
 		geodeQueue = {},
 		unclaimedOfflineRewards = nil,

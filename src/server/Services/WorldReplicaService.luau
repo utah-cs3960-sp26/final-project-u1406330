@@ -1,9 +1,12 @@
 --!strict
 
--- Server-authoritative service for World Replica Service that validates requests and mutates gameplay state for this system.
+-- Server-owned world projection service that turns authoritative profile and plot state
+-- into static workspace models for plots, mine/shop set dressing, geodes, resources, and
+-- other replicated presentation without moving gameplay ownership out of server code.
 
+local Lighting = game:GetService("Lighting")
+local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
-
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
@@ -24,12 +27,31 @@ local SHARED_FLOOR_NAME = "SharedFloor"
 local PLOT_MARKER_FOLDER_NAME = "PlotMarkers"
 local SHOP_FRONT_NAME = "PickaxeShop"
 local MINE_NAME = "GeodeMine"
+local VAULT_FRONT_NAME = "VaultStation"
+local WORLD_SHELL_NAME = "WorldShell"
+local SKY_DECOR_NAME = "SkyDecor"
+local PLAYER_CALLOUT_FOLDER_NAME = "GemFactoryWorldCallouts"
 local SHOP_PROMPT_ATTRIBUTE = "GemFactoryShopPrompt"
+local VAULT_PROMPT_ATTRIBUTE = "GemFactoryVaultPrompt"
 local MINE_TARGET_ATTRIBUTE = "GemFactoryMineTarget"
 local MINE_ZONE_ATTRIBUTE = "GemFactoryMineZone"
-local STATIC_WORLD_LAYOUT_VERSION = 3
+local STATIC_WORLD_LAYOUT_VERSION = 7
 local PLOT_SURFACE_COLLIDER_NAME = "PlotSurfaceCollider"
 local REPLICA_TRANSPARENCY_ATTRIBUTE = "ReplicaTransparency"
+local PLOT_SURFACE_OFFSET_Y = 1.2
+local PLOT_SURFACE_HEIGHT = 0.4
+local PLOT_LAYOUT_VERSION = 3
+local PLOT_STAND_CAP_HEIGHT = 0.55
+local PLOT_STAND_CAP_CLEARANCE = 0.06
+local PLOT_STAND_SUPPORT_HEIGHT = 0.9
+local PLOT_STAND_SUPPORT_GAP = 0.08
+local PLOT_STAND_LIP_HEIGHT = 0.18
+local PLOT_STAND_LIP_GAP = 0.02
+local PLOT_STAND_MARKER_HEIGHT = 2.2
+local PLOT_STAND_MARKER_INSET = 2.6
+local MINE_CALLOUT_ANCHOR_NAME = "MineCalloutAnchor"
+local SHOP_CALLOUT_ANCHOR_NAME = "ShopCalloutAnchor"
+local SHOP_PROMPT_ANCHOR_NAME = "ShopPromptAnchor"
 
 local ROCK_VARIANTS = {
 	{
@@ -96,6 +118,24 @@ local function clearChildren(container)
 	end
 end
 
+local function getPlayerRootPart(player: Player): BasePart?
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if root ~= nil and root:IsA("BasePart") then
+		return root
+	end
+
+	return nil
+end
+
+local function isPositionInsidePart(position: Vector3, part: BasePart): boolean
+	local localPosition = part.CFrame:PointToObjectSpace(position)
+	local halfSize = part.Size / 2
+	return math.abs(localPosition.X) <= halfSize.X
+		and math.abs(localPosition.Y) <= halfSize.Y
+		and math.abs(localPosition.Z) <= halfSize.Z
+end
+
 local function getPlotHalfSize()
 	return World.plotBaseSize.width / 2, World.plotBaseSize.depth / 2
 end
@@ -111,6 +151,464 @@ local function getSharedFloorSize()
 		(World.plotColumns * World.plotSpacing) + World.plotBaseSize.width + padding,
 		2,
 		(math.max(World.plotRows or 1, 1) * World.plotSpacing) + World.plotBaseSize.depth + padding
+end
+
+local function getSharedFloorAppearance()
+	return {
+		color = Color3.fromRGB(92, 146, 74),
+		material = Enum.Material.Grass,
+	}
+end
+
+local function getSkyboxAssetIds()
+	return {
+		SkyboxBk = "rbxassetid://159454299",
+		SkyboxDn = "rbxassetid://159454296",
+		SkyboxFt = "rbxassetid://159454293",
+		SkyboxLf = "rbxassetid://159454286",
+		SkyboxRt = "rbxassetid://159454300",
+		SkyboxUp = "rbxassetid://159454288",
+	}
+end
+
+local function getLightingSpec()
+	return {
+		brightness = 2.85,
+		ambient = Color3.fromRGB(98, 124, 148),
+		outdoorAmbient = Color3.fromRGB(142, 182, 154),
+		colorShiftTop = Color3.fromRGB(90, 122, 138),
+		colorShiftBottom = Color3.fromRGB(42, 68, 60),
+		clockTime = 20.4,
+		exposureCompensation = 0.16,
+		environmentDiffuseScale = 0.46,
+		environmentSpecularScale = 0.5,
+		atmosphere = {
+			color = Color3.fromRGB(126, 181, 212),
+			decay = Color3.fromRGB(38, 56, 82),
+			density = 0.3,
+			glare = 0.1,
+			haze = 1.42,
+		},
+		bloom = {
+			intensity = 0.42,
+			size = 42,
+			threshold = 1.02,
+		},
+		colorCorrection = {
+			brightness = 0.05,
+			contrast = 0.08,
+			saturation = 0.16,
+			tintColor = Color3.fromRGB(223, 241, 255),
+		},
+		sunRays = {
+			intensity = 0.028,
+			spread = 0.19,
+		},
+		skybox = getSkyboxAssetIds(),
+	}
+end
+
+local function getSkyDecorSpec()
+	local width, _, depth = getSharedFloorSize()
+	local halfWidth = (width / 2) - 42
+	local halfDepth = (depth / 2) - 42
+	return {
+		anchorPosition = Vector3.new(World.plotOrigin.x, World.plotOrigin.y + 110, World.plotOrigin.z),
+		anchorSize = Vector3.new(width - 24, 8, depth - 24),
+		nebulae = {},
+		planets = {
+			{
+				name = "PlanetNova",
+				size = Vector3.new(34, 34, 34),
+				offset = Vector3.new(-halfWidth * 0.58, 16, -halfDepth * 0.44),
+				color = Color3.fromRGB(112, 194, 255),
+				material = Enum.Material.Neon,
+				glowColor = Color3.fromRGB(219, 245, 255),
+			},
+			{
+				name = "PlanetPeach",
+				size = Vector3.new(26, 26, 26),
+				offset = Vector3.new(halfWidth * 0.62, 4, halfDepth * 0.5),
+				color = Color3.fromRGB(255, 182, 126),
+				material = Enum.Material.SmoothPlastic,
+				glowColor = Color3.fromRGB(255, 234, 196),
+			},
+			{
+				name = "PlanetMint",
+				size = Vector3.new(18, 18, 18),
+				offset = Vector3.new(-halfWidth * 0.12, -4, halfDepth * 0.62),
+				color = Color3.fromRGB(132, 255, 202),
+				material = Enum.Material.SmoothPlastic,
+				glowColor = Color3.fromRGB(225, 255, 241),
+			},
+			{
+				name = "PlanetViolet",
+				size = Vector3.new(22, 22, 22),
+				offset = Vector3.new(halfWidth * 0.18, 22, -halfDepth * 0.68),
+				color = Color3.fromRGB(191, 170, 255),
+				material = Enum.Material.Neon,
+				glowColor = Color3.fromRGB(239, 232, 255),
+			},
+		},
+		stars = {
+			{
+				name = "StarNorthA",
+				size = Vector3.new(1.5, 1.5, 1.5),
+				offset = Vector3.new(-halfWidth * 0.74, 34, -halfDepth * 0.74),
+				color = Color3.fromRGB(255, 248, 225),
+				transparency = 0.1,
+				glowBrightness = 0.45,
+			},
+			{
+				name = "StarNorthB",
+				size = Vector3.new(1.1, 1.1, 1.1),
+				offset = Vector3.new(-halfWidth * 0.48, 18, -halfDepth * 0.82),
+				color = Color3.fromRGB(194, 231, 255),
+				transparency = 0.16,
+				glowBrightness = 0.3,
+			},
+			{
+				name = "StarNorthC",
+				size = Vector3.new(1.3, 1.3, 1.3),
+				offset = Vector3.new(halfWidth * 0.08, 36, -halfDepth * 0.72),
+				color = Color3.fromRGB(255, 242, 210),
+				transparency = 0.08,
+				glowBrightness = 0.36,
+			},
+			{
+				name = "StarNorthD",
+				size = Vector3.new(0.95, 0.95, 0.95),
+				offset = Vector3.new(halfWidth * 0.42, 26, -halfDepth * 0.78),
+				color = Color3.fromRGB(205, 233, 255),
+				transparency = 0.18,
+				glowBrightness = 0.22,
+			},
+			{
+				name = "StarEastA",
+				size = Vector3.new(1.25, 1.25, 1.25),
+				offset = Vector3.new(halfWidth * 0.76, 12, -halfDepth * 0.32),
+				color = Color3.fromRGB(255, 245, 221),
+				transparency = 0.14,
+				glowBrightness = 0.28,
+			},
+			{
+				name = "StarEastB",
+				size = Vector3.new(1.65, 1.65, 1.65),
+				offset = Vector3.new(halfWidth * 0.82, 42, halfDepth * 0.06),
+				color = Color3.fromRGB(255, 252, 233),
+				transparency = 0.06,
+				glowBrightness = 0.5,
+			},
+			{
+				name = "StarEastC",
+				size = Vector3.new(1.05, 1.05, 1.05),
+				offset = Vector3.new(halfWidth * 0.68, 28, halfDepth * 0.42),
+				color = Color3.fromRGB(184, 227, 255),
+				transparency = 0.18,
+				glowBrightness = 0.22,
+			},
+			{
+				name = "StarSouthA",
+				size = Vector3.new(1.4, 1.4, 1.4),
+				offset = Vector3.new(halfWidth * 0.16, 16, halfDepth * 0.76),
+				color = Color3.fromRGB(255, 246, 228),
+				transparency = 0.1,
+				glowBrightness = 0.34,
+			},
+			{
+				name = "StarSouthB",
+				size = Vector3.new(1.0, 1.0, 1.0),
+				offset = Vector3.new(-halfWidth * 0.24, 38, halfDepth * 0.84),
+				color = Color3.fromRGB(195, 232, 255),
+				transparency = 0.18,
+				glowBrightness = 0.2,
+			},
+			{
+				name = "StarSouthC",
+				size = Vector3.new(1.35, 1.35, 1.35),
+				offset = Vector3.new(-halfWidth * 0.56, 22, halfDepth * 0.66),
+				color = Color3.fromRGB(255, 244, 213),
+				transparency = 0.12,
+				glowBrightness = 0.32,
+			},
+			{
+				name = "StarWestA",
+				size = Vector3.new(1.2, 1.2, 1.2),
+				offset = Vector3.new(-halfWidth * 0.84, 8, halfDepth * 0.18),
+				color = Color3.fromRGB(179, 225, 255),
+				transparency = 0.16,
+				glowBrightness = 0.24,
+			},
+			{
+				name = "StarWestB",
+				size = Vector3.new(1.55, 1.55, 1.55),
+				offset = Vector3.new(-halfWidth * 0.78, 30, -halfDepth * 0.08),
+				color = Color3.fromRGB(255, 249, 234),
+				transparency = 0.08,
+				glowBrightness = 0.42,
+			},
+			{
+				name = "StarCenterA",
+				size = Vector3.new(1.1, 1.1, 1.1),
+				offset = Vector3.new(-halfWidth * 0.06, 50, -halfDepth * 0.14),
+				color = Color3.fromRGB(201, 234, 255),
+				transparency = 0.14,
+				glowBrightness = 0.26,
+			},
+			{
+				name = "StarCenterB",
+				size = Vector3.new(1.45, 1.45, 1.45),
+				offset = Vector3.new(halfWidth * 0.3, 46, halfDepth * 0.18),
+				color = Color3.fromRGB(255, 246, 220),
+				transparency = 0.1,
+				glowBrightness = 0.36,
+			},
+		},
+		shootingStars = {
+			rate = 2,
+			lifetime = NumberRange.new(2.5, 3.6),
+			speed = NumberRange.new(65, 86),
+			rotation = NumberRange.new(0, 360),
+			rotSpeed = NumberRange.new(-12, 12),
+			size = NumberSequence.new({
+				NumberSequenceKeypoint.new(0, 0.85),
+				NumberSequenceKeypoint.new(1, 0.18),
+			}),
+			transparency = NumberSequence.new({
+				NumberSequenceKeypoint.new(0, 0.12),
+				NumberSequenceKeypoint.new(0.2, 0.3),
+				NumberSequenceKeypoint.new(1, 1),
+			}),
+			acceleration = Vector3.new(-14, -10, 0),
+			color = ColorSequence.new(Color3.fromRGB(255, 251, 209), Color3.fromRGB(122, 212, 255)),
+		},
+	}
+end
+
+local function getWorldShellSpecs()
+	local width, _, depth = getSharedFloorSize()
+	local wallHeight = 42
+	local wallThickness = 18
+	local baseY = World.plotOrigin.y + (wallHeight / 2) - 1.5
+	local halfWidth = (width / 2) + (wallThickness / 2) - 2
+	local halfDepth = (depth / 2) + (wallThickness / 2) - 2
+	local crystalColor = Color3.fromRGB(118, 222, 213)
+
+	return {
+		wallHeight = wallHeight,
+		wallThickness = wallThickness,
+		segments = {
+			{
+				name = "NorthWall",
+				size = Vector3.new(width + 26, wallHeight, wallThickness),
+				position = Vector3.new(World.plotOrigin.x, baseY, World.plotOrigin.z - halfDepth),
+				color = Color3.fromRGB(51, 46, 44),
+			},
+			{
+				name = "SouthWall",
+				size = Vector3.new(width + 26, wallHeight, wallThickness),
+				position = Vector3.new(World.plotOrigin.x, baseY, World.plotOrigin.z + halfDepth),
+				color = Color3.fromRGB(55, 48, 47),
+			},
+			{
+				name = "WestWall",
+				size = Vector3.new(wallThickness, wallHeight, depth - 22),
+				position = Vector3.new(World.plotOrigin.x - halfWidth, baseY, World.plotOrigin.z),
+				color = Color3.fromRGB(49, 44, 42),
+			},
+			{
+				name = "EastWall",
+				size = Vector3.new(wallThickness, wallHeight, depth - 22),
+				position = Vector3.new(World.plotOrigin.x + halfWidth, baseY, World.plotOrigin.z),
+				color = Color3.fromRGB(57, 50, 48),
+			},
+		},
+		crystals = {
+			{
+				name = "CrystalNorthA",
+				size = Vector3.new(5, 14, 5),
+				position = Vector3.new(World.plotOrigin.x - 128, World.plotOrigin.y + 13, World.plotOrigin.z - halfDepth + 6),
+				rotation = Vector3.new(14, 26, 8),
+				color = crystalColor,
+			},
+			{
+				name = "CrystalNorthB",
+				size = Vector3.new(4, 11, 4),
+				position = Vector3.new(World.plotOrigin.x + 94, World.plotOrigin.y + 10, World.plotOrigin.z - halfDepth + 4),
+				rotation = Vector3.new(6, -18, -12),
+				color = Color3.fromRGB(166, 245, 232),
+			},
+			{
+				name = "CrystalSouthA",
+				size = Vector3.new(6, 16, 6),
+				position = Vector3.new(World.plotOrigin.x + 116, World.plotOrigin.y + 12, World.plotOrigin.z + halfDepth - 6),
+				rotation = Vector3.new(-12, 12, 16),
+				color = Color3.fromRGB(120, 194, 255),
+			},
+			{
+				name = "CrystalWestA",
+				size = Vector3.new(4, 13, 4),
+				position = Vector3.new(World.plotOrigin.x - halfWidth + 7, World.plotOrigin.y + 11, World.plotOrigin.z - 76),
+				rotation = Vector3.new(8, 64, 12),
+				color = Color3.fromRGB(159, 230, 255),
+			},
+			{
+				name = "CrystalEastA",
+				size = Vector3.new(5, 15, 5),
+				position = Vector3.new(World.plotOrigin.x + halfWidth - 7, World.plotOrigin.y + 13, World.plotOrigin.z + 82),
+				rotation = Vector3.new(-10, -54, -14),
+				color = Color3.fromRGB(147, 255, 199),
+			},
+			{
+				name = "CrystalNorthC",
+				size = Vector3.new(4, 12, 4),
+				position = Vector3.new(World.plotOrigin.x - 36, World.plotOrigin.y + 11, World.plotOrigin.z - halfDepth + 5),
+				rotation = Vector3.new(10, 18, -8),
+				color = Color3.fromRGB(144, 255, 229),
+			},
+			{
+				name = "CrystalNorthD",
+				size = Vector3.new(5, 13, 5),
+				position = Vector3.new(World.plotOrigin.x + 42, World.plotOrigin.y + 12, World.plotOrigin.z - halfDepth + 6),
+				rotation = Vector3.new(-8, -26, 10),
+				color = Color3.fromRGB(106, 222, 255),
+			},
+			{
+				name = "CrystalSouthB",
+				size = Vector3.new(4, 12, 4),
+				position = Vector3.new(World.plotOrigin.x - 88, World.plotOrigin.y + 10, World.plotOrigin.z + halfDepth - 5),
+				rotation = Vector3.new(12, 20, 14),
+				color = Color3.fromRGB(128, 214, 255),
+			},
+			{
+				name = "CrystalWestB",
+				size = Vector3.new(5, 14, 5),
+				position = Vector3.new(World.plotOrigin.x - halfWidth + 6, World.plotOrigin.y + 12, World.plotOrigin.z + 34),
+				rotation = Vector3.new(-6, 52, -10),
+				color = Color3.fromRGB(123, 255, 214),
+			},
+		},
+	}
+end
+
+local function getVaultPromptSpec()
+	local _, _, depth = getSharedFloorSize()
+	return {
+		basePosition = Vector3.new(World.plotOrigin.x, World.plotOrigin.y + 1, World.plotOrigin.z + ((depth / 2) - 34)),
+		promptOffset = Vector3.new(0, 4, -7),
+		promptSize = Vector3.new(16, 6, 12),
+		promptActionText = "Open Vault",
+		promptObjectText = "Treasure Vault",
+		signText = "Vault",
+		calloutText = "Press E to stash, place, or sell treasures.",
+		buildPhysicalStation = false,
+		promptOnlyMarker = true,
+	}
+end
+
+local function getMineFacadeSpec()
+	return {
+		signText = "Geode Mine",
+		calloutText = "Mine here to gather Geodes!",
+		signFont = Enum.Font.FredokaOne,
+		calloutFont = Enum.Font.FredokaOne,
+		hideDistance = 16,
+		hideInsideZone = true,
+	}
+end
+
+local function getMineLayoutSpec()
+	return {
+		platformSize = Vector3.new(48, 2, 32),
+		pathSize = Vector3.new(24, 0.8, 20),
+		pathOffset = Vector3.new(-6, 1.4, 0),
+		zoneSize = Vector3.new(40, 16, 24),
+		zoneOffset = Vector3.new(0, 8, 0),
+		faceSize = Vector3.new(38, 26, 5),
+		faceOffset = Vector3.new(0, 13, -11),
+		rimSize = Vector3.new(42, 30, 3),
+		rimOffset = Vector3.new(0, 14, -8.7),
+		targetSize = Vector3.new(24, 14, 1),
+		targetOffset = Vector3.new(0, 10, -6.6),
+		shellSeams = {
+			{
+				name = "MineShellSeamLeft",
+				size = Vector3.new(7.5, 28, 9),
+				localOffset = Vector3.new(-20.5, 13.5, -14.2),
+				color = Color3.fromRGB(60, 52, 46),
+				material = Enum.Material.Rock,
+				rotation = Vector3.new(0, 0, 10),
+			},
+			{
+				name = "MineShellSeamRight",
+				size = Vector3.new(7.5, 28, 9),
+				localOffset = Vector3.new(20.5, 13.5, -14.2),
+				color = Color3.fromRGB(60, 52, 46),
+				material = Enum.Material.Rock,
+				rotation = Vector3.new(0, 0, -10),
+			},
+			{
+				name = "MineShellSeamCrown",
+				size = Vector3.new(26, 10, 8),
+				localOffset = Vector3.new(0, 26.5, -13.6),
+				color = Color3.fromRGB(72, 62, 56),
+				material = Enum.Material.Slate,
+				rotation = Vector3.new(-6, 0, 0),
+			},
+		},
+	}
+end
+
+local function getShopFrontSpec()
+	return {
+		signText = "Pickaxe Shop",
+		signFont = Enum.Font.GothamBold,
+		calloutText = "Buy pickaxes here!",
+		calloutFont = Enum.Font.FredokaOne,
+		hideDistance = 14,
+	}
+end
+
+local function getShopLayoutSpec()
+	return {
+		stallBaseSize = Vector3.new(20, 2, 36),
+		backWallSize = Vector3.new(1.2, 8, 28),
+		backWallOffset = Vector3.new(7.4, 5, 0),
+		signSize = Vector3.new(0.8, 4, 18),
+		signOffset = Vector3.new(6.7, 7.2, 0),
+		shelfSize = Vector3.new(1, 1, 24),
+		shelfOffset = Vector3.new(6.1, 4.8, 0),
+		promptAnchorSize = Vector3.new(2, 5, 24),
+		promptAnchorOffset = Vector3.new(-5.5, 4, 0),
+		calloutAnchorSize = Vector3.new(2, 2, 2),
+		calloutAnchorOffset = Vector3.new(0, 10.2, 0),
+		shellSeams = {
+			{
+				name = "ShopShellSeamNorth",
+				size = Vector3.new(9, 12, 10),
+				localOffset = Vector3.new(12.1, 6.8, -11.5),
+				color = Color3.fromRGB(57, 50, 47),
+				material = Enum.Material.Rock,
+				rotation = Vector3.new(0, 12, 0),
+			},
+			{
+				name = "ShopShellSeamSouth",
+				size = Vector3.new(9, 12, 10),
+				localOffset = Vector3.new(12.1, 6.8, 11.5),
+				color = Color3.fromRGB(57, 50, 47),
+				material = Enum.Material.Rock,
+				rotation = Vector3.new(0, -12, 0),
+			},
+			{
+				name = "ShopShellCap",
+				size = Vector3.new(8.5, 6, 26),
+				localOffset = Vector3.new(12.4, 11.2, 0),
+				color = Color3.fromRGB(72, 63, 58),
+				material = Enum.Material.Slate,
+				rotation = Vector3.new(0, 0, 5),
+			},
+		},
+	}
 end
 
 local function getResourceColor(resourceId, resourcesById)
@@ -320,6 +818,122 @@ local function resolveResourceVisualProfile(resourceTypeId, resourceDefinition, 
 	local profile = ResourceVisuals.resolveRevealProfile(resourceTypeId, nil, sizeId, sizeValue)
 	profile.sizeDisplayName = SizeRules.getDisplayName(sizeId, sizeValue)
 	return profile
+end
+
+local function resolvePlacedVisualProfile(resourceTypeId, resourceDefinition, traitId, sizeId, sizeValue, stableVisualId)
+	local resolvePlacedProfile = ResourceVisuals.resolvePlacedVisualProfile
+	local profile = nil
+	if type(resolvePlacedProfile) == "function" then
+		local ok, resolvedProfile = pcall(resolvePlacedProfile, resourceTypeId, traitId, sizeId, sizeValue, stableVisualId)
+		if ok and type(resolvedProfile) == "table" then
+			profile = resolvedProfile
+		end
+	end
+
+	if profile == nil then
+		profile = ResourceVisuals.resolveRevealProfile(resourceTypeId, traitId, sizeId, sizeValue, stableVisualId)
+		profile.sizeDisplayName = SizeRules.getDisplayName(sizeId, sizeValue)
+	end
+
+	profile.sizeDisplayName = SizeRules.getDisplayName(sizeId, sizeValue)
+	return profile
+end
+
+local function normalizeProceduralLayout(layout, fallbackVariantId)
+	if type(layout) ~= "table" then
+		return nil
+	end
+
+	local pieces = nil
+	if #layout > 0 then
+		pieces = layout
+	elseif type(layout.pieces) == "table" then
+		pieces = layout.pieces
+	elseif type(layout.shards) == "table" then
+		pieces = layout.shards
+	elseif type(layout.crystals) == "table" then
+		pieces = layout.crystals
+	end
+
+	if pieces == nil then
+		return nil
+	end
+
+	return {
+		variantId = if type(layout.variantId) == "string" then layout.variantId else fallbackVariantId,
+		pieces = pieces,
+	}
+end
+
+local function resolvePlacedProceduralLayout(profile, seedKey)
+	local fallbackVariantId = profile.variantId or "gemstone"
+	local profileCandidates = {
+		profile.crystalDefinitions,
+		profile.proceduralLayout,
+		profile.placedLayout,
+		profile.visualLayout,
+		profile.shapeLayout,
+	}
+
+	for _, candidate in ipairs(profileCandidates) do
+		local normalized = normalizeProceduralLayout(candidate, fallbackVariantId)
+		if normalized ~= nil then
+			return normalized
+		end
+	end
+
+	local resolver = ResourceVisuals.resolvePlacedLayout or ResourceVisuals.resolveProceduralLayout
+	if type(resolver) == "function" then
+		local ok, layout = pcall(resolver, profile, seedKey)
+		local normalized = if ok then normalizeProceduralLayout(layout, fallbackVariantId) else nil
+		if normalized ~= nil then
+			return normalized
+		end
+	end
+
+	return {
+		variantId = fallbackVariantId,
+		pieces = ResourceVisuals.getOreCrystalDefinitions(fallbackVariantId),
+	}
+end
+
+local function getPartVerticalBounds(part: BasePart): (number, number)
+	local halfHeight = (math.abs(part.CFrame.XVector.Y) * part.Size.X * 0.5)
+		+ (math.abs(part.CFrame.YVector.Y) * part.Size.Y * 0.5)
+		+ (math.abs(part.CFrame.ZVector.Y) * part.Size.Z * 0.5)
+	return part.Position.Y - halfHeight, part.Position.Y + halfHeight
+end
+
+local function groundResourceVisualToSurface(resourcePart: BasePart, surfaceTopY: number)
+	local minY = math.huge
+	local parts = { resourcePart }
+
+	local rootMinY = getPartVerticalBounds(resourcePart)
+	minY = math.min(minY, rootMinY)
+
+	for _, descendant in ipairs(resourcePart:GetDescendants()) do
+		if descendant:IsA("BasePart") then
+			local partMinY = getPartVerticalBounds(descendant)
+			minY = math.min(minY, partMinY)
+			table.insert(parts, descendant)
+		end
+	end
+
+	local lift = surfaceTopY - minY
+	if math.abs(lift) < 0.001 then
+		return
+	end
+
+	-- Place the authored visual against the actual plot surface instead of assuming the root
+	-- size fully describes the silhouette. This keeps taller rarity variants and future
+	-- procedural layouts grounded on the transparent plot layer without shared-side changes.
+	for _, part in ipairs(parts) do
+		part.CFrame += Vector3.new(0, lift, 0)
+	end
+end
+
+local function getPlotSurfaceTopY(plot): number
+	return plot.position.y + PLOT_SURFACE_OFFSET_Y + (PLOT_SURFACE_HEIGHT / 2)
 end
 
 local function createVisualBasePart(parent, className, name, size, position, color, material)
@@ -655,10 +1269,6 @@ getResourceVariantShape = function(resourceTypeId, resourceDefinition)
 	return ResourceVisuals.getResourceVariantShape(resourceTypeId, resourceDefinition)
 end
 
-local function getOreCrystalDefinitions(variantId)
-	return ResourceVisuals.getOreCrystalDefinitions(variantId)
-end
-
 local function buildOreShard(parentPart, profile, rootCFrame, baseTopY, shard, index)
 	local scale = profile.scale
 	local height = shard.height * scale
@@ -721,7 +1331,7 @@ local function buildOreShard(parentPart, profile, rootCFrame, baseTopY, shard, i
 	setReplicaTransparency(sideFacet, 0.48)
 end
 
-local function buildCrystalOreCluster(resourcePart, profile, rootYaw)
+local function buildCrystalOreCluster(resourcePart, profile, rootYaw, layout)
 	local scale = profile.scale
 	local baseSize = Vector3.new(2.35, 0.36, 1.85) * scale
 	local rootCFrame = CFrame.new(resourcePart.Position) * CFrame.Angles(0, rootYaw, 0)
@@ -746,12 +1356,12 @@ local function buildCrystalOreCluster(resourcePart, profile, rootYaw)
 	lip.CFrame = rootCFrame * CFrame.new(0, baseTopY + (0.035 * scale), 0)
 	setReplicaTransparency(lip, 0.18)
 
-	for index, shard in ipairs(getOreCrystalDefinitions(profile.variantId)) do
+	for index, shard in ipairs(layout.pieces) do
 		buildOreShard(resourcePart, profile, rootCFrame, baseTopY, shard, index)
 	end
 end
 
-local function buildIngotResource(resourcePart, profile, rootYaw)
+local function buildIngotResource(resourcePart, profile, rootYaw, layout)
 	local scale = profile.scale
 	local rootCFrame = CFrame.new(resourcePart.Position) * CFrame.Angles(0, rootYaw, 0)
 	local baseSize = Vector3.new(2.5, 0.62, 1.65) * scale
@@ -775,55 +1385,39 @@ local function buildIngotResource(resourcePart, profile, rootYaw)
 	roughBase.CFrame = rootCFrame * CFrame.new(0, -(baseSize.Y * 0.42), 0)
 	setReplicaTransparency(roughBase, 0.04)
 
-	local crown = createVisualBasePart(
-		resourcePart,
-		"Part",
-		"IngotCrown",
-		Vector3.new(1.82, 0.16, 1.02) * scale,
-		resourcePart.Position,
-		blendColor(profile.baseColor, profile.glowColor, 0.14),
-		Enum.Material.Metal
-	)
-	crown.CFrame = rootCFrame * CFrame.new(0, (baseSize.Y * 0.34), 0)
-	crown.Reflectance = 0.18
-
-	local leftBevel = createVisualBasePart(
-		resourcePart,
-		"WedgePart",
-		"IngotLeftBevel",
-		Vector3.new(0.62, 0.18, 1.08) * scale,
-		resourcePart.Position,
-		blendColor(profile.baseColor, Color3.fromRGB(255, 255, 255), 0.10),
-		Enum.Material.Metal
-	)
-	leftBevel.CFrame = rootCFrame
-		* CFrame.new(-(crown.Size.X * 0.5), (baseSize.Y * 0.30), 0)
-		* CFrame.Angles(0, math.rad(180), math.rad(90))
-
-	local rightBevel = createVisualBasePart(
-		resourcePart,
-		"WedgePart",
-		"IngotRightBevel",
-		Vector3.new(0.62, 0.18, 1.08) * scale,
-		resourcePart.Position,
-		blendColor(profile.baseColor, profile.glowColor, 0.16),
-		Enum.Material.Metal
-	)
-	rightBevel.CFrame = rootCFrame
-		* CFrame.new(crown.Size.X * 0.5, (baseSize.Y * 0.30), 0)
-		* CFrame.Angles(0, 0, -math.rad(90))
-
-	local accentStrip = createVisualBasePart(
-		resourcePart,
-		"Part",
-		"IngotAccent",
-		Vector3.new(1.28, 0.05, 0.14) * scale,
-		resourcePart.Position,
-		blendColor(profile.accentColor, profile.glowColor, 0.24),
-		if profile.rarityRank >= 4 then Enum.Material.Neon else Enum.Material.Metal
-	)
-	accentStrip.CFrame = rootCFrame * CFrame.new(0, (baseSize.Y * 0.42), 0)
-	setReplicaTransparency(accentStrip, if profile.rarityRank >= 4 then 0.18 else 0.42)
+	for index, shard in ipairs(layout.pieces) do
+		local pieceSize = Vector3.new(shard.width or 1.2, shard.height or 0.3, shard.depth or 0.9) * scale
+		local pieceMaterial = if shard.kind == "body"
+			then Enum.Material.Metal
+			elseif shard.kind == "edge" and profile.rarityRank >= 4
+			then Enum.Material.Neon
+			else Enum.Material.SmoothPlastic
+		local piece = createVisualBasePart(
+			resourcePart,
+			if shard.className == "WedgePart" then "WedgePart" else "Part",
+			string.format("IngotPiece_%d", index),
+			pieceSize,
+			resourcePart.Position,
+			blendColor(profile.baseColor, profile.glowColor, shard.tint or 0.15),
+			pieceMaterial
+		)
+		piece.CFrame = rootCFrame
+			* CFrame.new(
+				(shard.x or 0) * scale,
+				((shard.height or 0.3) * scale * 0.5) - (0.32 * scale),
+				(shard.z or 0) * scale
+			)
+			* CFrame.Angles(math.rad(shard.pitch or 0), math.rad(shard.yaw or 0), math.rad(shard.roll or 0))
+		piece.Reflectance = if shard.kind == "body" then 0.18 else 0.06
+		setReplicaTransparency(
+			piece,
+			if shard.kind == "body"
+				then 0.04
+				elseif pieceMaterial == Enum.Material.Neon
+				then 0.22
+				else 0.16
+		)
+	end
 
 	local edgeGlint = createVisualBasePart(
 		resourcePart,
@@ -838,7 +1432,7 @@ local function buildIngotResource(resourcePart, profile, rootYaw)
 	setReplicaTransparency(edgeGlint, 0.62)
 end
 
-local function buildEldritchResource(resourcePart, profile, rootYaw)
+local function buildEldritchResource(resourcePart, profile, rootYaw, layout)
 	local scale = profile.scale
 	local rootCFrame = CFrame.new(resourcePart.Position) * CFrame.Angles(0, rootYaw, 0)
 	local pedestalSize = Vector3.new(1.82, 0.28, 1.82) * scale
@@ -876,8 +1470,7 @@ local function buildEldritchResource(resourcePart, profile, rootYaw)
 	heart.CFrame = rootCFrame * CFrame.new(0, 1.18 * scale, 0)
 	setReplicaTransparency(heart, 0.10)
 
-	local orbitDefs = getOreCrystalDefinitions("eldritch")
-	for index, shard in ipairs(orbitDefs) do
+	for index, shard in ipairs(layout.pieces) do
 		if index > 1 then
 			buildOreShard(resourcePart, profile, rootCFrame, 0.90 * scale, shard, index)
 		end
@@ -911,27 +1504,31 @@ local function buildEldritchResource(resourcePart, profile, rootYaw)
 	end
 end
 
-local function buildResourceVisual(resourcePart, resourceTypeId, traitId, sizeId, sizeValue)
+local function buildResourceVisual(resourcePart, resourceTypeId, traitId, sizeId, sizeValue, surfaceTopY)
 	local resourceDefinition = if resourceTypeId ~= nil then Resources[resourceTypeId] else nil
-	local profile = resolveResourceVisualProfile(resourceTypeId, resourceDefinition, sizeId, sizeValue)
+	local stableVisualId = tostring(resourcePart:GetAttribute("ResourceId") or resourcePart.Name)
+	local profile = resolvePlacedVisualProfile(resourceTypeId, resourceDefinition, traitId, sizeId, sizeValue, stableVisualId)
+	local layout = resolvePlacedProceduralLayout(profile, stableVisualId)
 	local rootYaw = math.rad((getStringHash(resourcePart.Name) % 360) - 180)
+	local visualVariantId = layout.variantId or profile.variantId
 	local labelAccentColor = WorldLabelPresentation.getPlacedResourceLabelAccentColor(profile.rarity)
 
-	resourcePart:SetAttribute("ResourceVisualVariant", profile.variantId)
+	resourcePart:SetAttribute("ResourceVisualVariant", visualVariantId)
 	resourcePart:SetAttribute("ResourceRarity", profile.rarity)
 	resourcePart:SetAttribute("ResourceRarityRank", profile.rarityRank)
 	resourcePart:SetAttribute("TraitDisplayName", resolveTraitDisplayName(traitId) or "None")
 	resourcePart:SetAttribute("ResourceLabelAccentColor", labelAccentColor)
 
-	if profile.variantId == "ingot" then
-		buildIngotResource(resourcePart, profile, rootYaw)
-	elseif profile.variantId == "eldritch" then
-		buildEldritchResource(resourcePart, profile, rootYaw)
+	if visualVariantId == "ingot" then
+		buildIngotResource(resourcePart, profile, rootYaw, layout)
+	elseif visualVariantId == "eldritch" then
+		buildEldritchResource(resourcePart, profile, rootYaw, layout)
 	else
-		buildCrystalOreCluster(resourcePart, profile, rootYaw)
+		buildCrystalOreCluster(resourcePart, profile, rootYaw, layout)
 	end
+	groundResourceVisualToSurface(resourcePart, surfaceTopY)
 
-	createRarityEffects(resourcePart, profile, profile.variantId)
+	createRarityEffects(resourcePart, profile, visualVariantId)
 	local traitDisplayName = applyTraitEffects(resourcePart, profile, traitId)
 	if traitDisplayName == nil then
 		traitDisplayName = "None"
@@ -1016,6 +1613,7 @@ end
 
 local function buildPlotSignature(plot, profile, nowUnix)
 	local signatureParts = {
+		tostring(PLOT_LAYOUT_VERSION),
 		tostring(plot.userId or "none"),
 		tostring(plot.index or 0),
 		tostring(profile and #profile.resourceOrder or 0),
@@ -1106,6 +1704,27 @@ local function createDecorPart(parent, name, size, position, color, material)
 	return part
 end
 
+local function addStaticSeamFillers(parent, basePosition, seamSpecs)
+	for _, seamSpec in ipairs(seamSpecs) do
+		local seamPart = createPart(
+			parent,
+			seamSpec.name,
+			seamSpec.size,
+			basePosition + seamSpec.localOffset,
+			seamSpec.color,
+			seamSpec.material
+		)
+		local rotation = seamSpec.rotation
+		if rotation ~= nil then
+			seamPart.CFrame = CFrame.new(seamPart.Position)
+				* CFrame.Angles(math.rad(rotation.X), math.rad(rotation.Y), math.rad(rotation.Z))
+		end
+		if seamSpec.transparency ~= nil then
+			seamPart.Transparency = seamSpec.transparency
+		end
+	end
+end
+
 local function pivotStaticModel(model, sourceBaseCFrame, targetBaseCFrame)
 	for _, descendant in ipairs(model:GetDescendants()) do
 		if descendant:IsA("BasePart") then
@@ -1116,6 +1735,7 @@ end
 
 local function buildSharedFloor(worldFolder)
 	local width, height, depth = getSharedFloorSize()
+	local appearance = getSharedFloorAppearance()
 	local floor = worldFolder:FindFirstChild(SHARED_FLOOR_NAME)
 	if floor == nil then
 		floor = createPart(
@@ -1123,14 +1743,14 @@ local function buildSharedFloor(worldFolder)
 			SHARED_FLOOR_NAME,
 			Vector3.new(width, height, depth),
 			Vector3.new(World.plotOrigin.x, World.plotOrigin.y - 1.5, World.plotOrigin.z),
-			Color3.fromRGB(26, 24, 34),
-			Enum.Material.Slate
+			appearance.color,
+			appearance.material
 		)
 	else
 		floor.Size = Vector3.new(width, height, depth)
 		floor.Position = Vector3.new(World.plotOrigin.x, World.plotOrigin.y - 1.5, World.plotOrigin.z)
-		floor.Color = Color3.fromRGB(26, 24, 34)
-		floor.Material = Enum.Material.Slate
+		floor.Color = appearance.color
+		floor.Material = appearance.material
 	end
 
 	local markers = worldFolder:FindFirstChild(PLOT_MARKER_FOLDER_NAME)
@@ -1143,6 +1763,325 @@ local function buildSharedFloor(worldFolder)
 	markers.Parent = worldFolder
 
 	return floor, markers
+end
+
+local function ensureLighting()
+	local spec = getLightingSpec()
+	Lighting.Brightness = spec.brightness
+	Lighting.Ambient = spec.ambient
+	Lighting.OutdoorAmbient = spec.outdoorAmbient
+	Lighting.ColorShift_Top = spec.colorShiftTop
+	Lighting.ColorShift_Bottom = spec.colorShiftBottom
+	Lighting.ClockTime = spec.clockTime
+	Lighting.ExposureCompensation = spec.exposureCompensation
+	Lighting.EnvironmentDiffuseScale = spec.environmentDiffuseScale
+	Lighting.EnvironmentSpecularScale = spec.environmentSpecularScale
+
+	local sky = Lighting:FindFirstChild("GemFactoryGalaxySky")
+	if sky == nil then
+		sky = Instance.new("Sky")
+		sky.Name = "GemFactoryGalaxySky"
+		sky.Parent = Lighting
+	end
+	for propertyName, assetId in pairs(spec.skybox) do
+		(sky :: any)[propertyName] = assetId
+	end
+
+	local atmosphere = Lighting:FindFirstChild("GemFactoryAtmosphere")
+	if atmosphere == nil then
+		atmosphere = Instance.new("Atmosphere")
+		atmosphere.Name = "GemFactoryAtmosphere"
+		atmosphere.Parent = Lighting
+	end
+	atmosphere.Color = spec.atmosphere.color
+	atmosphere.Decay = spec.atmosphere.decay
+	atmosphere.Density = spec.atmosphere.density
+	atmosphere.Glare = spec.atmosphere.glare
+	atmosphere.Haze = spec.atmosphere.haze
+
+	local bloom = Lighting:FindFirstChild("GemFactoryBloom")
+	if bloom == nil then
+		bloom = Instance.new("BloomEffect")
+		bloom.Name = "GemFactoryBloom"
+		bloom.Parent = Lighting
+	end
+	bloom.Intensity = spec.bloom.intensity
+	bloom.Size = spec.bloom.size
+	bloom.Threshold = spec.bloom.threshold
+
+	local colorCorrection = Lighting:FindFirstChild("GemFactoryColorCorrection")
+	if colorCorrection == nil then
+		colorCorrection = Instance.new("ColorCorrectionEffect")
+		colorCorrection.Name = "GemFactoryColorCorrection"
+		colorCorrection.Parent = Lighting
+	end
+	colorCorrection.Brightness = spec.colorCorrection.brightness
+	colorCorrection.Contrast = spec.colorCorrection.contrast
+	colorCorrection.Saturation = spec.colorCorrection.saturation
+	colorCorrection.TintColor = spec.colorCorrection.tintColor
+
+	local sunRays = Lighting:FindFirstChild("GemFactorySunRays")
+	if sunRays == nil then
+		sunRays = Instance.new("SunRaysEffect")
+		sunRays.Name = "GemFactorySunRays"
+		sunRays.Parent = Lighting
+	end
+	sunRays.Intensity = spec.sunRays.intensity
+	sunRays.Spread = spec.sunRays.spread
+end
+
+local function buildSkyDecor(worldFolder)
+	local decorFolder = worldFolder:FindFirstChild(SKY_DECOR_NAME)
+	if decorFolder ~= nil then
+		if decorFolder:GetAttribute("StaticLayoutVersion") == STATIC_WORLD_LAYOUT_VERSION then
+			return decorFolder
+		end
+		decorFolder:Destroy()
+	end
+
+	decorFolder = Instance.new("Model")
+	decorFolder.Name = SKY_DECOR_NAME
+	decorFolder:SetAttribute("StaticLayoutVersion", STATIC_WORLD_LAYOUT_VERSION)
+	decorFolder.Parent = worldFolder
+
+	local spec = getSkyDecorSpec()
+	local anchor = createDecorPart(
+		decorFolder,
+		"SkyAnchor",
+		spec.anchorSize,
+		spec.anchorPosition,
+		Color3.fromRGB(255, 255, 255),
+		Enum.Material.SmoothPlastic
+	)
+	anchor.Transparency = 1
+	anchor.CanQuery = false
+	anchor.CanTouch = false
+
+	for _, planetSpec in ipairs(spec.planets) do
+		local planet = createDecorPart(
+			decorFolder,
+			planetSpec.name,
+			planetSpec.size,
+			spec.anchorPosition + planetSpec.offset,
+			planetSpec.color,
+			planetSpec.material
+		)
+		planet.Shape = Enum.PartType.Ball
+		planet.Transparency = 0.08
+		local light = createColoredLight(planet, planetSpec.glowColor, 0.7, planetSpec.size.X * 1.8)
+		light.Brightness = 0.7
+	end
+
+	-- Keep the backdrop deterministic and server-authored so every server projects the
+	-- same denser starfield without relying on client-only sky dressing.
+	for _, starSpec in ipairs(spec.stars) do
+		local star = createDecorPart(
+			decorFolder,
+			starSpec.name,
+			starSpec.size,
+			spec.anchorPosition + starSpec.offset,
+			starSpec.color,
+			Enum.Material.Neon
+		)
+		star.Shape = Enum.PartType.Ball
+		star.Transparency = starSpec.transparency
+		local light = createColoredLight(star, starSpec.color, starSpec.glowBrightness, math.max(6, starSpec.size.X * 9))
+		light.Brightness = starSpec.glowBrightness
+	end
+
+	for _, nebulaSpec in ipairs(spec.nebulae) do
+		local nebula = createDecorPart(
+			decorFolder,
+			nebulaSpec.name,
+			nebulaSpec.size,
+			spec.anchorPosition + nebulaSpec.offset,
+			nebulaSpec.color,
+			Enum.Material.ForceField
+		)
+		nebula.Shape = Enum.PartType.Ball
+		nebula.Transparency = nebulaSpec.transparency
+	end
+
+	local shootingStars = Instance.new("ParticleEmitter")
+	shootingStars.Name = "ShootingStars"
+	shootingStars.Texture = "rbxasset://textures/particles/sparkles_main.dds"
+	shootingStars.Color = spec.shootingStars.color
+	shootingStars.LightEmission = 1
+	shootingStars.Rate = spec.shootingStars.rate
+	shootingStars.Lifetime = spec.shootingStars.lifetime
+	shootingStars.Speed = spec.shootingStars.speed
+	shootingStars.Rotation = spec.shootingStars.rotation
+	shootingStars.RotSpeed = spec.shootingStars.rotSpeed
+	shootingStars.Size = spec.shootingStars.size
+	shootingStars.Transparency = spec.shootingStars.transparency
+	shootingStars.Acceleration = spec.shootingStars.acceleration
+	shootingStars.SpreadAngle = Vector2.new(8, 8)
+	shootingStars.ZOffset = 1
+	shootingStars.Parent = anchor
+
+	return decorFolder
+end
+
+local function buildWorldShell(worldFolder)
+	local shell = worldFolder:FindFirstChild(WORLD_SHELL_NAME)
+	if shell ~= nil then
+		if shell:GetAttribute("StaticLayoutVersion") == STATIC_WORLD_LAYOUT_VERSION then
+			return shell
+		end
+		shell:Destroy()
+	end
+
+	shell = Instance.new("Model")
+	shell.Name = WORLD_SHELL_NAME
+	shell:SetAttribute("StaticLayoutVersion", STATIC_WORLD_LAYOUT_VERSION)
+	shell.Parent = worldFolder
+
+	local spec = getWorldShellSpecs()
+	for _, segmentSpec in ipairs(spec.segments) do
+		local wall = createPart(
+			shell,
+			segmentSpec.name,
+			segmentSpec.size,
+			segmentSpec.position,
+			segmentSpec.color,
+			Enum.Material.Rock
+		)
+		wall.TopSurface = Enum.SurfaceType.Smooth
+	end
+
+	for _, crystalSpec in ipairs(spec.crystals) do
+		local crystal = createDecorPart(
+			shell,
+			crystalSpec.name,
+			crystalSpec.size,
+			crystalSpec.position,
+			crystalSpec.color,
+			Enum.Material.Neon
+		)
+		crystal.CFrame = CFrame.new(crystalSpec.position)
+			* CFrame.Angles(
+				math.rad(crystalSpec.rotation.X),
+				math.rad(crystalSpec.rotation.Y),
+				math.rad(crystalSpec.rotation.Z)
+			)
+
+		local glow = createDecorPart(
+			crystal,
+			"Glow",
+			crystalSpec.size * 1.25,
+			crystalSpec.position,
+			crystalSpec.color:Lerp(Color3.fromRGB(255, 255, 255), 0.35),
+			Enum.Material.ForceField
+		)
+		glow.CFrame = crystal.CFrame
+		glow.Transparency = 0.7
+
+		createColoredLight(crystal, crystalSpec.color, 0.6, 18)
+	end
+
+	return shell
+end
+
+local function buildVaultFront(worldFolder)
+	local vaultFront = worldFolder:FindFirstChild(VAULT_FRONT_NAME)
+	if vaultFront ~= nil then
+		if vaultFront:GetAttribute("StaticLayoutVersion") == STATIC_WORLD_LAYOUT_VERSION then
+			return vaultFront
+		end
+		vaultFront:Destroy()
+	end
+
+	vaultFront = Instance.new("Model")
+	vaultFront.Name = VAULT_FRONT_NAME
+	vaultFront:SetAttribute("StaticLayoutVersion", STATIC_WORLD_LAYOUT_VERSION)
+	vaultFront.Parent = worldFolder
+
+	local spec = getVaultPromptSpec()
+	-- The vault interaction is now prompt-led: keep the authoritative server-owned
+	-- proximity prompt in the world, but remove the chest/station build that only
+	-- existed to host the interaction.
+	local promptAnchor = createDecorPart(
+		vaultFront,
+		"VaultPromptAnchor",
+		spec.promptSize,
+		spec.basePosition + spec.promptOffset,
+		Color3.fromRGB(92, 180, 170),
+		Enum.Material.ForceField
+	)
+	promptAnchor.Transparency = 1
+	promptAnchor.CanQuery = false
+	promptAnchor.CanTouch = false
+	promptAnchor:SetAttribute(VAULT_PROMPT_ATTRIBUTE, true)
+
+	local callout = Instance.new("BillboardGui")
+	callout.Name = "VaultCallout"
+	callout.AlwaysOnTop = true
+	callout.Size = UDim2.fromOffset(260, 70)
+	callout.StudsOffset = Vector3.new(0, 2.8, 0)
+	callout.MaxDistance = 48
+	callout.Parent = promptAnchor
+
+	local calloutFrame = Instance.new("Frame")
+	calloutFrame.BackgroundColor3 = Color3.fromRGB(30, 33, 52)
+	calloutFrame.BackgroundTransparency = 0.18
+	calloutFrame.Size = UDim2.fromScale(1, 1)
+	calloutFrame.Parent = callout
+
+	local calloutCorner = Instance.new("UICorner")
+	calloutCorner.CornerRadius = UDim.new(0, 10)
+	calloutCorner.Parent = calloutFrame
+
+	local calloutStroke = Instance.new("UIStroke")
+	calloutStroke.Color = Color3.fromRGB(154, 231, 222)
+	calloutStroke.Thickness = 1.4
+	calloutStroke.Transparency = 0.08
+	calloutStroke.Parent = calloutFrame
+
+	local titleLabel = Instance.new("TextLabel")
+	titleLabel.Name = "Title"
+	titleLabel.BackgroundTransparency = 1
+	titleLabel.Position = UDim2.fromOffset(0, 6)
+	titleLabel.Size = UDim2.new(1, 0, 0, 26)
+	titleLabel.Font = Enum.Font.FredokaOne
+	titleLabel.Text = spec.signText
+	titleLabel.TextColor3 = Color3.fromRGB(241, 249, 255)
+	titleLabel.TextStrokeColor3 = Color3.fromRGB(24, 30, 44)
+	titleLabel.TextStrokeTransparency = 0.45
+	titleLabel.TextScaled = true
+	titleLabel.Parent = calloutFrame
+
+	local calloutLabel = Instance.new("TextLabel")
+	calloutLabel.BackgroundTransparency = 1
+	calloutLabel.Position = UDim2.fromOffset(12, 30)
+	calloutLabel.Size = UDim2.new(1, -24, 1, -34)
+	calloutLabel.Font = Enum.Font.FredokaOne
+	calloutLabel.Text = spec.calloutText
+	calloutLabel.TextColor3 = Color3.fromRGB(226, 247, 243)
+	calloutLabel.TextStrokeColor3 = Color3.fromRGB(24, 30, 44)
+	calloutLabel.TextStrokeTransparency = 0.55
+	calloutLabel.TextScaled = true
+	calloutLabel.TextWrapped = true
+	calloutLabel.Parent = calloutFrame
+
+	local promptGlow = Instance.new("PointLight")
+	promptGlow.Color = Color3.fromRGB(146, 236, 222)
+	promptGlow.Brightness = 0.7
+	promptGlow.Range = 10
+	promptGlow.Shadows = false
+	promptGlow.Parent = promptAnchor
+
+	local prompt = Instance.new("ProximityPrompt")
+	prompt.Name = "VaultPrompt"
+	prompt.ActionText = spec.promptActionText
+	prompt.ObjectText = spec.promptObjectText
+	prompt.KeyboardKeyCode = Enum.KeyCode.E
+	prompt.HoldDuration = 0
+	prompt.MaxActivationDistance = 10
+	prompt.RequiresLineOfSight = false
+	prompt:SetAttribute(VAULT_PROMPT_ATTRIBUTE, true)
+	prompt.Parent = promptAnchor
+
+	return vaultFront
 end
 
 local function addPlotMarker(markerFolder, plot)
@@ -1188,6 +2127,10 @@ local function addPlotMarker(markerFolder, plot)
 end
 
 local function ensureStaticWorld(worldFolder, plots)
+	ensureLighting()
+	buildWorldShell(worldFolder)
+	buildSkyDecor(worldFolder)
+	buildVaultFront(worldFolder)
 	local floor = worldFolder:FindFirstChild(SHARED_FLOOR_NAME)
 	local markers = worldFolder:FindFirstChild(PLOT_MARKER_FOLDER_NAME)
 	if floor ~= nil and markers ~= nil then
@@ -1217,11 +2160,13 @@ local function buildPickaxeShop(worldFolder)
 	local width = getSharedFloorSize()
 	local edgeX = World.plotOrigin.x + (width / 2) - 18
 	local basePosition = Vector3.new(edgeX, World.plotOrigin.y + 1, World.plotOrigin.z)
+	local spec = getShopFrontSpec()
+	local layout = getShopLayoutSpec()
 
 	local stallBase = createPart(
 		shopFolder,
 		"StallBase",
-		Vector3.new(20, 2, 36),
+		layout.stallBaseSize,
 		basePosition,
 		Color3.fromRGB(38, 34, 48),
 		Enum.Material.Slate
@@ -1231,18 +2176,21 @@ local function buildPickaxeShop(worldFolder)
 	local backWall = createPart(
 		shopFolder,
 		"ShopBackWall",
-		Vector3.new(1.2, 8, 28),
-		basePosition + Vector3.new(7.4, 5, 0),
+		layout.backWallSize,
+		basePosition + layout.backWallOffset,
 		Color3.fromRGB(68, 53, 96),
 		Enum.Material.WoodPlanks
 	)
 	backWall.CanCollide = false
 
+	-- Extend the roofless stall into the cave shell so the side walls do not leave visible gaps.
+	addStaticSeamFillers(shopFolder, basePosition, layout.shellSeams)
+
 	local sign = createDecorPart(
 		shopFolder,
 		"ShopSign",
-		Vector3.new(0.8, 4, 18),
-		basePosition + Vector3.new(6.7, 7.2, 0),
+		layout.signSize,
+		basePosition + layout.signOffset,
 		Color3.fromRGB(103, 83, 127),
 		Enum.Material.Wood
 	)
@@ -1255,33 +2203,29 @@ local function buildPickaxeShop(worldFolder)
 	local signLabel = Instance.new("TextLabel")
 	signLabel.BackgroundTransparency = 1
 	signLabel.Size = UDim2.fromScale(1, 1)
-	signLabel.Font = Enum.Font.GothamBold
-	signLabel.Text = "Pickaxe Shop"
+	signLabel.Font = spec.signFont
+	signLabel.Text = spec.signText
 	signLabel.TextColor3 = Color3.fromRGB(248, 248, 255)
 	signLabel.TextScaled = true
 	signLabel.Parent = signGui
 
-	local shopCallout = Instance.new("BillboardGui")
-	shopCallout.Name = "ShopCallout"
-	shopCallout.AlwaysOnTop = true
-	shopCallout.Size = UDim2.fromOffset(180, 44)
-	shopCallout.StudsOffset = Vector3.new(0, 4, 0)
-	shopCallout.Parent = sign
-
-	local calloutLabel = Instance.new("TextLabel")
-	calloutLabel.BackgroundTransparency = 1
-	calloutLabel.Size = UDim2.fromScale(1, 1)
-	calloutLabel.Font = Enum.Font.GothamBold
-	calloutLabel.Text = "Pickaxes tuned here."
-	calloutLabel.TextColor3 = Color3.fromRGB(248, 248, 255)
-	calloutLabel.TextScaled = true
-	calloutLabel.Parent = shopCallout
+	local calloutAnchor = createDecorPart(
+		shopFolder,
+		SHOP_CALLOUT_ANCHOR_NAME,
+		layout.calloutAnchorSize,
+		basePosition + layout.calloutAnchorOffset,
+		Color3.fromRGB(255, 255, 255),
+		Enum.Material.SmoothPlastic
+	)
+	calloutAnchor.Transparency = 1
+	calloutAnchor.CanQuery = false
+	calloutAnchor.CanTouch = false
 
 	local shelf = createDecorPart(
 		shopFolder,
 		"PickaxeShelf",
-		Vector3.new(1, 1, 24),
-		basePosition + Vector3.new(6.1, 4.8, 0),
+		layout.shelfSize,
+		basePosition + layout.shelfOffset,
 		Color3.fromRGB(45, 38, 63),
 		Enum.Material.Wood
 	)
@@ -1318,9 +2262,9 @@ local function buildPickaxeShop(worldFolder)
 
 	local promptAnchor = createDecorPart(
 		shopFolder,
-		"ShopPromptAnchor",
-		Vector3.new(2, 5, 24),
-		basePosition + Vector3.new(-5.5, 4, 0),
+		SHOP_PROMPT_ANCHOR_NAME,
+		layout.promptAnchorSize,
+		basePosition + layout.promptAnchorOffset,
 		Color3.fromRGB(92, 180, 170),
 		Enum.Material.ForceField
 	)
@@ -1360,22 +2304,33 @@ local function buildMine(worldFolder)
 	local width = getSharedFloorSize()
 	local sourceBaseCFrame = CFrame.new(World.plotOrigin.x, World.plotOrigin.y + 1, World.plotOrigin.z)
 	local basePosition = sourceBaseCFrame.Position
+	local facadeSpec = getMineFacadeSpec()
+	local layout = getMineLayoutSpec()
 
 	local platform = createPart(
 		mine,
 		"MinePlatform",
-		Vector3.new(44, 2, 26),
+		layout.platformSize,
 		basePosition,
-		Color3.fromRGB(35, 33, 43),
-		Enum.Material.Slate
+		Color3.fromRGB(62, 88, 58),
+		Enum.Material.Grass
 	)
 	platform.TopSurface = Enum.SurfaceType.Smooth
+
+	local path = createDecorPart(
+		mine,
+		"MinePath",
+		layout.pathSize,
+		basePosition + layout.pathOffset,
+		Color3.fromRGB(122, 108, 82),
+		Enum.Material.Ground
+	)
 
 	local zone = createDecorPart(
 		mine,
 		"MineStandingZone",
-		Vector3.new(40, 16, 24),
-		basePosition + Vector3.new(0, 8, 0),
+		layout.zoneSize,
+		basePosition + layout.zoneOffset,
 		Color3.fromRGB(92, 180, 170),
 		Enum.Material.ForceField
 	)
@@ -1386,44 +2341,78 @@ local function buildMine(worldFolder)
 	local mouth = createPart(
 		mine,
 		"MineFace",
-		Vector3.new(34, 22, 4),
-		basePosition + Vector3.new(0, 12, -9),
-		Color3.fromRGB(30, 28, 36),
+		layout.faceSize,
+		basePosition + layout.faceOffset,
+		Color3.fromRGB(52, 45, 40),
 		Enum.Material.Rock
 	)
 	mouth:SetAttribute(MINE_TARGET_ATTRIBUTE, true)
 	mouth:SetAttribute("GemFactoryMine", true)
 
+	local caveRim = createDecorPart(
+		mine,
+		"CaveRim",
+		layout.rimSize,
+		basePosition + layout.rimOffset,
+		Color3.fromRGB(77, 64, 55),
+		Enum.Material.Slate
+	)
+	caveRim.Transparency = 0.15
+
+	-- Fill the exposed shell seams around the mine opening while keeping the cave entrance silhouette.
+	addStaticSeamFillers(mine, basePosition, layout.shellSeams)
+
 	local target = createPart(
 		mine,
 		"MineTarget",
-		Vector3.new(24, 14, 1),
-		basePosition + Vector3.new(0, 10, -6.6),
+		layout.targetSize,
+		basePosition + layout.targetOffset,
 		Color3.fromRGB(58, 53, 72),
 		Enum.Material.Slate
 	)
 	target:SetAttribute(MINE_TARGET_ATTRIBUTE, true)
 	target:SetAttribute("GemFactoryMine", true)
 
-	for index = 1, 7 do
-		local xOffset = -15 + ((index - 1) * 5)
+	for index = 1, 9 do
+		local xOffset = -18 + ((index - 1) * 4.5)
 		local crystal = createDecorPart(
 			mine,
 			string.format("MineCrystal_%d", index),
-			Vector3.new(1.5, 4 + (index % 3), 1.5),
-			basePosition + Vector3.new(xOffset, 4 + (index % 3), -6),
-			Color3.fromRGB(92 + (index * 12), 160, 190 + (index * 4)),
+			Vector3.new(1.5, 4 + (index % 4), 1.5),
+			basePosition + Vector3.new(xOffset, 4 + (index % 4), -7.2 + ((index % 2 == 0) and -0.7 or 0.7)),
+			Color3.fromRGB(82 + (index * 12), 190, 168 + (index * 8)),
 			Enum.Material.Neon
 		)
 		crystal.CFrame = CFrame.new(crystal.Position) * CFrame.Angles(math.rad(8), math.rad(index * 17), math.rad(12))
+		createColoredLight(crystal, crystal.Color, 0.7, 10)
 	end
+
+	local archLeft = createPart(
+		mine,
+		"MineArchLeft",
+		Vector3.new(8, 18, 8),
+		basePosition + Vector3.new(-16, 9, -8),
+		Color3.fromRGB(65, 55, 48),
+		Enum.Material.Rock
+	)
+	archLeft.CFrame = CFrame.new(archLeft.Position) * CFrame.Angles(math.rad(0), 0, math.rad(8))
+
+	local archRight = createPart(
+		mine,
+		"MineArchRight",
+		Vector3.new(8, 18, 8),
+		basePosition + Vector3.new(16, 9, -8),
+		Color3.fromRGB(65, 55, 48),
+		Enum.Material.Rock
+	)
+	archRight.CFrame = CFrame.new(archRight.Position) * CFrame.Angles(math.rad(0), 0, math.rad(-8))
 
 	local sign = createDecorPart(
 		mine,
 		"MineSign",
-		Vector3.new(18, 4, 0.6),
-		basePosition + Vector3.new(0, 17.5, -6.65),
-		Color3.fromRGB(76, 64, 91),
+		Vector3.new(20, 5, 0.8),
+		basePosition + Vector3.new(0, 19.5, -6.2),
+		Color3.fromRGB(124, 92, 53),
 		Enum.Material.Wood
 	)
 
@@ -1435,17 +2424,121 @@ local function buildMine(worldFolder)
 	local signLabel = Instance.new("TextLabel")
 	signLabel.BackgroundTransparency = 1
 	signLabel.Size = UDim2.fromScale(1, 1)
-	signLabel.Font = Enum.Font.GothamBold
-	signLabel.Text = "Geode Mine"
-	signLabel.TextColor3 = Color3.fromRGB(248, 248, 255)
+	signLabel.Font = facadeSpec.signFont
+	signLabel.Text = facadeSpec.signText
+	signLabel.TextColor3 = Color3.fromRGB(255, 246, 218)
+	signLabel.TextStrokeColor3 = Color3.fromRGB(88, 55, 20)
+	signLabel.TextStrokeTransparency = 0.4
 	signLabel.TextScaled = true
 	signLabel.Parent = signGui
+
+	local calloutAnchor = createDecorPart(
+		mine,
+		MINE_CALLOUT_ANCHOR_NAME,
+		Vector3.new(2, 2, 2),
+		basePosition + Vector3.new(0, 23.5, -6.2),
+		Color3.fromRGB(255, 255, 255),
+		Enum.Material.SmoothPlastic
+	)
+	calloutAnchor.Transparency = 1
+	calloutAnchor.CanQuery = false
+	calloutAnchor.CanTouch = false
 
 	local edgeX = World.plotOrigin.x - (width / 2) + 24
 	local targetBaseCFrame = CFrame.new(edgeX, basePosition.Y, World.plotOrigin.z) * CFrame.Angles(0, math.rad(90), 0)
 	pivotStaticModel(mine, sourceBaseCFrame, targetBaseCFrame)
 
 	return mine
+end
+
+local function ensurePlayerCalloutFolder(player: Player): Instance?
+	local playerGui = player:FindFirstChildOfClass("PlayerGui")
+	if playerGui == nil then
+		return nil
+	end
+
+	local folder = playerGui:FindFirstChild(PLAYER_CALLOUT_FOLDER_NAME)
+	if folder == nil then
+		folder = Instance.new("Folder")
+		folder.Name = PLAYER_CALLOUT_FOLDER_NAME
+		folder.Parent = playerGui
+	end
+
+	return folder
+end
+
+local function ensurePlayerWorldCallout(
+	player: Player,
+	calloutName: string,
+	adornee: BasePart,
+	calloutText: string,
+	calloutFont: Enum.Font,
+	textColor: Color3,
+	strokeColor: Color3,
+	size: Vector2,
+	studsOffset: Vector3
+): BillboardGui?
+	local folder = ensurePlayerCalloutFolder(player)
+	if folder == nil then
+		return nil
+	end
+
+	local callout = folder:FindFirstChild(calloutName)
+	if callout == nil then
+		callout = Instance.new("BillboardGui")
+		callout.Name = calloutName
+		callout.AlwaysOnTop = true
+		callout.LightInfluence = 0
+		callout.MaxDistance = 80
+		callout.Parent = folder
+
+		local label = Instance.new("TextLabel")
+		label.Name = "Label"
+		label.BackgroundTransparency = 1
+		label.Size = UDim2.fromScale(1, 1)
+		label.TextScaled = true
+		label.TextWrapped = true
+		label.Parent = callout
+	end
+
+	callout.Adornee = adornee
+	callout.Size = UDim2.fromOffset(size.X, size.Y)
+	callout.StudsOffset = studsOffset
+
+	local label = callout:FindFirstChild("Label")
+	if label ~= nil and label:IsA("TextLabel") then
+		label.Font = calloutFont
+		label.Text = calloutText
+		label.TextColor3 = textColor
+		label.TextStrokeColor3 = strokeColor
+		label.TextStrokeTransparency = 0.45
+	end
+
+	return callout
+end
+
+local function shouldHideMineCallout(player: Player, anchor: BasePart, zone: BasePart, spec): boolean
+	local root = getPlayerRootPart(player)
+	if root == nil then
+		return false
+	end
+
+	-- Keep the callout player-specific so the prompt stays readable from afar without
+	-- blinking off for everyone whenever one player steps into the mine.
+	if spec.hideInsideZone == true and isPositionInsidePart(root.Position, zone) then
+		return true
+	end
+
+	return (root.Position - anchor.Position).Magnitude <= spec.hideDistance
+end
+
+local function shouldHideNearbyCallout(player: Player, anchor: BasePart, hideDistance: number): boolean
+	local root = getPlayerRootPart(player)
+	if root == nil then
+		return false
+	end
+
+	return (root.Position - anchor.Position).Magnitude <= hideDistance
 end
 
 local function addRockSpikes(parent, plot)
@@ -1479,6 +2572,181 @@ local function addRockSpikes(parent, plot)
 		)
 		rock.CFrame = CFrame.new(rockPosition)
 			* CFrame.Angles(math.rad(4), math.rad(spike.yaw), math.rad(8))
+	end
+end
+
+local function getPlotStandLayouts(plot)
+	local mirrorSign = if ((plot.index or 1) % 2) == 0 then -1 else 1
+
+	-- Mirror the side benches between neighboring plots so the cave still feels hand-built,
+	-- while every top stays on the same server-authored placement plane.
+	return {
+		{
+			name = "CenterDais",
+			offset = Vector3.new(0, 0, -2),
+			size = Vector3.new(28, PLOT_STAND_CAP_HEIGHT, 22),
+			supportOffsets = { -8, 0, 8 },
+		},
+		{
+			name = "BackShelf",
+			offset = Vector3.new(18 * mirrorSign, 0, -27),
+			size = Vector3.new(24, PLOT_STAND_CAP_HEIGHT, 14),
+			supportOffsets = { -6, 6 },
+		},
+		{
+			name = "FrontBench",
+			offset = Vector3.new(-16 * mirrorSign, 0, 27),
+			size = Vector3.new(26, PLOT_STAND_CAP_HEIGHT, 12),
+			supportOffsets = { -7, 7 },
+		},
+		{
+			name = "SideAlcoveLeft",
+			offset = Vector3.new(-28 * mirrorSign, 0, -1),
+			size = Vector3.new(14, PLOT_STAND_CAP_HEIGHT, 18),
+			supportOffsets = { -4, 4 },
+		},
+		{
+			name = "SideAlcoveRight",
+			offset = Vector3.new(28 * mirrorSign, 0, 15),
+			size = Vector3.new(16, PLOT_STAND_CAP_HEIGHT, 20),
+			supportOffsets = { -4, 4 },
+		},
+	}
+end
+
+local function getPlotStandRenderSpecs(plot)
+	local surfaceTopY = getPlotSurfaceTopY(plot)
+	local capCenterY = surfaceTopY + PLOT_STAND_CAP_CLEARANCE + (PLOT_STAND_CAP_HEIGHT / 2)
+	local capBottomY = capCenterY - (PLOT_STAND_CAP_HEIGHT / 2)
+	local supportTopY = capBottomY - PLOT_STAND_SUPPORT_GAP
+	local supportCenterY = supportTopY - (PLOT_STAND_SUPPORT_HEIGHT / 2)
+	local markerColor = Color3.fromRGB(188, 196, 212)
+	local specs = {}
+
+	for _, stand in ipairs(getPlotStandLayouts(plot)) do
+		local capPosition = Vector3.new(
+			plot.position.x + stand.offset.X,
+			capCenterY,
+			plot.position.z + stand.offset.Z
+		)
+
+		local supportPositions = {}
+		for _, offsetX in ipairs(stand.supportOffsets) do
+			table.insert(supportPositions, Vector3.new(capPosition.X + offsetX, supportCenterY, capPosition.Z))
+		end
+
+		table.insert(specs, {
+			name = stand.name,
+			cap = {
+				position = capPosition,
+				size = stand.size,
+				material = Enum.Material.Slate,
+				color = Color3.fromRGB(76, 70, 93),
+				bottomY = capBottomY,
+				topY = capCenterY + (stand.size.Y * 0.5),
+			},
+			lip = {
+				position = Vector3.new(
+					capPosition.X,
+					capCenterY + (stand.size.Y * 0.5) + PLOT_STAND_LIP_GAP + (PLOT_STAND_LIP_HEIGHT / 2),
+					capPosition.Z
+				),
+				size = Vector3.new(stand.size.X - 2, PLOT_STAND_LIP_HEIGHT, stand.size.Z - 2),
+				material = Enum.Material.SmoothPlastic,
+				color = Color3.fromRGB(96, 90, 115),
+				transparency = 0.04,
+				bottomY = capCenterY + (stand.size.Y * 0.5) + PLOT_STAND_LIP_GAP,
+				topY = capCenterY + (stand.size.Y * 0.5) + PLOT_STAND_LIP_GAP + PLOT_STAND_LIP_HEIGHT,
+			},
+			support = {
+				size = Vector3.new(3.6, PLOT_STAND_SUPPORT_HEIGHT, 3.6),
+				material = Enum.Material.Rock,
+				color = Color3.fromRGB(49, 45, 62),
+				positions = supportPositions,
+				topY = supportTopY,
+			},
+			marker = {
+				position = Vector3.new(
+					capPosition.X - ((stand.size.X * 0.5) - PLOT_STAND_MARKER_INSET),
+					capBottomY + (PLOT_STAND_MARKER_HEIGHT / 2),
+					capPosition.Z + ((stand.size.Z * 0.5) - PLOT_STAND_MARKER_INSET)
+				),
+				size = Vector3.new(1.2, PLOT_STAND_MARKER_HEIGHT, 1.2),
+				material = Enum.Material.SmoothPlastic,
+				color = markerColor,
+				transparency = 0.1,
+			},
+		})
+	end
+
+	return {
+		surfaceTopY = surfaceTopY,
+		capClearance = PLOT_STAND_CAP_CLEARANCE,
+		supportGap = capBottomY - supportTopY,
+		stands = specs,
+	}
+end
+
+local function addPlotPlacementSurfaces(parent, plot)
+	local standFolder = Instance.new("Folder")
+	standFolder.Name = "PlacementSurfaces"
+	standFolder.Parent = parent
+
+	local renderSpecs = getPlotStandRenderSpecs(plot)
+
+	for standIndex, stand in ipairs(renderSpecs.stands) do
+		local cap = createDecorPart(
+			standFolder,
+			stand.name,
+			stand.cap.size,
+			stand.cap.position,
+			stand.cap.color,
+			stand.cap.material
+		)
+		cap.TopSurface = Enum.SurfaceType.Smooth
+		cap.CanQuery = false
+		cap.CanTouch = false
+
+		local lip = createDecorPart(
+			standFolder,
+			stand.name .. "_Lip",
+			stand.lip.size,
+			stand.lip.position,
+			stand.lip.color,
+			stand.lip.material
+		)
+		lip.Transparency = stand.lip.transparency
+		lip.CanQuery = false
+		lip.CanTouch = false
+
+		for supportIndex, supportPosition in ipairs(stand.support.positions) do
+			local support = createDecorPart(
+				standFolder,
+				string.format("%s_Support_%d", stand.name, supportIndex),
+				stand.support.size,
+				supportPosition,
+				stand.support.color,
+				stand.support.material
+			)
+			support.CFrame = CFrame.new(support.Position)
+				* CFrame.Angles(0, math.rad(((plot.index or 1) * 11) + (supportIndex * 7)), math.rad(2))
+			support.CanQuery = false
+			support.CanTouch = false
+		end
+
+		local marker = createDecorPart(
+			standFolder,
+			stand.name .. "_Marker",
+			stand.marker.size,
+			stand.marker.position,
+			stand.marker.color,
+			stand.marker.material
+		)
+		marker.CFrame = CFrame.new(marker.Position)
+			* CFrame.Angles(math.rad(-6), math.rad(((plot.index or 1) * 21) + (standIndex * 9)), math.rad(8))
+		marker.Transparency = stand.marker.transparency
+		marker.CanQuery = false
+		marker.CanTouch = false
 	end
 end
 
@@ -1648,7 +2916,7 @@ local function addGeodes(parent, plot, profile, nowUnix)
 	end
 end
 
-local function createResourcePart(parent, resourceName, resourceTypeId, traitId, sizeId, sizeValue, position)
+local function createResourcePart(parent, resourceName, resourceTypeId, traitId, sizeId, sizeValue, position, surfaceTopY)
 	local rootSize = ResourceVisuals.getPlacedRootSize(sizeId, sizeValue)
 	local resourcePart = createDecorPart(
 		parent,
@@ -1663,7 +2931,7 @@ local function createResourcePart(parent, resourceName, resourceTypeId, traitId,
 	resourcePart:SetAttribute("TraitId", traitId or "none")
 	resourcePart:SetAttribute("SizeId", sizeId or "medium")
 	resourcePart:SetAttribute("SizeValue", SizeRules.getScaleValue(sizeId, sizeValue))
-	buildResourceVisual(resourcePart, resourceTypeId, traitId, sizeId, sizeValue)
+	buildResourceVisual(resourcePart, resourceTypeId, traitId, sizeId, sizeValue, surfaceTopY)
 end
 
 local function addResources(parent, plot, profile)
@@ -1680,13 +2948,23 @@ local function addResources(parent, plot, profile)
 		local placement = resource.placement
 		local footprintWidth = placement.width or 1
 		local footprintHeight = placement.height or 1
+		local surfaceTopY = getPlotSurfaceTopY(plot)
 		local baseHeight = ResourceVisuals.getPlacedBaseHeight(resource.sizeId, resource.sizeValue)
 		local resourcePosition = Vector3.new(
 			gridOriginX + ((placement.x - 1) * cellSize) + (((footprintWidth - 1) * cellSize) / 2),
-			plot.position.y + (World.plotBaseSize.height / 2) + (baseHeight / 2),
+			surfaceTopY + (baseHeight / 2),
 			gridOriginZ + ((placement.y - 1) * cellSize) + (((footprintHeight - 1) * cellSize) / 2)
 		)
-		createResourcePart(resourceFolder, tostring(resource.id), resource.resourceTypeId, resource.traitId, resource.sizeId, resource.sizeValue, resourcePosition)
+		createResourcePart(
+			resourceFolder,
+			tostring(resource.id),
+			resource.resourceTypeId,
+			resource.traitId,
+			resource.sizeId,
+			resource.sizeValue,
+			resourcePosition,
+			surfaceTopY
+		)
 	end
 end
 
@@ -1705,6 +2983,7 @@ end
 function WorldReplicaService:_buildPlot(plot, profile, signature, nowUnix)
 	local plotModel = self:_getPlotModel(plot.id)
 	clearChildren(plotModel)
+	plotModel:SetAttribute("PlotLayoutVersion", PLOT_LAYOUT_VERSION)
 	plotModel:SetAttribute("PlotId", plot.id)
 	plotModel:SetAttribute("OwnerUserId", plot.userId)
 	plotModel:SetAttribute("ResourceCount", profile and #profile.resourceOrder or 0)
@@ -1731,8 +3010,8 @@ function WorldReplicaService:_buildPlot(plot, profile, signature, nowUnix)
 	local trim = createDecorPart(
 		plotModel,
 		"PlotTrim",
-		Vector3.new(World.plotBaseSize.width - 6, 0.4, World.plotBaseSize.depth - 6),
-		Vector3.new(plot.position.x, plot.position.y + 1.2, plot.position.z),
+		Vector3.new(World.plotBaseSize.width - 6, PLOT_SURFACE_HEIGHT, World.plotBaseSize.depth - 6),
+		Vector3.new(plot.position.x, plot.position.y + PLOT_SURFACE_OFFSET_Y, plot.position.z),
 		Color3.fromRGB(58, 54, 78),
 		Enum.Material.Rock
 	)
@@ -1743,8 +3022,8 @@ function WorldReplicaService:_buildPlot(plot, profile, signature, nowUnix)
 	local surfaceCollider = createPart(
 		plotModel,
 		PLOT_SURFACE_COLLIDER_NAME,
-		Vector3.new(World.plotBaseSize.width - 6, 0.4, World.plotBaseSize.depth - 6),
-		Vector3.new(plot.position.x, plot.position.y + 1.2, plot.position.z),
+		Vector3.new(World.plotBaseSize.width - 6, PLOT_SURFACE_HEIGHT, World.plotBaseSize.depth - 6),
+		Vector3.new(plot.position.x, plot.position.y + PLOT_SURFACE_OFFSET_Y, plot.position.z),
 		Color3.fromRGB(58, 54, 78),
 		Enum.Material.SmoothPlastic
 	)
@@ -1752,6 +3031,7 @@ function WorldReplicaService:_buildPlot(plot, profile, signature, nowUnix)
 	surfaceCollider.CanQuery = false
 	surfaceCollider.CanTouch = false
 
+	addPlotPlacementSurfaces(plotModel, plot)
 	addRockSpikes(plotModel, plot)
 	addGeodes(plotModel, plot, profile, nowUnix)
 	addResources(plotModel, plot, profile)
@@ -1826,6 +3106,69 @@ function WorldReplicaService:_buildPlot(plot, profile, signature, nowUnix)
 	}
 end
 
+function WorldReplicaService:_syncPlayerWorldCallouts()
+	local worldFolder = Workspace:FindFirstChild(World.worldFolderName)
+	if worldFolder == nil then
+		return
+	end
+
+	local mine = worldFolder:FindFirstChild(MINE_NAME)
+	local shop = worldFolder:FindFirstChild(SHOP_FRONT_NAME)
+	if mine == nil or shop == nil or not mine:IsA("Model") or not shop:IsA("Model") then
+		return
+	end
+
+	local mineAnchor = mine:FindFirstChild(MINE_CALLOUT_ANCHOR_NAME)
+	local mineZone = mine:FindFirstChild("MineStandingZone")
+	local shopAnchor = shop:FindFirstChild(SHOP_CALLOUT_ANCHOR_NAME)
+	local shopPromptAnchor = shop:FindFirstChild(SHOP_PROMPT_ANCHOR_NAME)
+	if mineAnchor == nil
+		or mineZone == nil
+		or shopAnchor == nil
+		or shopPromptAnchor == nil
+		or not mineAnchor:IsA("BasePart")
+		or not mineZone:IsA("BasePart")
+		or not shopAnchor:IsA("BasePart")
+		or not shopPromptAnchor:IsA("BasePart")
+	then
+		return
+	end
+
+	local mineSpec = getMineFacadeSpec()
+	local shopSpec = getShopFrontSpec()
+	for _, player in ipairs(Players:GetPlayers()) do
+		local mineCallout = ensurePlayerWorldCallout(
+			player,
+			"MineCallout",
+			mineAnchor,
+			mineSpec.calloutText,
+			mineSpec.calloutFont,
+			Color3.fromRGB(255, 247, 223),
+			Color3.fromRGB(88, 55, 20),
+			Vector2.new(250, 60),
+			Vector3.new(0, 0, 0)
+		)
+		if mineCallout ~= nil then
+			mineCallout.Enabled = not shouldHideMineCallout(player, mineAnchor, mineZone, mineSpec)
+		end
+
+		local shopCallout = ensurePlayerWorldCallout(
+			player,
+			"ShopCallout",
+			shopAnchor,
+			shopSpec.calloutText,
+			shopSpec.calloutFont,
+			Color3.fromRGB(248, 248, 255),
+			Color3.fromRGB(44, 33, 58),
+			Vector2.new(210, 54),
+			Vector3.new(0, 0, 0)
+		)
+		if shopCallout ~= nil then
+			shopCallout.Enabled = not shouldHideNearbyCallout(player, shopPromptAnchor, shopSpec.hideDistance)
+		end
+	end
+end
+
 function WorldReplicaService:syncAll()
 	local plotService = self.dependencies.plotService
 	local playerDataService = self.dependencies.playerDataService
@@ -1844,7 +3187,10 @@ function WorldReplicaService:syncAll()
 			local profile = playerDataService:getProfile(plot.userId)
 			local nowUnix = os.time()
 			local signature = buildPlotSignature(plot, profile, nowUnix)
-			if self.signatures[plot.id] ~= signature or self.models[plot.id] == nil then
+			if self.signatures[plot.id] ~= signature
+				or self.models[plot.id] == nil
+				or self.models[plot.id]:GetAttribute("PlotLayoutVersion") ~= PLOT_LAYOUT_VERSION
+			then
 				self:_buildPlot(plot, profile, signature, nowUnix)
 			end
 		elseif self.models[plot.id] ~= nil then
@@ -1884,6 +3230,7 @@ end
 function WorldReplicaService:start()
 	self.running = true
 	self:syncAll()
+	self:_syncPlayerWorldCallouts()
 
 	task.spawn(function()
 		while self.running do
@@ -1892,7 +3239,29 @@ function WorldReplicaService:start()
 		end
 	end)
 
+	task.spawn(function()
+		while self.running do
+			self:_syncPlayerWorldCallouts()
+			task.wait(0.2)
+		end
+	end)
+
 	print("[GemFactory] WorldReplicaService ready")
 end
+
+WorldReplicaService._test = {
+	getSharedFloorAppearance = getSharedFloorAppearance,
+	getLightingSpec = getLightingSpec,
+	getSkyDecorSpec = getSkyDecorSpec,
+	getWorldShellSpecs = getWorldShellSpecs,
+	getVaultPromptSpec = getVaultPromptSpec,
+	getMineFacadeSpec = getMineFacadeSpec,
+	getMineLayoutSpec = getMineLayoutSpec,
+	getShopFrontSpec = getShopFrontSpec,
+	getShopLayoutSpec = getShopLayoutSpec,
+	getPlotSurfaceTopY = getPlotSurfaceTopY,
+	getPlotStandLayouts = getPlotStandLayouts,
+	getPlotStandRenderSpecs = getPlotStandRenderSpecs,
+}
 
 return WorldReplicaService

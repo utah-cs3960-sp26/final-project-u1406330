@@ -86,7 +86,10 @@ function HUDController:start()
 
 		screen:setStatusText(state.connectionMessage or "Ready")
 		screen:setCoinCounterText(formatNumber(profile.currencies.coins))
-		screen:setResourceGuideData(profile.progression and profile.progression.equippedPickaxeId or nil)
+		screen:setResourceGuideData(
+			profile.progression and profile.progression.equippedPickaxeId or nil,
+			profile.resourceGuide
+		)
 		screen:setOverviewText(string.format(
 			"Coins: %s\nPassive: %s / sec\nCavern Value: %s\nResources: %d\nStations: %d\nQueue: %d\nPlot: %s",
 			formatNumber(profile.currencies.coins),

@@ -1,7 +1,5 @@
-Make geodes overall rarer to find when mining. (scale rarity up for all of them)
+the gaps in the walls on the pickaxe shop and mine side still persist, check gap.png for reference.
 
-There is a thin transparent texturedfloor on plots. Make this solid(right now you can walk through it)
+In the Resource Guide menu, I noticed that it constantly refreshes hover feature for the collection page. This means if you hover over a resource, then dot move your mouse for a second or two, it goes back to the Hover a bubble description instead of staying on the hovered resource. Fix this.
 
-When an item rolls for an attribute, the text is cut off when it transitions from rolling a resource to rolling an attribute, investigate this and make sure nothing gets cut off and everything is properly displayed.
-
-The resource guide is broken right now, there is nothing on it, see resource guide.png for reference.
+The extended roll pup sometimes persists when transitioning to rolling an attribute, look into this and fix it. see extend.png for reference.

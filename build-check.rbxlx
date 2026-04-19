@@ -72,7 +72,7 @@ return Economy
             <string name="Source"><![CDATA[--!strict
 
 -- Static shared configuration for Geodes used by deterministic gameplay logic on both client and server.
--- Crack timers use a simple 15-second common baseline and then scale upward in clean steps so progression stays easy to inspect.
+-- Crack timers now start at a 30-second common baseline and widen in clean late-tier steps so progression stays easy to inspect.
 
 local function makeRoll(resourceId: string, weight: number)
 	return {
@@ -105,7 +105,7 @@ local Geodes = {
 	starter_geode = makeGeode(
 		"starter_geode",
 		"Starter Geode",
-		15,
+		30,
 		Color3.fromRGB(124, 129, 150),
 		{
 			makeRoll("quartz", 30),
@@ -119,7 +119,7 @@ local Geodes = {
 	crystal_cavern_geode = makeGeode(
 		"crystal_cavern_geode",
 		"Crystal Cavern Geode",
-		20,
+		45,
 		Color3.fromRGB(92, 112, 150),
 		{
 			makeRoll("quartz", 16),
@@ -136,7 +136,7 @@ local Geodes = {
 	moonlit_geode = makeGeode(
 		"moonlit_geode",
 		"Moonlit Geode",
-		25,
+		60,
 		Color3.fromRGB(168, 176, 204),
 		{
 			makeRoll("quartz", 8),
@@ -154,7 +154,7 @@ local Geodes = {
 	ember_glass_geode = makeGeode(
 		"ember_glass_geode",
 		"Ember Glass Geode",
-		30,
+		75,
 		Color3.fromRGB(214, 116, 72),
 		{
 			makeRoll("smoky_quartz", 8),
@@ -173,7 +173,7 @@ local Geodes = {
 	verdant_rift_geode = makeGeode(
 		"verdant_rift_geode",
 		"Verdant Rift Geode",
-		35,
+		90,
 		Color3.fromRGB(88, 170, 112),
 		{
 			makeRoll("jade_fragment", 10),
@@ -190,7 +190,7 @@ local Geodes = {
 	aurora_shard_geode = makeGeode(
 		"aurora_shard_geode",
 		"Aurora Shard Geode",
-		40,
+		110,
 		Color3.fromRGB(90, 199, 214),
 		{
 			makeRoll("moonstone", 10),
@@ -209,7 +209,7 @@ local Geodes = {
 	thunder_core_geode = makeGeode(
 		"thunder_core_geode",
 		"Thunder Core Geode",
-		50,
+		130,
 		Color3.fromRGB(80, 96, 128),
 		{
 			makeRoll("garnet_node", 8),
@@ -228,7 +228,7 @@ local Geodes = {
 	fossil_vault_geode = makeGeode(
 		"fossil_vault_geode",
 		"Fossil Vault Geode",
-		60,
+		150,
 		Color3.fromRGB(168, 149, 120),
 		{
 			makeRoll("smoky_quartz", 12),
@@ -247,7 +247,7 @@ local Geodes = {
 	prism_sun_geode = makeGeode(
 		"prism_sun_geode",
 		"Prism Sun Geode",
-		75,
+		175,
 		Color3.fromRGB(244, 204, 96),
 		{
 			makeRoll("sapphire_spire", 8),
@@ -267,7 +267,7 @@ local Geodes = {
 	sovereign_nova_geode = makeGeode(
 		"sovereign_nova_geode",
 		"Sovereign Nova Geode",
-		90,
+		200,
 		Color3.fromRGB(235, 230, 214),
 		{
 			makeRoll("sapphire_spire", 6),
@@ -310,7 +310,9 @@ local geodeOrder = {
 	"sovereign_nova_geode",
 }
 
-local GEODE_FIND_CHANCE_SCALE = 0.75
+-- Keep one economy-wide geode rarity lever so drops can be tuned without rewriting every tier table.
+-- The todo rebalance asked for geodes to become roughly twice as rare as the previous live tuning.
+local GEODE_FIND_CHANCE_SCALE = 0.375
 
 local function makeGeodeWeights(weights: { number })
 	local entries = {}
@@ -376,7 +378,7 @@ local Pickaxes = {
 			"stone_pickaxe",
 			"Stone Pickaxe",
 			"Common",
-			75,
+			500,
 			"coins",
 			0.6,
 			4,
@@ -389,7 +391,7 @@ local Pickaxes = {
 			"copper_pickaxe",
 			"Copper Pickaxe",
 			"Uncommon",
-			150,
+			3500,
 			"coins",
 			0.55,
 			6,
@@ -402,7 +404,7 @@ local Pickaxes = {
 			"iron_pickaxe",
 			"Iron Pickaxe",
 			"Rare",
-			260,
+			17500,
 			"coins",
 			0.5,
 			9,
@@ -415,7 +417,7 @@ local Pickaxes = {
 			"steel_pickaxe",
 			"Steel Pickaxe",
 			"Epic",
-			420,
+			57500,
 			"coins",
 			0.48,
 			12,
@@ -428,7 +430,7 @@ local Pickaxes = {
 			"gold_pickaxe",
 			"Gold Pickaxe",
 			"Legendary",
-			650,
+			135000,
 			"coins",
 			0.45,
 			16,
@@ -441,7 +443,7 @@ local Pickaxes = {
 			"platinum_pickaxe",
 			"Platinum Pickaxe",
 			"Mythic",
-			950,
+			275000,
 			"coins",
 			0.42,
 			22,
@@ -454,7 +456,7 @@ local Pickaxes = {
 			"emerald_pickaxe",
 			"Emerald Pickaxe",
 			"Ancient",
-			1400,
+			510000,
 			"coins",
 			0.4,
 			30,
@@ -467,7 +469,7 @@ local Pickaxes = {
 			"obsidian_pickaxe",
 			"Obsidian Pickaxe",
 			"Prismatic",
-			2000,
+			865000,
 			"coins",
 			0.38,
 			40,
@@ -480,7 +482,7 @@ local Pickaxes = {
 			"lunar_pickaxe",
 			"Lunar Pickaxe",
 			"Sovereign",
-			2900,
+			1400000,
 			"coins",
 			0.35,
 			52,
@@ -493,7 +495,7 @@ local Pickaxes = {
 			"crown_pickaxe",
 			"Crown Pickaxe",
 			"Apex",
-			4000,
+			2250000,
 			"coins",
 			0.3,
 			68,
@@ -654,6 +656,9 @@ return Shops
 -- Static shared configuration for Sizes used by deterministic gameplay logic on both client and server.
 
 local Sizes = {
+	-- Resource visuals intentionally render larger than the raw rolled size values so the default
+	-- placed models read clearly on plots without changing size bucket odds, labels, or sell math.
+	resourceVisualScaleMultiplier = 3,
 	tiny = {
 		id = "tiny",
 		displayName = "Tiny",
@@ -1106,6 +1111,28 @@ end
 
 function GeodePresentation.shouldAdvanceRevealOnInput(inputType: Enum.UserInputType?): boolean
 	return inputType == Enum.UserInputType.MouseButton1 or inputType == Enum.UserInputType.Touch
+end
+
+function GeodePresentation.getRevealAnimationGraceSeconds(): number
+	return 0.6
+end
+
+function GeodePresentation.shouldKeepRevealAnimationAlive(
+	elapsedSeconds: number?,
+	celebrationPlaying: boolean?,
+	queuedCelebrationCount: number?
+): boolean
+	local elapsed = if type(elapsedSeconds) == "number" then math.max(0, elapsedSeconds) else 0
+	if elapsed < GeodePresentation.getRevealAnimationGraceSeconds() then
+		return true
+	end
+
+	if celebrationPlaying == true then
+		return true
+	end
+
+	local queueCount = if type(queuedCelebrationCount) == "number" then queuedCelebrationCount else 0
+	return queueCount > 0
 end
 
 return GeodePresentation
@@ -1684,6 +1711,7 @@ local Geodes = require(Shared.Config.Geodes)
 local Pickaxes = require(Shared.Config.Pickaxes)
 local Resources = require(Shared.Config.Resources)
 local ResourceVisuals = require(Shared.Domain.ResourceVisuals)
+local Traits = require(Shared.Config.Traits)
 
 local ResourceGuide = {}
 
@@ -1704,6 +1732,50 @@ local RARITY_ACCENTS = {
 }
 
 local DEFAULT_PICKAXE_ID = "stone_pickaxe"
+
+local TRAIT_SORT_INDEX = {}
+
+for index, traitDefinition in ipairs(Traits.order or {}) do
+	if traitDefinition ~= nil and type(traitDefinition.id) == "string" then
+		TRAIT_SORT_INDEX[traitDefinition.id] = index
+	end
+end
+
+local function compareCatalogEntries(leftEntry, rightEntry)
+	if leftEntry.rank ~= rightEntry.rank then
+		return leftEntry.rank < rightEntry.rank
+	end
+
+	if leftEntry.displayName ~= rightEntry.displayName then
+		return leftEntry.displayName < rightEntry.displayName
+	end
+
+	return leftEntry.resourceId < rightEntry.resourceId
+end
+
+local function buildCatalogEntries()
+	local entries = {}
+
+	for resourceId, resourceDefinition in pairs(Resources) do
+		if type(resourceDefinition) ~= "table" then
+			continue
+		end
+
+		table.insert(entries, {
+			resourceId = resourceId,
+			displayName = tostring(resourceDefinition.displayName or resourceId),
+			rarity = tostring(resourceDefinition.rarity or "Common"),
+			rank = ResourceVisuals.getRarityRank(resourceDefinition.rarity),
+			color = resourceDefinition.color,
+			variantId = ResourceVisuals.getResourceVariantShape(resourceId, resourceDefinition),
+		})
+	end
+
+	table.sort(entries, compareCatalogEntries)
+	return entries
+end
+
+local CATALOG_ENTRIES = buildCatalogEntries()
 
 local function roundToPlaces(value: number, places: number): number
 	local scalar = 10 ^ places
@@ -1815,6 +1887,114 @@ function ResourceGuide.getDefaultPickaxeId(): string
 	return DEFAULT_PICKAXE_ID
 end
 
+function ResourceGuide.ensureCollectionState(resourceGuideState: any): { discoveredResources: { [string]: any } }
+	if type(resourceGuideState) ~= "table" then
+		return {
+			discoveredResources = {},
+		}
+	end
+
+	if type(resourceGuideState.discoveredResources) ~= "table" then
+		resourceGuideState.discoveredResources = {}
+	end
+
+	return resourceGuideState
+end
+
+function ResourceGuide.recordDiscovery(profile: any, resourceTypeId: string?, traitId: string?): boolean
+	if type(profile) ~= "table" or type(resourceTypeId) ~= "string" or Resources[resourceTypeId] == nil then
+		return false
+	end
+
+	-- Keep collection progress attached to the authoritative profile so all grant paths write the same persisted state.
+	local collectionState = ResourceGuide.ensureCollectionState(profile.resourceGuide)
+	profile.resourceGuide = collectionState
+
+	local discoveredResources = collectionState.discoveredResources
+	local resourceEntry = discoveredResources[resourceTypeId]
+	if type(resourceEntry) ~= "table" then
+		resourceEntry = {
+			found = true,
+			discoveredTraits = {},
+		}
+		discoveredResources[resourceTypeId] = resourceEntry
+	else
+		resourceEntry.found = true
+		if type(resourceEntry.discoveredTraits) ~= "table" then
+			resourceEntry.discoveredTraits = {}
+		end
+	end
+
+	local resolvedTraitId = if type(traitId) == "string" and Traits[traitId] ~= nil then traitId else "none"
+	resourceEntry.discoveredTraits[resolvedTraitId] = true
+	return true
+end
+
+local function sortDiscoveredTraitNames(leftName: string, rightName: string): boolean
+	local leftDefinition = nil
+	local rightDefinition = nil
+
+	for _, traitDefinition in ipairs(Traits.order or {}) do
+		if traitDefinition.displayName == leftName then
+			leftDefinition = traitDefinition
+		end
+		if traitDefinition.displayName == rightName then
+			rightDefinition = traitDefinition
+		end
+	end
+
+	local leftIndex = if leftDefinition ~= nil then TRAIT_SORT_INDEX[leftDefinition.id] or 999 else 999
+	local rightIndex = if rightDefinition ~= nil then TRAIT_SORT_INDEX[rightDefinition.id] or 999 else 999
+	if leftIndex ~= rightIndex then
+		return leftIndex < rightIndex
+	end
+
+	return leftName < rightName
+end
+
+function ResourceGuide.getCollectionSlots(resourceGuideState: any): { any }
+	local collectionState = ResourceGuide.ensureCollectionState(resourceGuideState)
+	local slots = table.create(#CATALOG_ENTRIES)
+
+	for layoutOrder, catalogEntry in ipairs(CATALOG_ENTRIES) do
+		local discoveredEntry = collectionState.discoveredResources[catalogEntry.resourceId]
+		local isFound = type(discoveredEntry) == "table" and discoveredEntry.found == true
+		local discoveredTraitNames = {}
+
+		if isFound and type(discoveredEntry.discoveredTraits) == "table" then
+			for traitId in pairs(discoveredEntry.discoveredTraits) do
+				if traitId ~= "none" then
+					local traitDefinition = Traits[traitId]
+					if traitDefinition ~= nil then
+						table.insert(discoveredTraitNames, traitDefinition.displayName or traitId)
+					end
+				end
+			end
+		end
+
+		table.sort(discoveredTraitNames, sortDiscoveredTraitNames)
+
+		table.insert(slots, {
+			layoutOrder = layoutOrder,
+			resourceId = catalogEntry.resourceId,
+			displayName = if isFound then catalogEntry.displayName else "???",
+			realDisplayName = catalogEntry.displayName,
+			rarity = catalogEntry.rarity,
+			rank = catalogEntry.rank,
+			color = catalogEntry.color,
+			variantId = catalogEntry.variantId,
+			isFound = isFound,
+			discoveredTraitNames = discoveredTraitNames,
+			hoverTitle = if isFound then catalogEntry.displayName else "???",
+			hoverAttributesText = if isFound
+				then if #discoveredTraitNames > 0 then table.concat(discoveredTraitNames, ", ") else "No attributes found yet"
+				else "???",
+		})
+	end
+
+	return slots
+end
+
 function ResourceGuide.getGuideSummary(pickaxeId: string?): any
 	local pickaxeDefinition = getResolvedPickaxe(pickaxeId)
 	local _, totalChance = buildRarityChances(pickaxeDefinition)
@@ -1892,6 +2072,7 @@ local SizeRules = require(Shared.Domain.SizeRules)
 local Traits = require(Shared.Config.Traits)
 
 local ResourceVisuals = {}
+local MAX_HASH_VALUE = 2147483647
 
 local RESOURCE_RARITY_ORDER = {
 	Common = 1,
@@ -1915,7 +2096,7 @@ local RESOURCE_TYPE_VARIANTS = {
 	smoky_quartz = "gemstone",
 	jade_fragment = "gemstone",
 	amethyst = "gemstone",
-	moonstone = "gemstone",
+	moonstone = "moonstone",
 	emerald_cluster = "cluster",
 	garnet_node = "cluster",
 	topaz_vein = "cluster",
@@ -1940,6 +2121,126 @@ local RESOURCE_TYPE_VARIANTS = {
 local PLACED_RESOURCE_BASE_SIZE = Vector3.new(3, 3, 3)
 local PLACED_RESOURCE_BASE_HEIGHT = 0.36
 
+local RESOURCE_PROFILE_OVERRIDES = {
+	moonstone = {
+		variantId = "moonstone",
+		baseColor = Color3.fromRGB(214, 231, 255),
+		accentColor = Color3.fromRGB(255, 228, 247),
+		glowColor = Color3.fromRGB(195, 255, 247),
+		scaleMultiplier = 0.74,
+		minScale = 0.72,
+		maxScale = 1.18,
+		shineStrength = 0.34,
+	},
+}
+
+local VARIANT_PROCEDURAL_RULES = {
+	gemstone = {
+		minCount = 4,
+		maxCount = 6,
+		positionJitter = 0.18,
+		heightJitter = 0.22,
+		widthJitter = 0.14,
+		depthJitter = 0.16,
+		rotationJitter = 18,
+		tintJitter = 0.12,
+	},
+	cluster = {
+		minCount = 5,
+		maxCount = 7,
+		positionJitter = 0.2,
+		heightJitter = 0.24,
+		widthJitter = 0.16,
+		depthJitter = 0.18,
+		rotationJitter = 20,
+		tintJitter = 0.14,
+	},
+	artifact = {
+		minCount = 5,
+		maxCount = 6,
+		positionJitter = 0.16,
+		heightJitter = 0.18,
+		widthJitter = 0.13,
+		depthJitter = 0.15,
+		rotationJitter = 16,
+		tintJitter = 0.1,
+	},
+	ingot = {
+		minCount = 4,
+		maxCount = 5,
+		positionJitter = 0.06,
+		heightJitter = 0.1,
+		widthJitter = 0.08,
+		depthJitter = 0.08,
+		rotationJitter = 6,
+		tintJitter = 0.08,
+	},
+	eldritch = {
+		minCount = 6,
+		maxCount = 8,
+		positionJitter = 0.22,
+		heightJitter = 0.26,
+		widthJitter = 0.18,
+		depthJitter = 0.2,
+		rotationJitter = 24,
+		tintJitter = 0.16,
+	},
+	moonstone = {
+		minCount = 5,
+		maxCount = 6,
+		positionJitter = 0.08,
+		heightJitter = 0.1,
+		widthJitter = 0.08,
+		depthJitter = 0.08,
+		rotationJitter = 10,
+		tintJitter = 0.06,
+	},
+}
+
+local STATIC_VARIANT_DEFINITIONS = {
+	moonstone = {
+		{ x = -0.18, z = 0.12, height = 1.22, width = 0.36, depth = 0.34, yaw = -28, pitch = -6, roll = 18, tint = 0.26 },
+		{ x = 0.04, z = 0.16, height = 1.34, width = 0.38, depth = 0.34, yaw = -8, pitch = -7, roll = 8, tint = 0.38 },
+		{ x = 0.26, z = 0.04, height = 1.18, width = 0.34, depth = 0.32, yaw = 18, pitch = -5, roll = -10, tint = 0.18 },
+		{ x = 0.10, z = -0.18, height = 0.82, width = 0.26, depth = 0.22, yaw = 34, pitch = 2, roll = -18, tint = 0.52 },
+		{ x = -0.08, z = -0.20, height = 0.66, width = 0.22, depth = 0.20, yaw = -30, pitch = 4, roll = 22, tint = 0.46 },
+	},
+	eldritch = {
+		{ x = 0.00, z = 0.00, height = 2.48, width = 0.46, depth = 0.54, yaw = 8, pitch = -6, roll = 4, tint = 0.28 },
+		{ x = 0.00, z = 0.00, height = 1.64, width = 0.22, depth = 0.24, yaw = -22, pitch = 0, roll = 0, tint = 0.42, orbit = true },
+		{ x = 0.56, z = -0.06, height = 1.34, width = 0.24, depth = 0.62, yaw = 34, pitch = -12, roll = 22, tint = 0.22, orbit = true },
+		{ x = -0.54, z = 0.10, height = 1.26, width = 0.24, depth = 0.58, yaw = -30, pitch = 11, roll = -18, tint = 0.14, orbit = true },
+		{ x = 0.16, z = 0.52, height = 0.96, width = 0.18, depth = 0.42, yaw = 68, pitch = 8, roll = -12, tint = 0.34, orbit = true },
+		{ x = -0.14, z = -0.48, height = 0.84, width = 0.16, depth = 0.40, yaw = -64, pitch = -6, roll = 12, tint = 0.18, orbit = true },
+	},
+	ingot = {
+		{ kind = "body", x = 0.00, z = 0.00, height = 0.58, width = 1.78, depth = 1.12, yaw = 0, tint = 0.10 },
+		{ kind = "top", x = 0.00, z = 0.00, height = 0.22, width = 1.38, depth = 0.74, yaw = 0, tint = 0.22 },
+		{ kind = "edge", x = 0.00, z = -0.42, height = 0.16, width = 1.10, depth = 0.08, yaw = 0, tint = 0.34 },
+		{ kind = "edge", x = 0.00, z = 0.42, height = 0.16, width = 1.10, depth = 0.08, yaw = 0, tint = 0.18 },
+	},
+	artifact = {
+		{ x = -0.05, z = -0.04, height = 2.35, width = 0.58, depth = 0.68, yaw = 4, pitch = -5, roll = -4, tint = 0.24 },
+		{ x = -0.56, z = 0.06, height = 1.74, width = 0.42, depth = 0.50, yaw = -24, pitch = 7, roll = 8, tint = 0.08 },
+		{ x = 0.52, z = 0.10, height = 1.58, width = 0.38, depth = 0.48, yaw = 26, pitch = -8, roll = -8, tint = 0.34 },
+		{ x = 0.18, z = 0.48, height = 1.12, width = 0.30, depth = 0.38, yaw = 42, pitch = 5, roll = -4, tint = 0.18 },
+		{ x = -0.32, z = -0.44, height = 1.02, width = 0.30, depth = 0.36, yaw = -38, pitch = -5, roll = 5, tint = 0.12 },
+	},
+	cluster = {
+		{ x = -0.14, z = -0.02, height = 2.02, width = 0.54, depth = 0.62, yaw = -8, pitch = -3, roll = 4, tint = 0.18 },
+		{ x = -0.62, z = 0.04, height = 1.55, width = 0.42, depth = 0.52, yaw = -32, pitch = 8, roll = 9, tint = 0.06 },
+		{ x = 0.48, z = -0.06, height = 1.45, width = 0.40, depth = 0.48, yaw = 24, pitch = -8, roll = -7, tint = 0.30 },
+		{ x = 0.08, z = 0.44, height = 1.18, width = 0.34, depth = 0.42, yaw = 40, pitch = 6, roll = -2, tint = 0.20 },
+		{ x = -0.34, z = -0.46, height = 0.96, width = 0.30, depth = 0.36, yaw = -46, pitch = -5, roll = 6, tint = 0.10 },
+	},
+	gemstone = {
+		{ x = -0.02, z = 0.00, height = 1.90, width = 0.50, depth = 0.60, yaw = 0, pitch = -3, roll = 2, tint = 0.18 },
+		{ x = -0.46, z = 0.06, height = 1.34, width = 0.36, depth = 0.44, yaw = -28, pitch = 8, roll = 8, tint = 0.04 },
+		{ x = 0.43, z = -0.02, height = 1.24, width = 0.34, depth = 0.42, yaw = 24, pitch = -7, roll = -6, tint = 0.30 },
+		{ x = 0.08, z = 0.40, height = 0.92, width = 0.28, depth = 0.34, yaw = 38, pitch = 4, roll = -3, tint = 0.16 },
+	},
+}
+
 local function normalizeVisualKey(value: any): string
 	if value == nil then
 		return ""
@@ -1955,12 +2256,94 @@ local function blendColor(baseColor: Color3, targetColor: Color3, alpha: number)
 	return baseColor:Lerp(targetColor, alpha)
 end
 
+local function cloneDefinition(definition: any): any
+	local clone = {}
+
+	for key, value in pairs(definition) do
+		clone[key] = value
+	end
+
+	return clone
+end
+
+local function cloneDefinitions(definitions: { [number]: any }): { [number]: any }
+	local cloned = table.create(#definitions)
+
+	for index, definition in ipairs(definitions) do
+		cloned[index] = cloneDefinition(definition)
+	end
+
+	return cloned
+end
+
+local function combineHashes(...): number
+	local hash = 5381
+
+	for index = 1, select("#", ...) do
+		local valueHash = ResourceVisuals.getStringHash(select(index, ...))
+		hash = ((hash * 33) + valueHash + index) % MAX_HASH_VALUE
+	end
+
+	return hash
+end
+
+local function hashToUnit(hash: number): number
+	return (hash % 1000000) / 1000000
+end
+
+local function sampleUnit(seed: number, channel: string, index: number): number
+	return hashToUnit(combineHashes(seed, channel, index))
+end
+
+local function sampleSigned(seed: number, channel: string, index: number, amplitude: number): number
+	return ((sampleUnit(seed, channel, index) * 2) - 1) * amplitude
+end
+
+local function sampleRange(seed: number, channel: string, index: number, minValue: number, maxValue: number): number
+	return minValue + ((maxValue - minValue) * sampleUnit(seed, channel, index))
+end
+
+local function resolveVariantDefinitions(variantId: string?): { [number]: any }
+	local normalizedVariant = normalizeVisualKey(variantId)
+	return STATIC_VARIANT_DEFINITIONS[normalizedVariant] or STATIC_VARIANT_DEFINITIONS.gemstone
+end
+
+local function getProceduralRules(variantId: string?): any
+	local normalizedVariant = normalizeVisualKey(variantId)
+	return VARIANT_PROCEDURAL_RULES[normalizedVariant] or VARIANT_PROCEDURAL_RULES.gemstone
+end
+
+local function getProfileOverride(resourceTypeId: string?): any?
+	local resourceKey = normalizeVisualKey(resourceTypeId)
+	return RESOURCE_PROFILE_OVERRIDES[resourceKey]
+end
+
+local function getSourceDefinitionForIndex(variantId: string, baseDefinitions: { [number]: any }, index: number): any
+	if index <= #baseDefinitions then
+		return baseDefinitions[index]
+	end
+
+	-- Extra ingot pieces should stay as trims so the silhouette remains a single grounded bar.
+	if variantId == "ingot" then
+		local edgeDefinitions = { baseDefinitions[3], baseDefinitions[4], baseDefinitions[2] }
+		return edgeDefinitions[((index - #baseDefinitions - 1) % #edgeDefinitions) + 1]
+	end
+
+	-- Extra eldritch pieces should orbit around the center instead of duplicating the anchor shard.
+	if variantId == "eldritch" then
+		local orbitIndex = (((index - #baseDefinitions) - 1) % (#baseDefinitions - 1)) + 2
+		return baseDefinitions[orbitIndex]
+	end
+
+	return baseDefinitions[((index - 1) % #baseDefinitions) + 1]
+end
+
 function ResourceVisuals.getStringHash(value: any): number
 	local hash = 0
 	local text = tostring(value or "")
 
 	for index = 1, #text do
-		hash = (hash * 33 + string.byte(text, index)) % 2147483647
+		hash = (hash * 33 + string.byte(text, index)) % MAX_HASH_VALUE
 	end
 
 	return hash
@@ -1983,6 +2366,10 @@ function ResourceVisuals.getResourceVariantShape(resourceTypeId: string?, resour
 		then resourceDefinition.visualVariant
 		else nil
 	local variantId = explicitVariant or RESOURCE_TYPE_VARIANTS[resourceKey] or "gemstone"
+	local override = getProfileOverride(resourceTypeId)
+	if override ~= nil and type(override.variantId) == "string" then
+		variantId = override.variantId
+	end
 
 	if variantId == "gemstone" then
 		if resourceKey:find("cluster", 1, true) ~= nil or rarityRank == 3 then
@@ -2001,50 +2388,64 @@ function ResourceVisuals.getResourceVariantShape(resourceTypeId: string?, resour
 end
 
 function ResourceVisuals.getOreCrystalDefinitions(variantId: string?): { [number]: any }
-	if variantId == "eldritch" then
-		return {
-			{ x = 0.00, z = 0.00, height = 2.48, width = 0.46, depth = 0.54, yaw = 8, pitch = -6, roll = 4, tint = 0.28 },
-			{ x = 0.00, z = 0.00, height = 1.64, width = 0.22, depth = 0.24, yaw = -22, pitch = 0, roll = 0, tint = 0.42, orbit = true },
-			{ x = 0.56, z = -0.06, height = 1.34, width = 0.24, depth = 0.62, yaw = 34, pitch = -12, roll = 22, tint = 0.22, orbit = true },
-			{ x = -0.54, z = 0.10, height = 1.26, width = 0.24, depth = 0.58, yaw = -30, pitch = 11, roll = -18, tint = 0.14, orbit = true },
-			{ x = 0.16, z = 0.52, height = 0.96, width = 0.18, depth = 0.42, yaw = 68, pitch = 8, roll = -12, tint = 0.34, orbit = true },
-			{ x = -0.14, z = -0.48, height = 0.84, width = 0.16, depth = 0.40, yaw = -64, pitch = -6, roll = 12, tint = 0.18, orbit = true },
-		}
-	elseif variantId == "ingot" then
-		return {
-			{ kind = "body", x = 0.00, z = 0.00, height = 0.58, width = 1.78, depth = 1.12, yaw = 0, tint = 0.10 },
-			{ kind = "top", x = 0.00, z = 0.00, height = 0.22, width = 1.38, depth = 0.74, yaw = 0, tint = 0.22 },
-			{ kind = "edge", x = 0.00, z = -0.42, height = 0.16, width = 1.10, depth = 0.08, yaw = 0, tint = 0.34 },
-			{ kind = "edge", x = 0.00, z = 0.42, height = 0.16, width = 1.10, depth = 0.08, yaw = 0, tint = 0.18 },
-		}
-	elseif variantId == "artifact" then
-		return {
-			{ x = -0.05, z = -0.04, height = 2.35, width = 0.58, depth = 0.68, yaw = 4, pitch = -5, roll = -4, tint = 0.24 },
-			{ x = -0.56, z = 0.06, height = 1.74, width = 0.42, depth = 0.50, yaw = -24, pitch = 7, roll = 8, tint = 0.08 },
-			{ x = 0.52, z = 0.10, height = 1.58, width = 0.38, depth = 0.48, yaw = 26, pitch = -8, roll = -8, tint = 0.34 },
-			{ x = 0.18, z = 0.48, height = 1.12, width = 0.30, depth = 0.38, yaw = 42, pitch = 5, roll = -4, tint = 0.18 },
-			{ x = -0.32, z = -0.44, height = 1.02, width = 0.30, depth = 0.36, yaw = -38, pitch = -5, roll = 5, tint = 0.12 },
-		}
-	elseif variantId == "cluster" then
-		return {
-			{ x = -0.14, z = -0.02, height = 2.02, width = 0.54, depth = 0.62, yaw = -8, pitch = -3, roll = 4, tint = 0.18 },
-			{ x = -0.62, z = 0.04, height = 1.55, width = 0.42, depth = 0.52, yaw = -32, pitch = 8, roll = 9, tint = 0.06 },
-			{ x = 0.48, z = -0.06, height = 1.45, width = 0.40, depth = 0.48, yaw = 24, pitch = -8, roll = -7, tint = 0.30 },
-			{ x = 0.08, z = 0.44, height = 1.18, width = 0.34, depth = 0.42, yaw = 40, pitch = 6, roll = -2, tint = 0.20 },
-			{ x = -0.34, z = -0.46, height = 0.96, width = 0.30, depth = 0.36, yaw = -46, pitch = -5, roll = 6, tint = 0.10 },
-		}
+	return cloneDefinitions(resolveVariantDefinitions(variantId))
+end
+
+function ResourceVisuals.getProceduralSeed(stableVisualId: any, resourceTypeId: string?, variantId: string?): number
+	local visualKey = stableVisualId
+	local normalizedVariant = normalizeVisualKey(variantId)
+	if STATIC_VARIANT_DEFINITIONS[normalizedVariant] == nil then
+		normalizedVariant = "gemstone"
 	end
 
-	return {
-		{ x = -0.02, z = 0.00, height = 1.90, width = 0.50, depth = 0.60, yaw = 0, pitch = -3, roll = 2, tint = 0.18 },
-		{ x = -0.46, z = 0.06, height = 1.34, width = 0.36, depth = 0.44, yaw = -28, pitch = 8, roll = 8, tint = 0.04 },
-		{ x = 0.43, z = -0.02, height = 1.24, width = 0.34, depth = 0.42, yaw = 24, pitch = -7, roll = -6, tint = 0.30 },
-		{ x = 0.08, z = 0.40, height = 0.92, width = 0.28, depth = 0.34, yaw = 38, pitch = 4, roll = -3, tint = 0.16 },
-	}
+	if visualKey == nil or tostring(visualKey) == "" then
+		visualKey = resourceTypeId or normalizedVariant or "resource"
+	end
+
+	return combineHashes(visualKey, resourceTypeId or "resource", normalizedVariant)
+end
+
+function ResourceVisuals.getProceduralCrystalDefinitions(
+	variantId: string?,
+	stableVisualId: any,
+	resourceTypeId: string?
+): { [number]: any }
+	local normalizedVariant = normalizeVisualKey(variantId)
+	if normalizedVariant == "" or STATIC_VARIANT_DEFINITIONS[normalizedVariant] == nil then
+		normalizedVariant = "gemstone"
+	end
+
+	local baseDefinitions = resolveVariantDefinitions(normalizedVariant)
+	local proceduralRules = getProceduralRules(normalizedVariant)
+	local proceduralSeed = ResourceVisuals.getProceduralSeed(stableVisualId, resourceTypeId, normalizedVariant)
+	local countRange = proceduralRules.maxCount - proceduralRules.minCount
+	local targetCount = proceduralRules.minCount + math.floor(sampleUnit(proceduralSeed, "count", 1) * (countRange + 1))
+	local definitions = table.create(targetCount)
+
+	for index = 1, targetCount do
+		local source = cloneDefinition(getSourceDefinitionForIndex(normalizedVariant, baseDefinitions, index))
+		local isPrimaryIngotPiece = normalizedVariant == "ingot" and (source.kind == "body" or source.kind == "top")
+		local positionAmplitude = if isPrimaryIngotPiece then proceduralRules.positionJitter * 0.35 else proceduralRules.positionJitter
+		local rotationAmplitude = if normalizedVariant == "ingot" then proceduralRules.rotationJitter * 0.35 else proceduralRules.rotationJitter
+
+		-- We vary around the static family definitions instead of replacing them so each family keeps its readable silhouette.
+		source.x = source.x + sampleSigned(proceduralSeed, "x", index, positionAmplitude)
+		source.z = source.z + sampleSigned(proceduralSeed, "z", index, positionAmplitude)
+		source.height = math.max(0.08, source.height * sampleRange(proceduralSeed, "height", index, 1 - proceduralRules.heightJitter, 1 + proceduralRules.heightJitter))
+		source.width = math.max(0.08, source.width * sampleRange(proceduralSeed, "width", index, 1 - proceduralRules.widthJitter, 1 + proceduralRules.widthJitter))
+		source.depth = math.max(0.08, source.depth * sampleRange(proceduralSeed, "depth", index, 1 - proceduralRules.depthJitter, 1 + proceduralRules.depthJitter))
+		source.yaw = source.yaw + sampleSigned(proceduralSeed, "yaw", index, rotationAmplitude)
+		source.pitch = (source.pitch or 0) + sampleSigned(proceduralSeed, "pitch", index, rotationAmplitude * 0.75)
+		source.roll = (source.roll or 0) + sampleSigned(proceduralSeed, "roll", index, rotationAmplitude * 0.75)
+		source.tint = math.clamp((source.tint or 0) + sampleSigned(proceduralSeed, "tint", index, proceduralRules.tintJitter), 0, 0.75)
+		definitions[index] = source
+	end
+
+	return definitions
 end
 
 function ResourceVisuals.getPlacedPhysicalScale(sizeId: string?, sizeValue: number?): number
-	return SizeRules.getScaleValue(sizeId, sizeValue)
+	return SizeRules.getResourceVisualScale(sizeId, sizeValue)
 end
 
 function ResourceVisuals.getPlacedRootSize(sizeId: string?, sizeValue: number?): Vector3
@@ -2055,7 +2456,23 @@ function ResourceVisuals.getPlacedBaseHeight(sizeId: string?, sizeValue: number?
 	return PLACED_RESOURCE_BASE_HEIGHT * ResourceVisuals.getPlacedPhysicalScale(sizeId, sizeValue)
 end
 
-function ResourceVisuals.resolveRevealProfile(resourceTypeId: string?, traitId: string?, sizeId: string?, sizeValue: number?)
+function ResourceVisuals.resolvePlacedVisualProfile(
+	resourceTypeId: string?,
+	traitId: string?,
+	sizeId: string?,
+	sizeValue: number?,
+	stableVisualId: any
+)
+	return ResourceVisuals.resolveRevealProfile(resourceTypeId, traitId, sizeId, sizeValue, stableVisualId)
+end
+
+function ResourceVisuals.resolveRevealProfile(
+	resourceTypeId: string?,
+	traitId: string?,
+	sizeId: string?,
+	sizeValue: number?,
+	stableVisualId: any
+)
 	local resourceDefinition = if resourceTypeId ~= nil then Resources[resourceTypeId] else nil
 	local rarity = if resourceDefinition ~= nil and resourceDefinition.rarity ~= nil then resourceDefinition.rarity else "Common"
 	local baseColor = if resourceDefinition ~= nil and resourceDefinition.color ~= nil
@@ -2065,18 +2482,49 @@ function ResourceVisuals.resolveRevealProfile(resourceTypeId: string?, traitId: 
 	local accentColor = blendColor(baseColor, RESOURCE_RARITY_ACCENTS[rarity] or baseColor, math.clamp(0.15 + (rarityRank * 0.12), 0, 0.65))
 	local glowColor = blendColor(accentColor, Color3.fromRGB(255, 255, 255), 0.25)
 	local traitDefinition = if traitId ~= nil then Traits[traitId] else nil
+	local override = getProfileOverride(resourceTypeId)
+	if override ~= nil then
+		if type(override.baseColor) == "Color3" then
+			baseColor = override.baseColor
+		end
+		if type(override.accentColor) == "Color3" then
+			accentColor = override.accentColor
+		end
+		if type(override.glowColor) == "Color3" then
+			glowColor = override.glowColor
+		end
+	end
 	local traitAccent = if traitDefinition ~= nil and traitDefinition.accentColor ~= nil then traitDefinition.accentColor else accentColor
 	local traitGlow = if traitDefinition ~= nil and traitDefinition.glowColor ~= nil then traitDefinition.glowColor else glowColor
 	local sizeFactor = SizeRules.getScaleValue(sizeId, sizeValue)
+	local visualSizeFactor = SizeRules.getResourceVisualScale(sizeId, sizeValue)
 	local burstScale = if traitDefinition ~= nil and type(traitDefinition.burstScale) == "number" then traitDefinition.burstScale else 1
 	local shineStrength = if traitDefinition ~= nil and type(traitDefinition.shineStrength) == "number" then traitDefinition.shineStrength else 0.2
+	local variantId = ResourceVisuals.getResourceVariantShape(resourceTypeId, resourceDefinition)
+	local proceduralId = stableVisualId or resourceTypeId or "resource"
+	local proceduralSeed = ResourceVisuals.getProceduralSeed(proceduralId, resourceTypeId, variantId)
+
+	if override ~= nil then
+		if type(override.scaleMultiplier) == "number" then
+			visualSizeFactor *= override.scaleMultiplier
+		end
+		if type(override.minScale) == "number" then
+			visualSizeFactor = math.max(override.minScale, visualSizeFactor)
+		end
+		if type(override.maxScale) == "number" then
+			visualSizeFactor = math.min(override.maxScale, visualSizeFactor)
+		end
+		if traitDefinition == nil and type(override.shineStrength) == "number" then
+			shineStrength = override.shineStrength
+		end
+	end
 
 	return {
 		resourceTypeId = resourceTypeId,
 		displayName = if resourceDefinition ~= nil and resourceDefinition.displayName ~= nil then resourceDefinition.displayName else "Resource",
 		rarity = rarity,
 		rarityRank = rarityRank,
-		variantId = ResourceVisuals.getResourceVariantShape(resourceTypeId, resourceDefinition),
+		variantId = variantId,
 		baseColor = baseColor,
 		accentColor = accentColor,
 		glowColor = glowColor,
@@ -2084,10 +2532,13 @@ function ResourceVisuals.resolveRevealProfile(resourceTypeId: string?, traitId: 
 		traitGlowColor = traitGlow,
 		sizeId = sizeId or "medium",
 		sizeValue = sizeFactor,
-		scale = ResourceVisuals.getResourceRarityScale(rarity) * sizeFactor,
+		scale = ResourceVisuals.getResourceRarityScale(rarity) * visualSizeFactor,
 		burstScale = burstScale,
 		shineStrength = shineStrength,
 		hash = ResourceVisuals.getStringHash(resourceTypeId or "resource"),
+		proceduralId = proceduralId,
+		proceduralSeed = proceduralSeed,
+		crystalDefinitions = ResourceVisuals.getProceduralCrystalDefinitions(variantId, proceduralId, resourceTypeId),
 	}
 end
 
@@ -2413,6 +2864,12 @@ function SizeRules.getScaleValue(sizeId: string?, sizeValue: number?): number
 	end
 
 	return 1.0
+end
+
+function SizeRules.getResourceVisualScale(sizeId: string?, sizeValue: number?): number
+	local baseScale = SizeRules.getScaleValue(sizeId, sizeValue)
+	local visualMultiplier = if type(Sizes.resourceVisualScaleMultiplier) == "number" then Sizes.resourceVisualScaleMultiplier else 1.0
+	return baseScale * visualMultiplier
 end
 
 function SizeRules.getSellMultiplier(sizeId: string?, sizeValue: number?): number
@@ -2917,6 +3374,15 @@ export type GeodeQueueEntry = {
 	status: string,
 }
 
+export type ResourceGuideDiscovery = {
+	found: boolean,
+	discoveredTraits: { [string]: boolean },
+}
+
+export type ResourceGuideProgress = {
+	discoveredResources: { [string]: ResourceGuideDiscovery },
+}
+
 export type PlayerProfile = {
 	currencies: {
 		coins: number,
@@ -2934,6 +3400,7 @@ export type PlayerProfile = {
 		items: { [string]: number },
 		pickaxes: { [string]: boolean },
 	},
+	resourceGuide: ResourceGuideProgress,
 	geodeQueue: { GeodeQueueEntry },
 	unclaimedOfflineRewards: OfflineRewardSummary?,
 	dailyRewards: {
@@ -2964,7 +3431,7 @@ export type PlayerProfile = {
 }
 
 local PlayerProfile = {}
-PlayerProfile.SCHEMA_VERSION = 2
+PlayerProfile.SCHEMA_VERSION = 3
 
 local function createTemplate(nowUnix: number): PlayerProfile
 	return {
@@ -2985,6 +3452,9 @@ local function createTemplate(nowUnix: number): PlayerProfile
 			pickaxes = {
 				stone_pickaxe = true,
 			},
+		},
+		resourceGuide = {
+			discoveredResources = {},
 		},
 		geodeQueue = {},
 		unclaimedOfflineRewards = nil,
@@ -3902,6 +4372,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 
 local Resources = require(Shared.Config.Resources)
 local DailyRewardsConfig = require(Shared.Config.DailyRewards)
+local ResourceGuide = require(Shared.Domain.ResourceGuide)
 local Id = require(Shared.Util.Id)
 local Time = require(Shared.Util.Time)
 
@@ -3944,6 +4415,8 @@ local function applyReward(profile, reward, nowUnix)
 					placement = nil,
 				}
 				table.insert(profile.resourceOrder, resourceId)
+				-- Daily resource rewards count as real collection progress, even though they skip geode rolling.
+				ResourceGuide.recordDiscovery(profile, resourceDefinition.id, "none")
 			end
 		end
 	end
@@ -4185,6 +4658,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
 local GeodeState = require(Shared.Domain.GeodeState)
+local ResourceGuide = require(Shared.Domain.ResourceGuide)
 local Resources = require(Shared.Config.Resources)
 local Traits = require(Shared.Config.Traits)
 
@@ -4319,6 +4793,7 @@ function GeodeQueueService:claimEntries(profile, nowUnix, rng, geodeId, playerNa
 			if resource ~= nil then
 				profile.resourcesById[resource.id] = resource
 				table.insert(profile.resourceOrder, resource.id)
+				ResourceGuide.recordDiscovery(profile, resource.resourceTypeId, resource.traitId)
 				table.insert(createdResources, resource)
 				table.insert(createdResourceIds, resource.id)
 				if placementService ~= nil then
@@ -4363,7 +4838,6 @@ function GeodeQueueService:start()
 end
 
 return GeodeQueueService
-
 ]]></string>
           </Properties>
         </Item>
@@ -6605,10 +7079,13 @@ return VaultService
             <string name="Name">WorldReplicaService</string>
             <string name="Source"><![CDATA[--!strict
 
--- Server-authoritative service for World Replica Service that validates requests and mutates gameplay state for this system.
+-- Server-owned world projection service that turns authoritative profile and plot state
+-- into static workspace models for plots, mine/shop set dressing, geodes, resources, and
+-- other replicated presentation without moving gameplay ownership out of server code.
 
+local Lighting = game:GetService("Lighting")
+local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
-
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
@@ -6629,12 +7106,31 @@ local SHARED_FLOOR_NAME = "SharedFloor"
 local PLOT_MARKER_FOLDER_NAME = "PlotMarkers"
 local SHOP_FRONT_NAME = "PickaxeShop"
 local MINE_NAME = "GeodeMine"
+local VAULT_FRONT_NAME = "VaultStation"
+local WORLD_SHELL_NAME = "WorldShell"
+local SKY_DECOR_NAME = "SkyDecor"
+local PLAYER_CALLOUT_FOLDER_NAME = "GemFactoryWorldCallouts"
 local SHOP_PROMPT_ATTRIBUTE = "GemFactoryShopPrompt"
+local VAULT_PROMPT_ATTRIBUTE = "GemFactoryVaultPrompt"
 local MINE_TARGET_ATTRIBUTE = "GemFactoryMineTarget"
 local MINE_ZONE_ATTRIBUTE = "GemFactoryMineZone"
-local STATIC_WORLD_LAYOUT_VERSION = 3
+local STATIC_WORLD_LAYOUT_VERSION = 7
 local PLOT_SURFACE_COLLIDER_NAME = "PlotSurfaceCollider"
 local REPLICA_TRANSPARENCY_ATTRIBUTE = "ReplicaTransparency"
+local PLOT_SURFACE_OFFSET_Y = 1.2
+local PLOT_SURFACE_HEIGHT = 0.4
+local PLOT_LAYOUT_VERSION = 3
+local PLOT_STAND_CAP_HEIGHT = 0.55
+local PLOT_STAND_CAP_CLEARANCE = 0.06
+local PLOT_STAND_SUPPORT_HEIGHT = 0.9
+local PLOT_STAND_SUPPORT_GAP = 0.08
+local PLOT_STAND_LIP_HEIGHT = 0.18
+local PLOT_STAND_LIP_GAP = 0.02
+local PLOT_STAND_MARKER_HEIGHT = 2.2
+local PLOT_STAND_MARKER_INSET = 2.6
+local MINE_CALLOUT_ANCHOR_NAME = "MineCalloutAnchor"
+local SHOP_CALLOUT_ANCHOR_NAME = "ShopCalloutAnchor"
+local SHOP_PROMPT_ANCHOR_NAME = "ShopPromptAnchor"
 
 local ROCK_VARIANTS = {
 	{
@@ -6701,6 +7197,24 @@ local function clearChildren(container)
 	end
 end
 
+local function getPlayerRootPart(player: Player): BasePart?
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if root ~= nil and root:IsA("BasePart") then
+		return root
+	end
+
+	return nil
+end
+
+local function isPositionInsidePart(position: Vector3, part: BasePart): boolean
+	local localPosition = part.CFrame:PointToObjectSpace(position)
+	local halfSize = part.Size / 2
+	return math.abs(localPosition.X) <= halfSize.X
+		and math.abs(localPosition.Y) <= halfSize.Y
+		and math.abs(localPosition.Z) <= halfSize.Z
+end
+
 local function getPlotHalfSize()
 	return World.plotBaseSize.width / 2, World.plotBaseSize.depth / 2
 end
@@ -6716,6 +7230,464 @@ local function getSharedFloorSize()
 		(World.plotColumns * World.plotSpacing) + World.plotBaseSize.width + padding,
 		2,
 		(math.max(World.plotRows or 1, 1) * World.plotSpacing) + World.plotBaseSize.depth + padding
+end
+
+local function getSharedFloorAppearance()
+	return {
+		color = Color3.fromRGB(92, 146, 74),
+		material = Enum.Material.Grass,
+	}
+end
+
+local function getSkyboxAssetIds()
+	return {
+		SkyboxBk = "rbxassetid://159454299",
+		SkyboxDn = "rbxassetid://159454296",
+		SkyboxFt = "rbxassetid://159454293",
+		SkyboxLf = "rbxassetid://159454286",
+		SkyboxRt = "rbxassetid://159454300",
+		SkyboxUp = "rbxassetid://159454288",
+	}
+end
+
+local function getLightingSpec()
+	return {
+		brightness = 2.85,
+		ambient = Color3.fromRGB(98, 124, 148),
+		outdoorAmbient = Color3.fromRGB(142, 182, 154),
+		colorShiftTop = Color3.fromRGB(90, 122, 138),
+		colorShiftBottom = Color3.fromRGB(42, 68, 60),
+		clockTime = 20.4,
+		exposureCompensation = 0.16,
+		environmentDiffuseScale = 0.46,
+		environmentSpecularScale = 0.5,
+		atmosphere = {
+			color = Color3.fromRGB(126, 181, 212),
+			decay = Color3.fromRGB(38, 56, 82),
+			density = 0.3,
+			glare = 0.1,
+			haze = 1.42,
+		},
+		bloom = {
+			intensity = 0.42,
+			size = 42,
+			threshold = 1.02,
+		},
+		colorCorrection = {
+			brightness = 0.05,
+			contrast = 0.08,
+			saturation = 0.16,
+			tintColor = Color3.fromRGB(223, 241, 255),
+		},
+		sunRays = {
+			intensity = 0.028,
+			spread = 0.19,
+		},
+		skybox = getSkyboxAssetIds(),
+	}
+end
+
+local function getSkyDecorSpec()
+	local width, _, depth = getSharedFloorSize()
+	local halfWidth = (width / 2) - 42
+	local halfDepth = (depth / 2) - 42
+	return {
+		anchorPosition = Vector3.new(World.plotOrigin.x, World.plotOrigin.y + 110, World.plotOrigin.z),
+		anchorSize = Vector3.new(width - 24, 8, depth - 24),
+		nebulae = {},
+		planets = {
+			{
+				name = "PlanetNova",
+				size = Vector3.new(34, 34, 34),
+				offset = Vector3.new(-halfWidth * 0.58, 16, -halfDepth * 0.44),
+				color = Color3.fromRGB(112, 194, 255),
+				material = Enum.Material.Neon,
+				glowColor = Color3.fromRGB(219, 245, 255),
+			},
+			{
+				name = "PlanetPeach",
+				size = Vector3.new(26, 26, 26),
+				offset = Vector3.new(halfWidth * 0.62, 4, halfDepth * 0.5),
+				color = Color3.fromRGB(255, 182, 126),
+				material = Enum.Material.SmoothPlastic,
+				glowColor = Color3.fromRGB(255, 234, 196),
+			},
+			{
+				name = "PlanetMint",
+				size = Vector3.new(18, 18, 18),
+				offset = Vector3.new(-halfWidth * 0.12, -4, halfDepth * 0.62),
+				color = Color3.fromRGB(132, 255, 202),
+				material = Enum.Material.SmoothPlastic,
+				glowColor = Color3.fromRGB(225, 255, 241),
+			},
+			{
+				name = "PlanetViolet",
+				size = Vector3.new(22, 22, 22),
+				offset = Vector3.new(halfWidth * 0.18, 22, -halfDepth * 0.68),
+				color = Color3.fromRGB(191, 170, 255),
+				material = Enum.Material.Neon,
+				glowColor = Color3.fromRGB(239, 232, 255),
+			},
+		},
+		stars = {
+			{
+				name = "StarNorthA",
+				size = Vector3.new(1.5, 1.5, 1.5),
+				offset = Vector3.new(-halfWidth * 0.74, 34, -halfDepth * 0.74),
+				color = Color3.fromRGB(255, 248, 225),
+				transparency = 0.1,
+				glowBrightness = 0.45,
+			},
+			{
+				name = "StarNorthB",
+				size = Vector3.new(1.1, 1.1, 1.1),
+				offset = Vector3.new(-halfWidth * 0.48, 18, -halfDepth * 0.82),
+				color = Color3.fromRGB(194, 231, 255),
+				transparency = 0.16,
+				glowBrightness = 0.3,
+			},
+			{
+				name = "StarNorthC",
+				size = Vector3.new(1.3, 1.3, 1.3),
+				offset = Vector3.new(halfWidth * 0.08, 36, -halfDepth * 0.72),
+				color = Color3.fromRGB(255, 242, 210),
+				transparency = 0.08,
+				glowBrightness = 0.36,
+			},
+			{
+				name = "StarNorthD",
+				size = Vector3.new(0.95, 0.95, 0.95),
+				offset = Vector3.new(halfWidth * 0.42, 26, -halfDepth * 0.78),
+				color = Color3.fromRGB(205, 233, 255),
+				transparency = 0.18,
+				glowBrightness = 0.22,
+			},
+			{
+				name = "StarEastA",
+				size = Vector3.new(1.25, 1.25, 1.25),
+				offset = Vector3.new(halfWidth * 0.76, 12, -halfDepth * 0.32),
+				color = Color3.fromRGB(255, 245, 221),
+				transparency = 0.14,
+				glowBrightness = 0.28,
+			},
+			{
+				name = "StarEastB",
+				size = Vector3.new(1.65, 1.65, 1.65),
+				offset = Vector3.new(halfWidth * 0.82, 42, halfDepth * 0.06),
+				color = Color3.fromRGB(255, 252, 233),
+				transparency = 0.06,
+				glowBrightness = 0.5,
+			},
+			{
+				name = "StarEastC",
+				size = Vector3.new(1.05, 1.05, 1.05),
+				offset = Vector3.new(halfWidth * 0.68, 28, halfDepth * 0.42),
+				color = Color3.fromRGB(184, 227, 255),
+				transparency = 0.18,
+				glowBrightness = 0.22,
+			},
+			{
+				name = "StarSouthA",
+				size = Vector3.new(1.4, 1.4, 1.4),
+				offset = Vector3.new(halfWidth * 0.16, 16, halfDepth * 0.76),
+				color = Color3.fromRGB(255, 246, 228),
+				transparency = 0.1,
+				glowBrightness = 0.34,
+			},
+			{
+				name = "StarSouthB",
+				size = Vector3.new(1.0, 1.0, 1.0),
+				offset = Vector3.new(-halfWidth * 0.24, 38, halfDepth * 0.84),
+				color = Color3.fromRGB(195, 232, 255),
+				transparency = 0.18,
+				glowBrightness = 0.2,
+			},
+			{
+				name = "StarSouthC",
+				size = Vector3.new(1.35, 1.35, 1.35),
+				offset = Vector3.new(-halfWidth * 0.56, 22, halfDepth * 0.66),
+				color = Color3.fromRGB(255, 244, 213),
+				transparency = 0.12,
+				glowBrightness = 0.32,
+			},
+			{
+				name = "StarWestA",
+				size = Vector3.new(1.2, 1.2, 1.2),
+				offset = Vector3.new(-halfWidth * 0.84, 8, halfDepth * 0.18),
+				color = Color3.fromRGB(179, 225, 255),
+				transparency = 0.16,
+				glowBrightness = 0.24,
+			},
+			{
+				name = "StarWestB",
+				size = Vector3.new(1.55, 1.55, 1.55),
+				offset = Vector3.new(-halfWidth * 0.78, 30, -halfDepth * 0.08),
+				color = Color3.fromRGB(255, 249, 234),
+				transparency = 0.08,
+				glowBrightness = 0.42,
+			},
+			{
+				name = "StarCenterA",
+				size = Vector3.new(1.1, 1.1, 1.1),
+				offset = Vector3.new(-halfWidth * 0.06, 50, -halfDepth * 0.14),
+				color = Color3.fromRGB(201, 234, 255),
+				transparency = 0.14,
+				glowBrightness = 0.26,
+			},
+			{
+				name = "StarCenterB",
+				size = Vector3.new(1.45, 1.45, 1.45),
+				offset = Vector3.new(halfWidth * 0.3, 46, halfDepth * 0.18),
+				color = Color3.fromRGB(255, 246, 220),
+				transparency = 0.1,
+				glowBrightness = 0.36,
+			},
+		},
+		shootingStars = {
+			rate = 2,
+			lifetime = NumberRange.new(2.5, 3.6),
+			speed = NumberRange.new(65, 86),
+			rotation = NumberRange.new(0, 360),
+			rotSpeed = NumberRange.new(-12, 12),
+			size = NumberSequence.new({
+				NumberSequenceKeypoint.new(0, 0.85),
+				NumberSequenceKeypoint.new(1, 0.18),
+			}),
+			transparency = NumberSequence.new({
+				NumberSequenceKeypoint.new(0, 0.12),
+				NumberSequenceKeypoint.new(0.2, 0.3),
+				NumberSequenceKeypoint.new(1, 1),
+			}),
+			acceleration = Vector3.new(-14, -10, 0),
+			color = ColorSequence.new(Color3.fromRGB(255, 251, 209), Color3.fromRGB(122, 212, 255)),
+		},
+	}
+end
+
+local function getWorldShellSpecs()
+	local width, _, depth = getSharedFloorSize()
+	local wallHeight = 42
+	local wallThickness = 18
+	local baseY = World.plotOrigin.y + (wallHeight / 2) - 1.5
+	local halfWidth = (width / 2) + (wallThickness / 2) - 2
+	local halfDepth = (depth / 2) + (wallThickness / 2) - 2
+	local crystalColor = Color3.fromRGB(118, 222, 213)
+
+	return {
+		wallHeight = wallHeight,
+		wallThickness = wallThickness,
+		segments = {
+			{
+				name = "NorthWall",
+				size = Vector3.new(width + 26, wallHeight, wallThickness),
+				position = Vector3.new(World.plotOrigin.x, baseY, World.plotOrigin.z - halfDepth),
+				color = Color3.fromRGB(51, 46, 44),
+			},
+			{
+				name = "SouthWall",
+				size = Vector3.new(width + 26, wallHeight, wallThickness),
+				position = Vector3.new(World.plotOrigin.x, baseY, World.plotOrigin.z + halfDepth),
+				color = Color3.fromRGB(55, 48, 47),
+			},
+			{
+				name = "WestWall",
+				size = Vector3.new(wallThickness, wallHeight, depth - 22),
+				position = Vector3.new(World.plotOrigin.x - halfWidth, baseY, World.plotOrigin.z),
+				color = Color3.fromRGB(49, 44, 42),
+			},
+			{
+				name = "EastWall",
+				size = Vector3.new(wallThickness, wallHeight, depth - 22),
+				position = Vector3.new(World.plotOrigin.x + halfWidth, baseY, World.plotOrigin.z),
+				color = Color3.fromRGB(57, 50, 48),
+			},
+		},
+		crystals = {
+			{
+				name = "CrystalNorthA",
+				size = Vector3.new(5, 14, 5),
+				position = Vector3.new(World.plotOrigin.x - 128, World.plotOrigin.y + 13, World.plotOrigin.z - halfDepth + 6),
+				rotation = Vector3.new(14, 26, 8),
+				color = crystalColor,
+			},
+			{
+				name = "CrystalNorthB",
+				size = Vector3.new(4, 11, 4),
+				position = Vector3.new(World.plotOrigin.x + 94, World.plotOrigin.y + 10, World.plotOrigin.z - halfDepth + 4),
+				rotation = Vector3.new(6, -18, -12),
+				color = Color3.fromRGB(166, 245, 232),
+			},
+			{
+				name = "CrystalSouthA",
+				size = Vector3.new(6, 16, 6),
+				position = Vector3.new(World.plotOrigin.x + 116, World.plotOrigin.y + 12, World.plotOrigin.z + halfDepth - 6),
+				rotation = Vector3.new(-12, 12, 16),
+				color = Color3.fromRGB(120, 194, 255),
+			},
+			{
+				name = "CrystalWestA",
+				size = Vector3.new(4, 13, 4),
+				position = Vector3.new(World.plotOrigin.x - halfWidth + 7, World.plotOrigin.y + 11, World.plotOrigin.z - 76),
+				rotation = Vector3.new(8, 64, 12),
+				color = Color3.fromRGB(159, 230, 255),
+			},
+			{
+				name = "CrystalEastA",
+				size = Vector3.new(5, 15, 5),
+				position = Vector3.new(World.plotOrigin.x + halfWidth - 7, World.plotOrigin.y + 13, World.plotOrigin.z + 82),
+				rotation = Vector3.new(-10, -54, -14),
+				color = Color3.fromRGB(147, 255, 199),
+			},
+			{
+				name = "CrystalNorthC",
+				size = Vector3.new(4, 12, 4),
+				position = Vector3.new(World.plotOrigin.x - 36, World.plotOrigin.y + 11, World.plotOrigin.z - halfDepth + 5),
+				rotation = Vector3.new(10, 18, -8),
+				color = Color3.fromRGB(144, 255, 229),
+			},
+			{
+				name = "CrystalNorthD",
+				size = Vector3.new(5, 13, 5),
+				position = Vector3.new(World.plotOrigin.x + 42, World.plotOrigin.y + 12, World.plotOrigin.z - halfDepth + 6),
+				rotation = Vector3.new(-8, -26, 10),
+				color = Color3.fromRGB(106, 222, 255),
+			},
+			{
+				name = "CrystalSouthB",
+				size = Vector3.new(4, 12, 4),
+				position = Vector3.new(World.plotOrigin.x - 88, World.plotOrigin.y + 10, World.plotOrigin.z + halfDepth - 5),
+				rotation = Vector3.new(12, 20, 14),
+				color = Color3.fromRGB(128, 214, 255),
+			},
+			{
+				name = "CrystalWestB",
+				size = Vector3.new(5, 14, 5),
+				position = Vector3.new(World.plotOrigin.x - halfWidth + 6, World.plotOrigin.y + 12, World.plotOrigin.z + 34),
+				rotation = Vector3.new(-6, 52, -10),
+				color = Color3.fromRGB(123, 255, 214),
+			},
+		},
+	}
+end
+
+local function getVaultPromptSpec()
+	local _, _, depth = getSharedFloorSize()
+	return {
+		basePosition = Vector3.new(World.plotOrigin.x, World.plotOrigin.y + 1, World.plotOrigin.z + ((depth / 2) - 34)),
+		promptOffset = Vector3.new(0, 4, -7),
+		promptSize = Vector3.new(16, 6, 12),
+		promptActionText = "Open Vault",
+		promptObjectText = "Treasure Vault",
+		signText = "Vault",
+		calloutText = "Press E to stash, place, or sell treasures.",
+		buildPhysicalStation = false,
+		promptOnlyMarker = true,
+	}
+end
+
+local function getMineFacadeSpec()
+	return {
+		signText = "Geode Mine",
+		calloutText = "Mine here to gather Geodes!",
+		signFont = Enum.Font.FredokaOne,
+		calloutFont = Enum.Font.FredokaOne,
+		hideDistance = 16,
+		hideInsideZone = true,
+	}
+end
+
+local function getMineLayoutSpec()
+	return {
+		platformSize = Vector3.new(48, 2, 32),
+		pathSize = Vector3.new(24, 0.8, 20),
+		pathOffset = Vector3.new(-6, 1.4, 0),
+		zoneSize = Vector3.new(40, 16, 24),
+		zoneOffset = Vector3.new(0, 8, 0),
+		faceSize = Vector3.new(38, 26, 5),
+		faceOffset = Vector3.new(0, 13, -11),
+		rimSize = Vector3.new(42, 30, 3),
+		rimOffset = Vector3.new(0, 14, -8.7),
+		targetSize = Vector3.new(24, 14, 1),
+		targetOffset = Vector3.new(0, 10, -6.6),
+		shellSeams = {
+			{
+				name = "MineShellSeamLeft",
+				size = Vector3.new(7.5, 28, 9),
+				localOffset = Vector3.new(-20.5, 13.5, -14.2),
+				color = Color3.fromRGB(60, 52, 46),
+				material = Enum.Material.Rock,
+				rotation = Vector3.new(0, 0, 10),
+			},
+			{
+				name = "MineShellSeamRight",
+				size = Vector3.new(7.5, 28, 9),
+				localOffset = Vector3.new(20.5, 13.5, -14.2),
+				color = Color3.fromRGB(60, 52, 46),
+				material = Enum.Material.Rock,
+				rotation = Vector3.new(0, 0, -10),
+			},
+			{
+				name = "MineShellSeamCrown",
+				size = Vector3.new(26, 10, 8),
+				localOffset = Vector3.new(0, 26.5, -13.6),
+				color = Color3.fromRGB(72, 62, 56),
+				material = Enum.Material.Slate,
+				rotation = Vector3.new(-6, 0, 0),
+			},
+		},
+	}
+end
+
+local function getShopFrontSpec()
+	return {
+		signText = "Pickaxe Shop",
+		signFont = Enum.Font.GothamBold,
+		calloutText = "Buy pickaxes here!",
+		calloutFont = Enum.Font.FredokaOne,
+		hideDistance = 14,
+	}
+end
+
+local function getShopLayoutSpec()
+	return {
+		stallBaseSize = Vector3.new(20, 2, 36),
+		backWallSize = Vector3.new(1.2, 8, 28),
+		backWallOffset = Vector3.new(7.4, 5, 0),
+		signSize = Vector3.new(0.8, 4, 18),
+		signOffset = Vector3.new(6.7, 7.2, 0),
+		shelfSize = Vector3.new(1, 1, 24),
+		shelfOffset = Vector3.new(6.1, 4.8, 0),
+		promptAnchorSize = Vector3.new(2, 5, 24),
+		promptAnchorOffset = Vector3.new(-5.5, 4, 0),
+		calloutAnchorSize = Vector3.new(2, 2, 2),
+		calloutAnchorOffset = Vector3.new(0, 10.2, 0),
+		shellSeams = {
+			{
+				name = "ShopShellSeamNorth",
+				size = Vector3.new(9, 12, 10),
+				localOffset = Vector3.new(12.1, 6.8, -11.5),
+				color = Color3.fromRGB(57, 50, 47),
+				material = Enum.Material.Rock,
+				rotation = Vector3.new(0, 12, 0),
+			},
+			{
+				name = "ShopShellSeamSouth",
+				size = Vector3.new(9, 12, 10),
+				localOffset = Vector3.new(12.1, 6.8, 11.5),
+				color = Color3.fromRGB(57, 50, 47),
+				material = Enum.Material.Rock,
+				rotation = Vector3.new(0, -12, 0),
+			},
+			{
+				name = "ShopShellCap",
+				size = Vector3.new(8.5, 6, 26),
+				localOffset = Vector3.new(12.4, 11.2, 0),
+				color = Color3.fromRGB(72, 63, 58),
+				material = Enum.Material.Slate,
+				rotation = Vector3.new(0, 0, 5),
+			},
+		},
+	}
 end
 
 local function getResourceColor(resourceId, resourcesById)
@@ -6925,6 +7897,122 @@ local function resolveResourceVisualProfile(resourceTypeId, resourceDefinition, 
 	local profile = ResourceVisuals.resolveRevealProfile(resourceTypeId, nil, sizeId, sizeValue)
 	profile.sizeDisplayName = SizeRules.getDisplayName(sizeId, sizeValue)
 	return profile
+end
+
+local function resolvePlacedVisualProfile(resourceTypeId, resourceDefinition, traitId, sizeId, sizeValue, stableVisualId)
+	local resolvePlacedProfile = ResourceVisuals.resolvePlacedVisualProfile
+	local profile = nil
+	if type(resolvePlacedProfile) == "function" then
+		local ok, resolvedProfile = pcall(resolvePlacedProfile, resourceTypeId, traitId, sizeId, sizeValue, stableVisualId)
+		if ok and type(resolvedProfile) == "table" then
+			profile = resolvedProfile
+		end
+	end
+
+	if profile == nil then
+		profile = ResourceVisuals.resolveRevealProfile(resourceTypeId, traitId, sizeId, sizeValue, stableVisualId)
+		profile.sizeDisplayName = SizeRules.getDisplayName(sizeId, sizeValue)
+	end
+
+	profile.sizeDisplayName = SizeRules.getDisplayName(sizeId, sizeValue)
+	return profile
+end
+
+local function normalizeProceduralLayout(layout, fallbackVariantId)
+	if type(layout) ~= "table" then
+		return nil
+	end
+
+	local pieces = nil
+	if #layout > 0 then
+		pieces = layout
+	elseif type(layout.pieces) == "table" then
+		pieces = layout.pieces
+	elseif type(layout.shards) == "table" then
+		pieces = layout.shards
+	elseif type(layout.crystals) == "table" then
+		pieces = layout.crystals
+	end
+
+	if pieces == nil then
+		return nil
+	end
+
+	return {
+		variantId = if type(layout.variantId) == "string" then layout.variantId else fallbackVariantId,
+		pieces = pieces,
+	}
+end
+
+local function resolvePlacedProceduralLayout(profile, seedKey)
+	local fallbackVariantId = profile.variantId or "gemstone"
+	local profileCandidates = {
+		profile.crystalDefinitions,
+		profile.proceduralLayout,
+		profile.placedLayout,
+		profile.visualLayout,
+		profile.shapeLayout,
+	}
+
+	for _, candidate in ipairs(profileCandidates) do
+		local normalized = normalizeProceduralLayout(candidate, fallbackVariantId)
+		if normalized ~= nil then
+			return normalized
+		end
+	end
+
+	local resolver = ResourceVisuals.resolvePlacedLayout or ResourceVisuals.resolveProceduralLayout
+	if type(resolver) == "function" then
+		local ok, layout = pcall(resolver, profile, seedKey)
+		local normalized = if ok then normalizeProceduralLayout(layout, fallbackVariantId) else nil
+		if normalized ~= nil then
+			return normalized
+		end
+	end
+
+	return {
+		variantId = fallbackVariantId,
+		pieces = ResourceVisuals.getOreCrystalDefinitions(fallbackVariantId),
+	}
+end
+
+local function getPartVerticalBounds(part: BasePart): (number, number)
+	local halfHeight = (math.abs(part.CFrame.XVector.Y) * part.Size.X * 0.5)
+		+ (math.abs(part.CFrame.YVector.Y) * part.Size.Y * 0.5)
+		+ (math.abs(part.CFrame.ZVector.Y) * part.Size.Z * 0.5)
+	return part.Position.Y - halfHeight, part.Position.Y + halfHeight
+end
+
+local function groundResourceVisualToSurface(resourcePart: BasePart, surfaceTopY: number)
+	local minY = math.huge
+	local parts = { resourcePart }
+
+	local rootMinY = getPartVerticalBounds(resourcePart)
+	minY = math.min(minY, rootMinY)
+
+	for _, descendant in ipairs(resourcePart:GetDescendants()) do
+		if descendant:IsA("BasePart") then
+			local partMinY = getPartVerticalBounds(descendant)
+			minY = math.min(minY, partMinY)
+			table.insert(parts, descendant)
+		end
+	end
+
+	local lift = surfaceTopY - minY
+	if math.abs(lift) < 0.001 then
+		return
+	end
+
+	-- Place the authored visual against the actual plot surface instead of assuming the root
+	-- size fully describes the silhouette. This keeps taller rarity variants and future
+	-- procedural layouts grounded on the transparent plot layer without shared-side changes.
+	for _, part in ipairs(parts) do
+		part.CFrame += Vector3.new(0, lift, 0)
+	end
+end
+
+local function getPlotSurfaceTopY(plot): number
+	return plot.position.y + PLOT_SURFACE_OFFSET_Y + (PLOT_SURFACE_HEIGHT / 2)
 end
 
 local function createVisualBasePart(parent, className, name, size, position, color, material)
@@ -7260,10 +8348,6 @@ getResourceVariantShape = function(resourceTypeId, resourceDefinition)
 	return ResourceVisuals.getResourceVariantShape(resourceTypeId, resourceDefinition)
 end
 
-local function getOreCrystalDefinitions(variantId)
-	return ResourceVisuals.getOreCrystalDefinitions(variantId)
-end
-
 local function buildOreShard(parentPart, profile, rootCFrame, baseTopY, shard, index)
 	local scale = profile.scale
 	local height = shard.height * scale
@@ -7326,7 +8410,7 @@ local function buildOreShard(parentPart, profile, rootCFrame, baseTopY, shard, i
 	setReplicaTransparency(sideFacet, 0.48)
 end
 
-local function buildCrystalOreCluster(resourcePart, profile, rootYaw)
+local function buildCrystalOreCluster(resourcePart, profile, rootYaw, layout)
 	local scale = profile.scale
 	local baseSize = Vector3.new(2.35, 0.36, 1.85) * scale
 	local rootCFrame = CFrame.new(resourcePart.Position) * CFrame.Angles(0, rootYaw, 0)
@@ -7351,12 +8435,12 @@ local function buildCrystalOreCluster(resourcePart, profile, rootYaw)
 	lip.CFrame = rootCFrame * CFrame.new(0, baseTopY + (0.035 * scale), 0)
 	setReplicaTransparency(lip, 0.18)
 
-	for index, shard in ipairs(getOreCrystalDefinitions(profile.variantId)) do
+	for index, shard in ipairs(layout.pieces) do
 		buildOreShard(resourcePart, profile, rootCFrame, baseTopY, shard, index)
 	end
 end
 
-local function buildIngotResource(resourcePart, profile, rootYaw)
+local function buildIngotResource(resourcePart, profile, rootYaw, layout)
 	local scale = profile.scale
 	local rootCFrame = CFrame.new(resourcePart.Position) * CFrame.Angles(0, rootYaw, 0)
 	local baseSize = Vector3.new(2.5, 0.62, 1.65) * scale
@@ -7380,55 +8464,39 @@ local function buildIngotResource(resourcePart, profile, rootYaw)
 	roughBase.CFrame = rootCFrame * CFrame.new(0, -(baseSize.Y * 0.42), 0)
 	setReplicaTransparency(roughBase, 0.04)
 
-	local crown = createVisualBasePart(
-		resourcePart,
-		"Part",
-		"IngotCrown",
-		Vector3.new(1.82, 0.16, 1.02) * scale,
-		resourcePart.Position,
-		blendColor(profile.baseColor, profile.glowColor, 0.14),
-		Enum.Material.Metal
-	)
-	crown.CFrame = rootCFrame * CFrame.new(0, (baseSize.Y * 0.34), 0)
-	crown.Reflectance = 0.18
-
-	local leftBevel = createVisualBasePart(
-		resourcePart,
-		"WedgePart",
-		"IngotLeftBevel",
-		Vector3.new(0.62, 0.18, 1.08) * scale,
-		resourcePart.Position,
-		blendColor(profile.baseColor, Color3.fromRGB(255, 255, 255), 0.10),
-		Enum.Material.Metal
-	)
-	leftBevel.CFrame = rootCFrame
-		* CFrame.new(-(crown.Size.X * 0.5), (baseSize.Y * 0.30), 0)
-		* CFrame.Angles(0, math.rad(180), math.rad(90))
-
-	local rightBevel = createVisualBasePart(
-		resourcePart,
-		"WedgePart",
-		"IngotRightBevel",
-		Vector3.new(0.62, 0.18, 1.08) * scale,
-		resourcePart.Position,
-		blendColor(profile.baseColor, profile.glowColor, 0.16),
-		Enum.Material.Metal
-	)
-	rightBevel.CFrame = rootCFrame
-		* CFrame.new(crown.Size.X * 0.5, (baseSize.Y * 0.30), 0)
-		* CFrame.Angles(0, 0, -math.rad(90))
-
-	local accentStrip = createVisualBasePart(
-		resourcePart,
-		"Part",
-		"IngotAccent",
-		Vector3.new(1.28, 0.05, 0.14) * scale,
-		resourcePart.Position,
-		blendColor(profile.accentColor, profile.glowColor, 0.24),
-		if profile.rarityRank >= 4 then Enum.Material.Neon else Enum.Material.Metal
-	)
-	accentStrip.CFrame = rootCFrame * CFrame.new(0, (baseSize.Y * 0.42), 0)
-	setReplicaTransparency(accentStrip, if profile.rarityRank >= 4 then 0.18 else 0.42)
+	for index, shard in ipairs(layout.pieces) do
+		local pieceSize = Vector3.new(shard.width or 1.2, shard.height or 0.3, shard.depth or 0.9) * scale
+		local pieceMaterial = if shard.kind == "body"
+			then Enum.Material.Metal
+			elseif shard.kind == "edge" and profile.rarityRank >= 4
+			then Enum.Material.Neon
+			else Enum.Material.SmoothPlastic
+		local piece = createVisualBasePart(
+			resourcePart,
+			if shard.className == "WedgePart" then "WedgePart" else "Part",
+			string.format("IngotPiece_%d", index),
+			pieceSize,
+			resourcePart.Position,
+			blendColor(profile.baseColor, profile.glowColor, shard.tint or 0.15),
+			pieceMaterial
+		)
+		piece.CFrame = rootCFrame
+			* CFrame.new(
+				(shard.x or 0) * scale,
+				((shard.height or 0.3) * scale * 0.5) - (0.32 * scale),
+				(shard.z or 0) * scale
+			)
+			* CFrame.Angles(math.rad(shard.pitch or 0), math.rad(shard.yaw or 0), math.rad(shard.roll or 0))
+		piece.Reflectance = if shard.kind == "body" then 0.18 else 0.06
+		setReplicaTransparency(
+			piece,
+			if shard.kind == "body"
+				then 0.04
+				elseif pieceMaterial == Enum.Material.Neon
+				then 0.22
+				else 0.16
+		)
+	end
 
 	local edgeGlint = createVisualBasePart(
 		resourcePart,
@@ -7443,7 +8511,7 @@ local function buildIngotResource(resourcePart, profile, rootYaw)
 	setReplicaTransparency(edgeGlint, 0.62)
 end
 
-local function buildEldritchResource(resourcePart, profile, rootYaw)
+local function buildEldritchResource(resourcePart, profile, rootYaw, layout)
 	local scale = profile.scale
 	local rootCFrame = CFrame.new(resourcePart.Position) * CFrame.Angles(0, rootYaw, 0)
 	local pedestalSize = Vector3.new(1.82, 0.28, 1.82) * scale
@@ -7481,8 +8549,7 @@ local function buildEldritchResource(resourcePart, profile, rootYaw)
 	heart.CFrame = rootCFrame * CFrame.new(0, 1.18 * scale, 0)
 	setReplicaTransparency(heart, 0.10)
 
-	local orbitDefs = getOreCrystalDefinitions("eldritch")
-	for index, shard in ipairs(orbitDefs) do
+	for index, shard in ipairs(layout.pieces) do
 		if index > 1 then
 			buildOreShard(resourcePart, profile, rootCFrame, 0.90 * scale, shard, index)
 		end
@@ -7516,27 +8583,31 @@ local function buildEldritchResource(resourcePart, profile, rootYaw)
 	end
 end
 
-local function buildResourceVisual(resourcePart, resourceTypeId, traitId, sizeId, sizeValue)
+local function buildResourceVisual(resourcePart, resourceTypeId, traitId, sizeId, sizeValue, surfaceTopY)
 	local resourceDefinition = if resourceTypeId ~= nil then Resources[resourceTypeId] else nil
-	local profile = resolveResourceVisualProfile(resourceTypeId, resourceDefinition, sizeId, sizeValue)
+	local stableVisualId = tostring(resourcePart:GetAttribute("ResourceId") or resourcePart.Name)
+	local profile = resolvePlacedVisualProfile(resourceTypeId, resourceDefinition, traitId, sizeId, sizeValue, stableVisualId)
+	local layout = resolvePlacedProceduralLayout(profile, stableVisualId)
 	local rootYaw = math.rad((getStringHash(resourcePart.Name) % 360) - 180)
+	local visualVariantId = layout.variantId or profile.variantId
 	local labelAccentColor = WorldLabelPresentation.getPlacedResourceLabelAccentColor(profile.rarity)
 
-	resourcePart:SetAttribute("ResourceVisualVariant", profile.variantId)
+	resourcePart:SetAttribute("ResourceVisualVariant", visualVariantId)
 	resourcePart:SetAttribute("ResourceRarity", profile.rarity)
 	resourcePart:SetAttribute("ResourceRarityRank", profile.rarityRank)
 	resourcePart:SetAttribute("TraitDisplayName", resolveTraitDisplayName(traitId) or "None")
 	resourcePart:SetAttribute("ResourceLabelAccentColor", labelAccentColor)
 
-	if profile.variantId == "ingot" then
-		buildIngotResource(resourcePart, profile, rootYaw)
-	elseif profile.variantId == "eldritch" then
-		buildEldritchResource(resourcePart, profile, rootYaw)
+	if visualVariantId == "ingot" then
+		buildIngotResource(resourcePart, profile, rootYaw, layout)
+	elseif visualVariantId == "eldritch" then
+		buildEldritchResource(resourcePart, profile, rootYaw, layout)
 	else
-		buildCrystalOreCluster(resourcePart, profile, rootYaw)
+		buildCrystalOreCluster(resourcePart, profile, rootYaw, layout)
 	end
+	groundResourceVisualToSurface(resourcePart, surfaceTopY)
 
-	createRarityEffects(resourcePart, profile, profile.variantId)
+	createRarityEffects(resourcePart, profile, visualVariantId)
 	local traitDisplayName = applyTraitEffects(resourcePart, profile, traitId)
 	if traitDisplayName == nil then
 		traitDisplayName = "None"
@@ -7621,6 +8692,7 @@ end
 
 local function buildPlotSignature(plot, profile, nowUnix)
 	local signatureParts = {
+		tostring(PLOT_LAYOUT_VERSION),
 		tostring(plot.userId or "none"),
 		tostring(plot.index or 0),
 		tostring(profile and #profile.resourceOrder or 0),
@@ -7711,6 +8783,27 @@ local function createDecorPart(parent, name, size, position, color, material)
 	return part
 end
 
+local function addStaticSeamFillers(parent, basePosition, seamSpecs)
+	for _, seamSpec in ipairs(seamSpecs) do
+		local seamPart = createPart(
+			parent,
+			seamSpec.name,
+			seamSpec.size,
+			basePosition + seamSpec.localOffset,
+			seamSpec.color,
+			seamSpec.material
+		)
+		local rotation = seamSpec.rotation
+		if rotation ~= nil then
+			seamPart.CFrame = CFrame.new(seamPart.Position)
+				* CFrame.Angles(math.rad(rotation.X), math.rad(rotation.Y), math.rad(rotation.Z))
+		end
+		if seamSpec.transparency ~= nil then
+			seamPart.Transparency = seamSpec.transparency
+		end
+	end
+end
+
 local function pivotStaticModel(model, sourceBaseCFrame, targetBaseCFrame)
 	for _, descendant in ipairs(model:GetDescendants()) do
 		if descendant:IsA("BasePart") then
@@ -7721,6 +8814,7 @@ end
 
 local function buildSharedFloor(worldFolder)
 	local width, height, depth = getSharedFloorSize()
+	local appearance = getSharedFloorAppearance()
 	local floor = worldFolder:FindFirstChild(SHARED_FLOOR_NAME)
 	if floor == nil then
 		floor = createPart(
@@ -7728,14 +8822,14 @@ local function buildSharedFloor(worldFolder)
 			SHARED_FLOOR_NAME,
 			Vector3.new(width, height, depth),
 			Vector3.new(World.plotOrigin.x, World.plotOrigin.y - 1.5, World.plotOrigin.z),
-			Color3.fromRGB(26, 24, 34),
-			Enum.Material.Slate
+			appearance.color,
+			appearance.material
 		)
 	else
 		floor.Size = Vector3.new(width, height, depth)
 		floor.Position = Vector3.new(World.plotOrigin.x, World.plotOrigin.y - 1.5, World.plotOrigin.z)
-		floor.Color = Color3.fromRGB(26, 24, 34)
-		floor.Material = Enum.Material.Slate
+		floor.Color = appearance.color
+		floor.Material = appearance.material
 	end
 
 	local markers = worldFolder:FindFirstChild(PLOT_MARKER_FOLDER_NAME)
@@ -7748,6 +8842,325 @@ local function buildSharedFloor(worldFolder)
 	markers.Parent = worldFolder
 
 	return floor, markers
+end
+
+local function ensureLighting()
+	local spec = getLightingSpec()
+	Lighting.Brightness = spec.brightness
+	Lighting.Ambient = spec.ambient
+	Lighting.OutdoorAmbient = spec.outdoorAmbient
+	Lighting.ColorShift_Top = spec.colorShiftTop
+	Lighting.ColorShift_Bottom = spec.colorShiftBottom
+	Lighting.ClockTime = spec.clockTime
+	Lighting.ExposureCompensation = spec.exposureCompensation
+	Lighting.EnvironmentDiffuseScale = spec.environmentDiffuseScale
+	Lighting.EnvironmentSpecularScale = spec.environmentSpecularScale
+
+	local sky = Lighting:FindFirstChild("GemFactoryGalaxySky")
+	if sky == nil then
+		sky = Instance.new("Sky")
+		sky.Name = "GemFactoryGalaxySky"
+		sky.Parent = Lighting
+	end
+	for propertyName, assetId in pairs(spec.skybox) do
+		(sky :: any)[propertyName] = assetId
+	end
+
+	local atmosphere = Lighting:FindFirstChild("GemFactoryAtmosphere")
+	if atmosphere == nil then
+		atmosphere = Instance.new("Atmosphere")
+		atmosphere.Name = "GemFactoryAtmosphere"
+		atmosphere.Parent = Lighting
+	end
+	atmosphere.Color = spec.atmosphere.color
+	atmosphere.Decay = spec.atmosphere.decay
+	atmosphere.Density = spec.atmosphere.density
+	atmosphere.Glare = spec.atmosphere.glare
+	atmosphere.Haze = spec.atmosphere.haze
+
+	local bloom = Lighting:FindFirstChild("GemFactoryBloom")
+	if bloom == nil then
+		bloom = Instance.new("BloomEffect")
+		bloom.Name = "GemFactoryBloom"
+		bloom.Parent = Lighting
+	end
+	bloom.Intensity = spec.bloom.intensity
+	bloom.Size = spec.bloom.size
+	bloom.Threshold = spec.bloom.threshold
+
+	local colorCorrection = Lighting:FindFirstChild("GemFactoryColorCorrection")
+	if colorCorrection == nil then
+		colorCorrection = Instance.new("ColorCorrectionEffect")
+		colorCorrection.Name = "GemFactoryColorCorrection"
+		colorCorrection.Parent = Lighting
+	end
+	colorCorrection.Brightness = spec.colorCorrection.brightness
+	colorCorrection.Contrast = spec.colorCorrection.contrast
+	colorCorrection.Saturation = spec.colorCorrection.saturation
+	colorCorrection.TintColor = spec.colorCorrection.tintColor
+
+	local sunRays = Lighting:FindFirstChild("GemFactorySunRays")
+	if sunRays == nil then
+		sunRays = Instance.new("SunRaysEffect")
+		sunRays.Name = "GemFactorySunRays"
+		sunRays.Parent = Lighting
+	end
+	sunRays.Intensity = spec.sunRays.intensity
+	sunRays.Spread = spec.sunRays.spread
+end
+
+local function buildSkyDecor(worldFolder)
+	local decorFolder = worldFolder:FindFirstChild(SKY_DECOR_NAME)
+	if decorFolder ~= nil then
+		if decorFolder:GetAttribute("StaticLayoutVersion") == STATIC_WORLD_LAYOUT_VERSION then
+			return decorFolder
+		end
+		decorFolder:Destroy()
+	end
+
+	decorFolder = Instance.new("Model")
+	decorFolder.Name = SKY_DECOR_NAME
+	decorFolder:SetAttribute("StaticLayoutVersion", STATIC_WORLD_LAYOUT_VERSION)
+	decorFolder.Parent = worldFolder
+
+	local spec = getSkyDecorSpec()
+	local anchor = createDecorPart(
+		decorFolder,
+		"SkyAnchor",
+		spec.anchorSize,
+		spec.anchorPosition,
+		Color3.fromRGB(255, 255, 255),
+		Enum.Material.SmoothPlastic
+	)
+	anchor.Transparency = 1
+	anchor.CanQuery = false
+	anchor.CanTouch = false
+
+	for _, planetSpec in ipairs(spec.planets) do
+		local planet = createDecorPart(
+			decorFolder,
+			planetSpec.name,
+			planetSpec.size,
+			spec.anchorPosition + planetSpec.offset,
+			planetSpec.color,
+			planetSpec.material
+		)
+		planet.Shape = Enum.PartType.Ball
+		planet.Transparency = 0.08
+		local light = createColoredLight(planet, planetSpec.glowColor, 0.7, planetSpec.size.X * 1.8)
+		light.Brightness = 0.7
+	end
+
+	-- Keep the backdrop deterministic and server-authored so every server projects the
+	-- same denser starfield without relying on client-only sky dressing.
+	for _, starSpec in ipairs(spec.stars) do
+		local star = createDecorPart(
+			decorFolder,
+			starSpec.name,
+			starSpec.size,
+			spec.anchorPosition + starSpec.offset,
+			starSpec.color,
+			Enum.Material.Neon
+		)
+		star.Shape = Enum.PartType.Ball
+		star.Transparency = starSpec.transparency
+		local light = createColoredLight(star, starSpec.color, starSpec.glowBrightness, math.max(6, starSpec.size.X * 9))
+		light.Brightness = starSpec.glowBrightness
+	end
+
+	for _, nebulaSpec in ipairs(spec.nebulae) do
+		local nebula = createDecorPart(
+			decorFolder,
+			nebulaSpec.name,
+			nebulaSpec.size,
+			spec.anchorPosition + nebulaSpec.offset,
+			nebulaSpec.color,
+			Enum.Material.ForceField
+		)
+		nebula.Shape = Enum.PartType.Ball
+		nebula.Transparency = nebulaSpec.transparency
+	end
+
+	local shootingStars = Instance.new("ParticleEmitter")
+	shootingStars.Name = "ShootingStars"
+	shootingStars.Texture = "rbxasset://textures/particles/sparkles_main.dds"
+	shootingStars.Color = spec.shootingStars.color
+	shootingStars.LightEmission = 1
+	shootingStars.Rate = spec.shootingStars.rate
+	shootingStars.Lifetime = spec.shootingStars.lifetime
+	shootingStars.Speed = spec.shootingStars.speed
+	shootingStars.Rotation = spec.shootingStars.rotation
+	shootingStars.RotSpeed = spec.shootingStars.rotSpeed
+	shootingStars.Size = spec.shootingStars.size
+	shootingStars.Transparency = spec.shootingStars.transparency
+	shootingStars.Acceleration = spec.shootingStars.acceleration
+	shootingStars.SpreadAngle = Vector2.new(8, 8)
+	shootingStars.ZOffset = 1
+	shootingStars.Parent = anchor
+
+	return decorFolder
+end
+
+local function buildWorldShell(worldFolder)
+	local shell = worldFolder:FindFirstChild(WORLD_SHELL_NAME)
+	if shell ~= nil then
+		if shell:GetAttribute("StaticLayoutVersion") == STATIC_WORLD_LAYOUT_VERSION then
+			return shell
+		end
+		shell:Destroy()
+	end
+
+	shell = Instance.new("Model")
+	shell.Name = WORLD_SHELL_NAME
+	shell:SetAttribute("StaticLayoutVersion", STATIC_WORLD_LAYOUT_VERSION)
+	shell.Parent = worldFolder
+
+	local spec = getWorldShellSpecs()
+	for _, segmentSpec in ipairs(spec.segments) do
+		local wall = createPart(
+			shell,
+			segmentSpec.name,
+			segmentSpec.size,
+			segmentSpec.position,
+			segmentSpec.color,
+			Enum.Material.Rock
+		)
+		wall.TopSurface = Enum.SurfaceType.Smooth
+	end
+
+	for _, crystalSpec in ipairs(spec.crystals) do
+		local crystal = createDecorPart(
+			shell,
+			crystalSpec.name,
+			crystalSpec.size,
+			crystalSpec.position,
+			crystalSpec.color,
+			Enum.Material.Neon
+		)
+		crystal.CFrame = CFrame.new(crystalSpec.position)
+			* CFrame.Angles(
+				math.rad(crystalSpec.rotation.X),
+				math.rad(crystalSpec.rotation.Y),
+				math.rad(crystalSpec.rotation.Z)
+			)
+
+		local glow = createDecorPart(
+			crystal,
+			"Glow",
+			crystalSpec.size * 1.25,
+			crystalSpec.position,
+			crystalSpec.color:Lerp(Color3.fromRGB(255, 255, 255), 0.35),
+			Enum.Material.ForceField
+		)
+		glow.CFrame = crystal.CFrame
+		glow.Transparency = 0.7
+
+		createColoredLight(crystal, crystalSpec.color, 0.6, 18)
+	end
+
+	return shell
+end
+
+local function buildVaultFront(worldFolder)
+	local vaultFront = worldFolder:FindFirstChild(VAULT_FRONT_NAME)
+	if vaultFront ~= nil then
+		if vaultFront:GetAttribute("StaticLayoutVersion") == STATIC_WORLD_LAYOUT_VERSION then
+			return vaultFront
+		end
+		vaultFront:Destroy()
+	end
+
+	vaultFront = Instance.new("Model")
+	vaultFront.Name = VAULT_FRONT_NAME
+	vaultFront:SetAttribute("StaticLayoutVersion", STATIC_WORLD_LAYOUT_VERSION)
+	vaultFront.Parent = worldFolder
+
+	local spec = getVaultPromptSpec()
+	-- The vault interaction is now prompt-led: keep the authoritative server-owned
+	-- proximity prompt in the world, but remove the chest/station build that only
+	-- existed to host the interaction.
+	local promptAnchor = createDecorPart(
+		vaultFront,
+		"VaultPromptAnchor",
+		spec.promptSize,
+		spec.basePosition + spec.promptOffset,
+		Color3.fromRGB(92, 180, 170),
+		Enum.Material.ForceField
+	)
+	promptAnchor.Transparency = 1
+	promptAnchor.CanQuery = false
+	promptAnchor.CanTouch = false
+	promptAnchor:SetAttribute(VAULT_PROMPT_ATTRIBUTE, true)
+
+	local callout = Instance.new("BillboardGui")
+	callout.Name = "VaultCallout"
+	callout.AlwaysOnTop = true
+	callout.Size = UDim2.fromOffset(260, 70)
+	callout.StudsOffset = Vector3.new(0, 2.8, 0)
+	callout.MaxDistance = 48
+	callout.Parent = promptAnchor
+
+	local calloutFrame = Instance.new("Frame")
+	calloutFrame.BackgroundColor3 = Color3.fromRGB(30, 33, 52)
+	calloutFrame.BackgroundTransparency = 0.18
+	calloutFrame.Size = UDim2.fromScale(1, 1)
+	calloutFrame.Parent = callout
+
+	local calloutCorner = Instance.new("UICorner")
+	calloutCorner.CornerRadius = UDim.new(0, 10)
+	calloutCorner.Parent = calloutFrame
+
+	local calloutStroke = Instance.new("UIStroke")
+	calloutStroke.Color = Color3.fromRGB(154, 231, 222)
+	calloutStroke.Thickness = 1.4
+	calloutStroke.Transparency = 0.08
+	calloutStroke.Parent = calloutFrame
+
+	local titleLabel = Instance.new("TextLabel")
+	titleLabel.Name = "Title"
+	titleLabel.BackgroundTransparency = 1
+	titleLabel.Position = UDim2.fromOffset(0, 6)
+	titleLabel.Size = UDim2.new(1, 0, 0, 26)
+	titleLabel.Font = Enum.Font.FredokaOne
+	titleLabel.Text = spec.signText
+	titleLabel.TextColor3 = Color3.fromRGB(241, 249, 255)
+	titleLabel.TextStrokeColor3 = Color3.fromRGB(24, 30, 44)
+	titleLabel.TextStrokeTransparency = 0.45
+	titleLabel.TextScaled = true
+	titleLabel.Parent = calloutFrame
+
+	local calloutLabel = Instance.new("TextLabel")
+	calloutLabel.BackgroundTransparency = 1
+	calloutLabel.Position = UDim2.fromOffset(12, 30)
+	calloutLabel.Size = UDim2.new(1, -24, 1, -34)
+	calloutLabel.Font = Enum.Font.FredokaOne
+	calloutLabel.Text = spec.calloutText
+	calloutLabel.TextColor3 = Color3.fromRGB(226, 247, 243)
+	calloutLabel.TextStrokeColor3 = Color3.fromRGB(24, 30, 44)
+	calloutLabel.TextStrokeTransparency = 0.55
+	calloutLabel.TextScaled = true
+	calloutLabel.TextWrapped = true
+	calloutLabel.Parent = calloutFrame
+
+	local promptGlow = Instance.new("PointLight")
+	promptGlow.Color = Color3.fromRGB(146, 236, 222)
+	promptGlow.Brightness = 0.7
+	promptGlow.Range = 10
+	promptGlow.Shadows = false
+	promptGlow.Parent = promptAnchor
+
+	local prompt = Instance.new("ProximityPrompt")
+	prompt.Name = "VaultPrompt"
+	prompt.ActionText = spec.promptActionText
+	prompt.ObjectText = spec.promptObjectText
+	prompt.KeyboardKeyCode = Enum.KeyCode.E
+	prompt.HoldDuration = 0
+	prompt.MaxActivationDistance = 10
+	prompt.RequiresLineOfSight = false
+	prompt:SetAttribute(VAULT_PROMPT_ATTRIBUTE, true)
+	prompt.Parent = promptAnchor
+
+	return vaultFront
 end
 
 local function addPlotMarker(markerFolder, plot)
@@ -7793,6 +9206,10 @@ local function addPlotMarker(markerFolder, plot)
 end
 
 local function ensureStaticWorld(worldFolder, plots)
+	ensureLighting()
+	buildWorldShell(worldFolder)
+	buildSkyDecor(worldFolder)
+	buildVaultFront(worldFolder)
 	local floor = worldFolder:FindFirstChild(SHARED_FLOOR_NAME)
 	local markers = worldFolder:FindFirstChild(PLOT_MARKER_FOLDER_NAME)
 	if floor ~= nil and markers ~= nil then
@@ -7822,11 +9239,13 @@ local function buildPickaxeShop(worldFolder)
 	local width = getSharedFloorSize()
 	local edgeX = World.plotOrigin.x + (width / 2) - 18
 	local basePosition = Vector3.new(edgeX, World.plotOrigin.y + 1, World.plotOrigin.z)
+	local spec = getShopFrontSpec()
+	local layout = getShopLayoutSpec()
 
 	local stallBase = createPart(
 		shopFolder,
 		"StallBase",
-		Vector3.new(20, 2, 36),
+		layout.stallBaseSize,
 		basePosition,
 		Color3.fromRGB(38, 34, 48),
 		Enum.Material.Slate
@@ -7836,18 +9255,21 @@ local function buildPickaxeShop(worldFolder)
 	local backWall = createPart(
 		shopFolder,
 		"ShopBackWall",
-		Vector3.new(1.2, 8, 28),
-		basePosition + Vector3.new(7.4, 5, 0),
+		layout.backWallSize,
+		basePosition + layout.backWallOffset,
 		Color3.fromRGB(68, 53, 96),
 		Enum.Material.WoodPlanks
 	)
 	backWall.CanCollide = false
 
+	-- Extend the roofless stall into the cave shell so the side walls do not leave visible gaps.
+	addStaticSeamFillers(shopFolder, basePosition, layout.shellSeams)
+
 	local sign = createDecorPart(
 		shopFolder,
 		"ShopSign",
-		Vector3.new(0.8, 4, 18),
-		basePosition + Vector3.new(6.7, 7.2, 0),
+		layout.signSize,
+		basePosition + layout.signOffset,
 		Color3.fromRGB(103, 83, 127),
 		Enum.Material.Wood
 	)
@@ -7860,33 +9282,29 @@ local function buildPickaxeShop(worldFolder)
 	local signLabel = Instance.new("TextLabel")
 	signLabel.BackgroundTransparency = 1
 	signLabel.Size = UDim2.fromScale(1, 1)
-	signLabel.Font = Enum.Font.GothamBold
-	signLabel.Text = "Pickaxe Shop"
+	signLabel.Font = spec.signFont
+	signLabel.Text = spec.signText
 	signLabel.TextColor3 = Color3.fromRGB(248, 248, 255)
 	signLabel.TextScaled = true
 	signLabel.Parent = signGui
 
-	local shopCallout = Instance.new("BillboardGui")
-	shopCallout.Name = "ShopCallout"
-	shopCallout.AlwaysOnTop = true
-	shopCallout.Size = UDim2.fromOffset(180, 44)
-	shopCallout.StudsOffset = Vector3.new(0, 4, 0)
-	shopCallout.Parent = sign
-
-	local calloutLabel = Instance.new("TextLabel")
-	calloutLabel.BackgroundTransparency = 1
-	calloutLabel.Size = UDim2.fromScale(1, 1)
-	calloutLabel.Font = Enum.Font.GothamBold
-	calloutLabel.Text = "Pickaxes tuned here."
-	calloutLabel.TextColor3 = Color3.fromRGB(248, 248, 255)
-	calloutLabel.TextScaled = true
-	calloutLabel.Parent = shopCallout
+	local calloutAnchor = createDecorPart(
+		shopFolder,
+		SHOP_CALLOUT_ANCHOR_NAME,
+		layout.calloutAnchorSize,
+		basePosition + layout.calloutAnchorOffset,
+		Color3.fromRGB(255, 255, 255),
+		Enum.Material.SmoothPlastic
+	)
+	calloutAnchor.Transparency = 1
+	calloutAnchor.CanQuery = false
+	calloutAnchor.CanTouch = false
 
 	local shelf = createDecorPart(
 		shopFolder,
 		"PickaxeShelf",
-		Vector3.new(1, 1, 24),
-		basePosition + Vector3.new(6.1, 4.8, 0),
+		layout.shelfSize,
+		basePosition + layout.shelfOffset,
 		Color3.fromRGB(45, 38, 63),
 		Enum.Material.Wood
 	)
@@ -7923,9 +9341,9 @@ local function buildPickaxeShop(worldFolder)
 
 	local promptAnchor = createDecorPart(
 		shopFolder,
-		"ShopPromptAnchor",
-		Vector3.new(2, 5, 24),
-		basePosition + Vector3.new(-5.5, 4, 0),
+		SHOP_PROMPT_ANCHOR_NAME,
+		layout.promptAnchorSize,
+		basePosition + layout.promptAnchorOffset,
 		Color3.fromRGB(92, 180, 170),
 		Enum.Material.ForceField
 	)
@@ -7965,22 +9383,33 @@ local function buildMine(worldFolder)
 	local width = getSharedFloorSize()
 	local sourceBaseCFrame = CFrame.new(World.plotOrigin.x, World.plotOrigin.y + 1, World.plotOrigin.z)
 	local basePosition = sourceBaseCFrame.Position
+	local facadeSpec = getMineFacadeSpec()
+	local layout = getMineLayoutSpec()
 
 	local platform = createPart(
 		mine,
 		"MinePlatform",
-		Vector3.new(44, 2, 26),
+		layout.platformSize,
 		basePosition,
-		Color3.fromRGB(35, 33, 43),
-		Enum.Material.Slate
+		Color3.fromRGB(62, 88, 58),
+		Enum.Material.Grass
 	)
 	platform.TopSurface = Enum.SurfaceType.Smooth
+
+	local path = createDecorPart(
+		mine,
+		"MinePath",
+		layout.pathSize,
+		basePosition + layout.pathOffset,
+		Color3.fromRGB(122, 108, 82),
+		Enum.Material.Ground
+	)
 
 	local zone = createDecorPart(
 		mine,
 		"MineStandingZone",
-		Vector3.new(40, 16, 24),
-		basePosition + Vector3.new(0, 8, 0),
+		layout.zoneSize,
+		basePosition + layout.zoneOffset,
 		Color3.fromRGB(92, 180, 170),
 		Enum.Material.ForceField
 	)
@@ -7991,44 +9420,78 @@ local function buildMine(worldFolder)
 	local mouth = createPart(
 		mine,
 		"MineFace",
-		Vector3.new(34, 22, 4),
-		basePosition + Vector3.new(0, 12, -9),
-		Color3.fromRGB(30, 28, 36),
+		layout.faceSize,
+		basePosition + layout.faceOffset,
+		Color3.fromRGB(52, 45, 40),
 		Enum.Material.Rock
 	)
 	mouth:SetAttribute(MINE_TARGET_ATTRIBUTE, true)
 	mouth:SetAttribute("GemFactoryMine", true)
 
+	local caveRim = createDecorPart(
+		mine,
+		"CaveRim",
+		layout.rimSize,
+		basePosition + layout.rimOffset,
+		Color3.fromRGB(77, 64, 55),
+		Enum.Material.Slate
+	)
+	caveRim.Transparency = 0.15
+
+	-- Fill the exposed shell seams around the mine opening while keeping the cave entrance silhouette.
+	addStaticSeamFillers(mine, basePosition, layout.shellSeams)
+
 	local target = createPart(
 		mine,
 		"MineTarget",
-		Vector3.new(24, 14, 1),
-		basePosition + Vector3.new(0, 10, -6.6),
+		layout.targetSize,
+		basePosition + layout.targetOffset,
 		Color3.fromRGB(58, 53, 72),
 		Enum.Material.Slate
 	)
 	target:SetAttribute(MINE_TARGET_ATTRIBUTE, true)
 	target:SetAttribute("GemFactoryMine", true)
 
-	for index = 1, 7 do
-		local xOffset = -15 + ((index - 1) * 5)
+	for index = 1, 9 do
+		local xOffset = -18 + ((index - 1) * 4.5)
 		local crystal = createDecorPart(
 			mine,
 			string.format("MineCrystal_%d", index),
-			Vector3.new(1.5, 4 + (index % 3), 1.5),
-			basePosition + Vector3.new(xOffset, 4 + (index % 3), -6),
-			Color3.fromRGB(92 + (index * 12), 160, 190 + (index * 4)),
+			Vector3.new(1.5, 4 + (index % 4), 1.5),
+			basePosition + Vector3.new(xOffset, 4 + (index % 4), -7.2 + ((index % 2 == 0) and -0.7 or 0.7)),
+			Color3.fromRGB(82 + (index * 12), 190, 168 + (index * 8)),
 			Enum.Material.Neon
 		)
 		crystal.CFrame = CFrame.new(crystal.Position) * CFrame.Angles(math.rad(8), math.rad(index * 17), math.rad(12))
+		createColoredLight(crystal, crystal.Color, 0.7, 10)
 	end
+
+	local archLeft = createPart(
+		mine,
+		"MineArchLeft",
+		Vector3.new(8, 18, 8),
+		basePosition + Vector3.new(-16, 9, -8),
+		Color3.fromRGB(65, 55, 48),
+		Enum.Material.Rock
+	)
+	archLeft.CFrame = CFrame.new(archLeft.Position) * CFrame.Angles(math.rad(0), 0, math.rad(8))
+
+	local archRight = createPart(
+		mine,
+		"MineArchRight",
+		Vector3.new(8, 18, 8),
+		basePosition + Vector3.new(16, 9, -8),
+		Color3.fromRGB(65, 55, 48),
+		Enum.Material.Rock
+	)
+	archRight.CFrame = CFrame.new(archRight.Position) * CFrame.Angles(math.rad(0), 0, math.rad(-8))
 
 	local sign = createDecorPart(
 		mine,
 		"MineSign",
-		Vector3.new(18, 4, 0.6),
-		basePosition + Vector3.new(0, 17.5, -6.65),
-		Color3.fromRGB(76, 64, 91),
+		Vector3.new(20, 5, 0.8),
+		basePosition + Vector3.new(0, 19.5, -6.2),
+		Color3.fromRGB(124, 92, 53),
 		Enum.Material.Wood
 	)
 
@@ -8040,17 +9503,121 @@ local function buildMine(worldFolder)
 	local signLabel = Instance.new("TextLabel")
 	signLabel.BackgroundTransparency = 1
 	signLabel.Size = UDim2.fromScale(1, 1)
-	signLabel.Font = Enum.Font.GothamBold
-	signLabel.Text = "Geode Mine"
-	signLabel.TextColor3 = Color3.fromRGB(248, 248, 255)
+	signLabel.Font = facadeSpec.signFont
+	signLabel.Text = facadeSpec.signText
+	signLabel.TextColor3 = Color3.fromRGB(255, 246, 218)
+	signLabel.TextStrokeColor3 = Color3.fromRGB(88, 55, 20)
+	signLabel.TextStrokeTransparency = 0.4
 	signLabel.TextScaled = true
 	signLabel.Parent = signGui
+
+	local calloutAnchor = createDecorPart(
+		mine,
+		MINE_CALLOUT_ANCHOR_NAME,
+		Vector3.new(2, 2, 2),
+		basePosition + Vector3.new(0, 23.5, -6.2),
+		Color3.fromRGB(255, 255, 255),
+		Enum.Material.SmoothPlastic
+	)
+	calloutAnchor.Transparency = 1
+	calloutAnchor.CanQuery = false
+	calloutAnchor.CanTouch = false
 
 	local edgeX = World.plotOrigin.x - (width / 2) + 24
 	local targetBaseCFrame = CFrame.new(edgeX, basePosition.Y, World.plotOrigin.z) * CFrame.Angles(0, math.rad(90), 0)
 	pivotStaticModel(mine, sourceBaseCFrame, targetBaseCFrame)
 
 	return mine
+end
+
+local function ensurePlayerCalloutFolder(player: Player): Instance?
+	local playerGui = player:FindFirstChildOfClass("PlayerGui")
+	if playerGui == nil then
+		return nil
+	end
+
+	local folder = playerGui:FindFirstChild(PLAYER_CALLOUT_FOLDER_NAME)
+	if folder == nil then
+		folder = Instance.new("Folder")
+		folder.Name = PLAYER_CALLOUT_FOLDER_NAME
+		folder.Parent = playerGui
+	end
+
+	return folder
+end
+
+local function ensurePlayerWorldCallout(
+	player: Player,
+	calloutName: string,
+	adornee: BasePart,
+	calloutText: string,
+	calloutFont: Enum.Font,
+	textColor: Color3,
+	strokeColor: Color3,
+	size: Vector2,
+	studsOffset: Vector3
+): BillboardGui?
+	local folder = ensurePlayerCalloutFolder(player)
+	if folder == nil then
+		return nil
+	end
+
+	local callout = folder:FindFirstChild(calloutName)
+	if callout == nil then
+		callout = Instance.new("BillboardGui")
+		callout.Name = calloutName
+		callout.AlwaysOnTop = true
+		callout.LightInfluence = 0
+		callout.MaxDistance = 80
+		callout.Parent = folder
+
+		local label = Instance.new("TextLabel")
+		label.Name = "Label"
+		label.BackgroundTransparency = 1
+		label.Size = UDim2.fromScale(1, 1)
+		label.TextScaled = true
+		label.TextWrapped = true
+		label.Parent = callout
+	end
+
+	callout.Adornee = adornee
+	callout.Size = UDim2.fromOffset(size.X, size.Y)
+	callout.StudsOffset = studsOffset
+
+	local label = callout:FindFirstChild("Label")
+	if label ~= nil and label:IsA("TextLabel") then
+		label.Font = calloutFont
+		label.Text = calloutText
+		label.TextColor3 = textColor
+		label.TextStrokeColor3 = strokeColor
+		label.TextStrokeTransparency = 0.45
+	end
+
+	return callout
+end
+
+local function shouldHideMineCallout(player: Player, anchor: BasePart, zone: BasePart, spec): boolean
+	local root = getPlayerRootPart(player)
+	if root == nil then
+		return false
+	end
+
+	-- Keep the callout player-specific so the prompt stays readable from afar without
+	-- blinking off for everyone whenever one player steps into the mine.
+	if spec.hideInsideZone == true and isPositionInsidePart(root.Position, zone) then
+		return true
+	end
+
+	return (root.Position - anchor.Position).Magnitude <= spec.hideDistance
+end
+
+local function shouldHideNearbyCallout(player: Player, anchor: BasePart, hideDistance: number): boolean
+	local root = getPlayerRootPart(player)
+	if root == nil then
+		return false
+	end
+
+	return (root.Position - anchor.Position).Magnitude <= hideDistance
 end
 
 local function addRockSpikes(parent, plot)
@@ -8084,6 +9651,181 @@ local function addRockSpikes(parent, plot)
 		)
 		rock.CFrame = CFrame.new(rockPosition)
 			* CFrame.Angles(math.rad(4), math.rad(spike.yaw), math.rad(8))
+	end
+end
+
+local function getPlotStandLayouts(plot)
+	local mirrorSign = if ((plot.index or 1) % 2) == 0 then -1 else 1
+
+	-- Mirror the side benches between neighboring plots so the cave still feels hand-built,
+	-- while every top stays on the same server-authored placement plane.
+	return {
+		{
+			name = "CenterDais",
+			offset = Vector3.new(0, 0, -2),
+			size = Vector3.new(28, PLOT_STAND_CAP_HEIGHT, 22),
+			supportOffsets = { -8, 0, 8 },
+		},
+		{
+			name = "BackShelf",
+			offset = Vector3.new(18 * mirrorSign, 0, -27),
+			size = Vector3.new(24, PLOT_STAND_CAP_HEIGHT, 14),
+			supportOffsets = { -6, 6 },
+		},
+		{
+			name = "FrontBench",
+			offset = Vector3.new(-16 * mirrorSign, 0, 27),
+			size = Vector3.new(26, PLOT_STAND_CAP_HEIGHT, 12),
+			supportOffsets = { -7, 7 },
+		},
+		{
+			name = "SideAlcoveLeft",
+			offset = Vector3.new(-28 * mirrorSign, 0, -1),
+			size = Vector3.new(14, PLOT_STAND_CAP_HEIGHT, 18),
+			supportOffsets = { -4, 4 },
+		},
+		{
+			name = "SideAlcoveRight",
+			offset = Vector3.new(28 * mirrorSign, 0, 15),
+			size = Vector3.new(16, PLOT_STAND_CAP_HEIGHT, 20),
+			supportOffsets = { -4, 4 },
+		},
+	}
+end
+
+local function getPlotStandRenderSpecs(plot)
+	local surfaceTopY = getPlotSurfaceTopY(plot)
+	local capCenterY = surfaceTopY + PLOT_STAND_CAP_CLEARANCE + (PLOT_STAND_CAP_HEIGHT / 2)
+	local capBottomY = capCenterY - (PLOT_STAND_CAP_HEIGHT / 2)
+	local supportTopY = capBottomY - PLOT_STAND_SUPPORT_GAP
+	local supportCenterY = supportTopY - (PLOT_STAND_SUPPORT_HEIGHT / 2)
+	local markerColor = Color3.fromRGB(188, 196, 212)
+	local specs = {}
+
+	for _, stand in ipairs(getPlotStandLayouts(plot)) do
+		local capPosition = Vector3.new(
+			plot.position.x + stand.offset.X,
+			capCenterY,
+			plot.position.z + stand.offset.Z
+		)
+
+		local supportPositions = {}
+		for _, offsetX in ipairs(stand.supportOffsets) do
+			table.insert(supportPositions, Vector3.new(capPosition.X + offsetX, supportCenterY, capPosition.Z))
+		end
+
+		table.insert(specs, {
+			name = stand.name,
+			cap = {
+				position = capPosition,
+				size = stand.size,
+				material = Enum.Material.Slate,
+				color = Color3.fromRGB(76, 70, 93),
+				bottomY = capBottomY,
+				topY = capCenterY + (stand.size.Y * 0.5),
+			},
+			lip = {
+				position = Vector3.new(
+					capPosition.X,
+					capCenterY + (stand.size.Y * 0.5) + PLOT_STAND_LIP_GAP + (PLOT_STAND_LIP_HEIGHT / 2),
+					capPosition.Z
+				),
+				size = Vector3.new(stand.size.X - 2, PLOT_STAND_LIP_HEIGHT, stand.size.Z - 2),
+				material = Enum.Material.SmoothPlastic,
+				color = Color3.fromRGB(96, 90, 115),
+				transparency = 0.04,
+				bottomY = capCenterY + (stand.size.Y * 0.5) + PLOT_STAND_LIP_GAP,
+				topY = capCenterY + (stand.size.Y * 0.5) + PLOT_STAND_LIP_GAP + PLOT_STAND_LIP_HEIGHT,
+			},
+			support = {
+				size = Vector3.new(3.6, PLOT_STAND_SUPPORT_HEIGHT, 3.6),
+				material = Enum.Material.Rock,
+				color = Color3.fromRGB(49, 45, 62),
+				positions = supportPositions,
+				topY = supportTopY,
+			},
+			marker = {
+				position = Vector3.new(
+					capPosition.X - ((stand.size.X * 0.5) - PLOT_STAND_MARKER_INSET),
+					capBottomY + (PLOT_STAND_MARKER_HEIGHT / 2),
+					capPosition.Z + ((stand.size.Z * 0.5) - PLOT_STAND_MARKER_INSET)
+				),
+				size = Vector3.new(1.2, PLOT_STAND_MARKER_HEIGHT, 1.2),
+				material = Enum.Material.SmoothPlastic,
+				color = markerColor,
+				transparency = 0.1,
+			},
+		})
+	end
+
+	return {
+		surfaceTopY = surfaceTopY,
+		capClearance = PLOT_STAND_CAP_CLEARANCE,
+		supportGap = capBottomY - supportTopY,
+		stands = specs,
+	}
+end
+
+local function addPlotPlacementSurfaces(parent, plot)
+	local standFolder = Instance.new("Folder")
+	standFolder.Name = "PlacementSurfaces"
+	standFolder.Parent = parent
+
+	local renderSpecs = getPlotStandRenderSpecs(plot)
+
+	for standIndex, stand in ipairs(renderSpecs.stands) do
+		local cap = createDecorPart(
+			standFolder,
+			stand.name,
+			stand.cap.size,
+			stand.cap.position,
+			stand.cap.color,
+			stand.cap.material
+		)
+		cap.TopSurface = Enum.SurfaceType.Smooth
+		cap.CanQuery = false
+		cap.CanTouch = false
+
+		local lip = createDecorPart(
+			standFolder,
+			stand.name .. "_Lip",
+			stand.lip.size,
+			stand.lip.position,
+			stand.lip.color,
+			stand.lip.material
+		)
+		lip.Transparency = stand.lip.transparency
+		lip.CanQuery = false
+		lip.CanTouch = false
+
+		for supportIndex, supportPosition in ipairs(stand.support.positions) do
+			local support = createDecorPart(
+				standFolder,
+				string.format("%s_Support_%d", stand.name, supportIndex),
+				stand.support.size,
+				supportPosition,
+				stand.support.color,
+				stand.support.material
+			)
+			support.CFrame = CFrame.new(support.Position)
+				* CFrame.Angles(0, math.rad(((plot.index or 1) * 11) + (supportIndex * 7)), math.rad(2))
+			support.CanQuery = false
+			support.CanTouch = false
+		end
+
+		local marker = createDecorPart(
+			standFolder,
+			stand.name .. "_Marker",
+			stand.marker.size,
+			stand.marker.position,
+			stand.marker.color,
+			stand.marker.material
+		)
+		marker.CFrame = CFrame.new(marker.Position)
+			* CFrame.Angles(math.rad(-6), math.rad(((plot.index or 1) * 21) + (standIndex * 9)), math.rad(8))
+		marker.Transparency = stand.marker.transparency
+		marker.CanQuery = false
+		marker.CanTouch = false
 	end
 end
 
@@ -8253,7 +9995,7 @@ local function addGeodes(parent, plot, profile, nowUnix)
 	end
 end
 
-local function createResourcePart(parent, resourceName, resourceTypeId, traitId, sizeId, sizeValue, position)
+local function createResourcePart(parent, resourceName, resourceTypeId, traitId, sizeId, sizeValue, position, surfaceTopY)
 	local rootSize = ResourceVisuals.getPlacedRootSize(sizeId, sizeValue)
 	local resourcePart = createDecorPart(
 		parent,
@@ -8268,7 +10010,7 @@ local function createResourcePart(parent, resourceName, resourceTypeId, traitId,
 	resourcePart:SetAttribute("TraitId", traitId or "none")
 	resourcePart:SetAttribute("SizeId", sizeId or "medium")
 	resourcePart:SetAttribute("SizeValue", SizeRules.getScaleValue(sizeId, sizeValue))
-	buildResourceVisual(resourcePart, resourceTypeId, traitId, sizeId, sizeValue)
+	buildResourceVisual(resourcePart, resourceTypeId, traitId, sizeId, sizeValue, surfaceTopY)
 end
 
 local function addResources(parent, plot, profile)
@@ -8285,13 +10027,23 @@ local function addResources(parent, plot, profile)
 		local placement = resource.placement
 		local footprintWidth = placement.width or 1
 		local footprintHeight = placement.height or 1
+		local surfaceTopY = getPlotSurfaceTopY(plot)
 		local baseHeight = ResourceVisuals.getPlacedBaseHeight(resource.sizeId, resource.sizeValue)
 		local resourcePosition = Vector3.new(
 			gridOriginX + ((placement.x - 1) * cellSize) + (((footprintWidth - 1) * cellSize) / 2),
-			plot.position.y + (World.plotBaseSize.height / 2) + (baseHeight / 2),
+			surfaceTopY + (baseHeight / 2),
 			gridOriginZ + ((placement.y - 1) * cellSize) + (((footprintHeight - 1) * cellSize) / 2)
 		)
-		createResourcePart(resourceFolder, tostring(resource.id), resource.resourceTypeId, resource.traitId, resource.sizeId, resource.sizeValue, resourcePosition)
+		createResourcePart(
+			resourceFolder,
+			tostring(resource.id),
+			resource.resourceTypeId,
+			resource.traitId,
+			resource.sizeId,
+			resource.sizeValue,
+			resourcePosition,
+			surfaceTopY
+		)
 	end
 end
 
@@ -8310,6 +10062,7 @@ end
 function WorldReplicaService:_buildPlot(plot, profile, signature, nowUnix)
 	local plotModel = self:_getPlotModel(plot.id)
 	clearChildren(plotModel)
+	plotModel:SetAttribute("PlotLayoutVersion", PLOT_LAYOUT_VERSION)
 	plotModel:SetAttribute("PlotId", plot.id)
 	plotModel:SetAttribute("OwnerUserId", plot.userId)
 	plotModel:SetAttribute("ResourceCount", profile and #profile.resourceOrder or 0)
@@ -8336,8 +10089,8 @@ function WorldReplicaService:_buildPlot(plot, profile, signature, nowUnix)
 	local trim = createDecorPart(
 		plotModel,
 		"PlotTrim",
-		Vector3.new(World.plotBaseSize.width - 6, 0.4, World.plotBaseSize.depth - 6),
-		Vector3.new(plot.position.x, plot.position.y + 1.2, plot.position.z),
+		Vector3.new(World.plotBaseSize.width - 6, PLOT_SURFACE_HEIGHT, World.plotBaseSize.depth - 6),
+		Vector3.new(plot.position.x, plot.position.y + PLOT_SURFACE_OFFSET_Y, plot.position.z),
 		Color3.fromRGB(58, 54, 78),
 		Enum.Material.Rock
 	)
@@ -8348,8 +10101,8 @@ function WorldReplicaService:_buildPlot(plot, profile, signature, nowUnix)
 	local surfaceCollider = createPart(
 		plotModel,
 		PLOT_SURFACE_COLLIDER_NAME,
-		Vector3.new(World.plotBaseSize.width - 6, 0.4, World.plotBaseSize.depth - 6),
-		Vector3.new(plot.position.x, plot.position.y + 1.2, plot.position.z),
+		Vector3.new(World.plotBaseSize.width - 6, PLOT_SURFACE_HEIGHT, World.plotBaseSize.depth - 6),
+		Vector3.new(plot.position.x, plot.position.y + PLOT_SURFACE_OFFSET_Y, plot.position.z),
 		Color3.fromRGB(58, 54, 78),
 		Enum.Material.SmoothPlastic
 	)
@@ -8357,6 +10110,7 @@ function WorldReplicaService:_buildPlot(plot, profile, signature, nowUnix)
 	surfaceCollider.CanQuery = false
 	surfaceCollider.CanTouch = false
 
+	addPlotPlacementSurfaces(plotModel, plot)
 	addRockSpikes(plotModel, plot)
 	addGeodes(plotModel, plot, profile, nowUnix)
 	addResources(plotModel, plot, profile)
@@ -8431,6 +10185,69 @@ function WorldReplicaService:_buildPlot(plot, profile, signature, nowUnix)
 	}
 end
 
+function WorldReplicaService:_syncPlayerWorldCallouts()
+	local worldFolder = Workspace:FindFirstChild(World.worldFolderName)
+	if worldFolder == nil then
+		return
+	end
+
+	local mine = worldFolder:FindFirstChild(MINE_NAME)
+	local shop = worldFolder:FindFirstChild(SHOP_FRONT_NAME)
+	if mine == nil or shop == nil or not mine:IsA("Model") or not shop:IsA("Model") then
+		return
+	end
+
+	local mineAnchor = mine:FindFirstChild(MINE_CALLOUT_ANCHOR_NAME)
+	local mineZone = mine:FindFirstChild("MineStandingZone")
+	local shopAnchor = shop:FindFirstChild(SHOP_CALLOUT_ANCHOR_NAME)
+	local shopPromptAnchor = shop:FindFirstChild(SHOP_PROMPT_ANCHOR_NAME)
+	if mineAnchor == nil
+		or mineZone == nil
+		or shopAnchor == nil
+		or shopPromptAnchor == nil
+		or not mineAnchor:IsA("BasePart")
+		or not mineZone:IsA("BasePart")
+		or not shopAnchor:IsA("BasePart")
+		or not shopPromptAnchor:IsA("BasePart")
+	then
+		return
+	end
+
+	local mineSpec = getMineFacadeSpec()
+	local shopSpec = getShopFrontSpec()
+	for _, player in ipairs(Players:GetPlayers()) do
+		local mineCallout = ensurePlayerWorldCallout(
+			player,
+			"MineCallout",
+			mineAnchor,
+			mineSpec.calloutText,
+			mineSpec.calloutFont,
+			Color3.fromRGB(255, 247, 223),
+			Color3.fromRGB(88, 55, 20),
+			Vector2.new(250, 60),
+			Vector3.new(0, 0, 0)
+		)
+		if mineCallout ~= nil then
+			mineCallout.Enabled = not shouldHideMineCallout(player, mineAnchor, mineZone, mineSpec)
+		end
+
+		local shopCallout = ensurePlayerWorldCallout(
+			player,
+			"ShopCallout",
+			shopAnchor,
+			shopSpec.calloutText,
+			shopSpec.calloutFont,
+			Color3.fromRGB(248, 248, 255),
+			Color3.fromRGB(44, 33, 58),
+			Vector2.new(210, 54),
+			Vector3.new(0, 0, 0)
+		)
+		if shopCallout ~= nil then
+			shopCallout.Enabled = not shouldHideNearbyCallout(player, shopPromptAnchor, shopSpec.hideDistance)
+		end
+	end
+end
+
 function WorldReplicaService:syncAll()
 	local plotService = self.dependencies.plotService
 	local playerDataService = self.dependencies.playerDataService
@@ -8449,7 +10266,10 @@ function WorldReplicaService:syncAll()
 			local profile = playerDataService:getProfile(plot.userId)
 			local nowUnix = os.time()
 			local signature = buildPlotSignature(plot, profile, nowUnix)
-			if self.signatures[plot.id] ~= signature or self.models[plot.id] == nil then
+			if self.signatures[plot.id] ~= signature
+				or self.models[plot.id] == nil
+				or self.models[plot.id]:GetAttribute("PlotLayoutVersion") ~= PLOT_LAYOUT_VERSION
+			then
 				self:_buildPlot(plot, profile, signature, nowUnix)
 			end
 		elseif self.models[plot.id] ~= nil then
@@ -8489,6 +10309,7 @@ end
 function WorldReplicaService:start()
 	self.running = true
 	self:syncAll()
+	self:_syncPlayerWorldCallouts()
 
 	task.spawn(function()
 		while self.running do
@@ -8497,8 +10318,30 @@ function WorldReplicaService:start()
 		end
 	end)
 
+	task.spawn(function()
+		while self.running do
+			self:_syncPlayerWorldCallouts()
+			task.wait(0.2)
+		end
+	end)
+
 	print("[GemFactory] WorldReplicaService ready")
 end
+
+WorldReplicaService._test = {
+	getSharedFloorAppearance = getSharedFloorAppearance,
+	getLightingSpec = getLightingSpec,
+	getSkyDecorSpec = getSkyDecorSpec,
+	getWorldShellSpecs = getWorldShellSpecs,
+	getVaultPromptSpec = getVaultPromptSpec,
+	getMineFacadeSpec = getMineFacadeSpec,
+	getMineLayoutSpec = getMineLayoutSpec,
+	getShopFrontSpec = getShopFrontSpec,
+	getShopLayoutSpec = getShopLayoutSpec,
+	getPlotSurfaceTopY = getPlotSurfaceTopY,
+	getPlotStandLayouts = getPlotStandLayouts,
+	getPlotStandRenderSpecs = getPlotStandRenderSpecs,
+}
 
 return WorldReplicaService
 ]]></string>
@@ -8927,6 +10770,10 @@ local function normalizeProfileState(currentProfile, payload, nowUnix)
 		profile.inventory = TableUtil.reconcile(profile.inventory, payload.inventory)
 	end
 
+	if payload.resourceGuide ~= nil then
+		profile.resourceGuide = TableUtil.reconcile(profile.resourceGuide, payload.resourceGuide)
+	end
+
 	if payload.stationsById ~= nil then
 		profile.stationsById = TableUtil.reconcile(profile.stationsById, payload.stationsById)
 	end
@@ -9030,6 +10877,7 @@ local function getResourceCelebrationSpec(resource)
 		accentColor = if resourceDefinition ~= nil then resourceDefinition.color else nil,
 		reelFinal = displayName,
 		showSlotMachine = rarityIndex > 0,
+		continuePrompt = "Click to roll attribute!",
 	}
 end
 
@@ -9846,7 +11694,7 @@ local GeodeInteractionController = {}
 GeodeInteractionController.__index = GeodeInteractionController
 
 local CLICK_COOLDOWN_SECONDS = 0.35
-local REVEAL_DURATION_SECONDS = 2.4
+local REVEAL_CLEANUP_FALLBACK_SECONDS = 20
 
 local function resolveGeodePart(target: BasePart?): BasePart?
 	if target == nil then
@@ -10043,6 +11891,16 @@ local function extractPrimaryResource(openResult: any)
 	end
 
 	return nil
+end
+
+local function getCelebrationPlaybackState(screen): (boolean, number)
+	if type(screen) ~= "table" then
+		return false, 0
+	end
+
+	local celebrationPlaying = screen.celebrationPlaying == true
+	local queuedCelebrationCount = if type(screen.celebrationQueue) == "table" then #screen.celebrationQueue else 0
+	return celebrationPlaying, queuedCelebrationCount
 end
 
 local function blendColor(baseColor: Color3, targetColor: Color3, alpha: number): Color3
@@ -10281,7 +12139,7 @@ local function createRevealModel(resourceTypeId: string?, traitId: string?): (Mo
 	return model, light, sparkleEmitter, mistEmitter, profile
 end
 
-local function playRevealAnimation(geodePart: BasePart, openResult: any)
+local function playRevealAnimation(geodePart: BasePart, openResult: any, screen)
 	local corePart = geodePart:FindFirstChild("GeodeCore")
 	local shellColor = if corePart ~= nil and corePart:IsA("BasePart") then corePart.Color else geodePart.Color
 	local shellSize = if corePart ~= nil and corePart:IsA("BasePart") then corePart.Size else Vector3.new(3.35, 3.35, 3.35)
@@ -10290,7 +12148,7 @@ local function playRevealAnimation(geodePart: BasePart, openResult: any)
 	local effectFolder = Instance.new("Folder")
 	effectFolder.Name = "GeodeRevealFx"
 	effectFolder.Parent = Workspace
-	Debris:AddItem(effectFolder, REVEAL_DURATION_SECONDS + 1)
+	Debris:AddItem(effectFolder, REVEAL_CLEANUP_FALLBACK_SECONDS)
 
 	local leftShell = Instance.new("Part")
 	leftShell.Name = "LeftShell"
@@ -10365,10 +12223,15 @@ local function playRevealAnimation(geodePart: BasePart, openResult: any)
 		local baseHeight = 2.55 + (profile.rarityRank * 0.16) + ((profile.burstScale - 1) * 0.25)
 		local baseYaw = math.rad((profile.hash % 360) - 180)
 		local connection
+		local fading = false
 		connection = RunService.RenderStepped:Connect(function()
 			local elapsed = os.clock() - startedAt
-			local fadeLead = 0.38
-			if elapsed >= REVEAL_DURATION_SECONDS - fadeLead then
+			local celebrationPlaying, queuedCelebrationCount = getCelebrationPlaybackState(screen)
+			if not GeodePresentation.shouldKeepRevealAnimationAlive(elapsed, celebrationPlaying, queuedCelebrationCount) then
+				if fading then
+					return
+				end
+				fading = true
 				connection:Disconnect()
 				TweenService:Create(revealLight, TweenInfo.new(0.2), {
 					Brightness = 0,
@@ -10724,7 +12587,7 @@ function GeodeInteractionController:start()
 		local ok, result = app:requestOpenReadyGeode(resolvedGeodeId)
 		if ok and type(result) == "table" and result.ok == true then
 			local openResult = result.open or result.claim
-			playRevealAnimation(geodePart, openResult)
+			playRevealAnimation(geodePart, openResult, app.context.screen)
 		end
 	end
 
@@ -11034,7 +12897,10 @@ function HUDController:start()
 
 		screen:setStatusText(state.connectionMessage or "Ready")
 		screen:setCoinCounterText(formatNumber(profile.currencies.coins))
-		screen:setResourceGuideData(profile.progression and profile.progression.equippedPickaxeId or nil)
+		screen:setResourceGuideData(
+			profile.progression and profile.progression.equippedPickaxeId or nil,
+			profile.resourceGuide
+		)
 		screen:setOverviewText(string.format(
 			"Coins: %s\nPassive: %s / sec\nCavern Value: %s\nResources: %d\nStations: %d\nQueue: %d\nPlot: %s",
 			formatNumber(profile.currencies.coins),
@@ -11625,10 +13491,6 @@ local World = require(Shared.Config.World)
 local ResourcePlacementGhost = {}
 ResourcePlacementGhost.__index = ResourcePlacementGhost
 
-local function getPreviewHeightOffset(baseHeight: number): number
-	return (World.plotBaseSize.height / 2) + (baseHeight / 2)
-end
-
 local function getPlotBase(plotModel: Model): BasePart?
 	local plotBase = plotModel:FindFirstChild("PlotBase")
 	if plotBase ~= nil and plotBase:IsA("BasePart") then
@@ -11636,6 +13498,29 @@ local function getPlotBase(plotModel: Model): BasePart?
 	end
 
 	return nil
+end
+
+local function getPlotSurfacePart(plotModel: Model): BasePart?
+	local surfaceCollider = plotModel:FindFirstChild("PlotSurfaceCollider")
+	if surfaceCollider ~= nil and surfaceCollider:IsA("BasePart") then
+		return surfaceCollider
+	end
+
+	local trim = plotModel:FindFirstChild("PlotTrim")
+	if trim ~= nil and trim:IsA("BasePart") then
+		return trim
+	end
+
+	return getPlotBase(plotModel)
+end
+
+local function getPlotSurfaceTopY(plotModel: Model): number?
+	local surfacePart = getPlotSurfacePart(plotModel)
+	if surfacePart == nil then
+		return nil
+	end
+
+	return surfacePart.Position.Y + (surfacePart.Size.Y / 2)
 end
 
 local function createGhostPart(parent: Instance, className: "Part" | "WedgePart", name: string, size: Vector3, color: Color3, material: Enum.Material, transparency: number): BasePart
@@ -11658,12 +13543,119 @@ local function blendColor(baseColor: Color3, targetColor: Color3, alpha: number)
 	return baseColor:Lerp(targetColor, alpha)
 end
 
+local function resolvePlacedVisualProfile(resourceTypeId: string?, sizeId: string?, sizeValue: number?, stableVisualId: any)
+	local resolvePlacedProfile = ResourceVisuals.resolvePlacedVisualProfile
+	if type(resolvePlacedProfile) == "function" then
+		local ok, profile = pcall(resolvePlacedProfile, resourceTypeId, nil, sizeId, sizeValue, stableVisualId)
+		if ok and type(profile) == "table" then
+			return profile
+		end
+	end
+
+	return ResourceVisuals.resolveRevealProfile(resourceTypeId, nil, sizeId, sizeValue, stableVisualId)
+end
+
+local function normalizeLayoutCandidate(layout, fallbackVariantId: string): { variantId: string, pieces: { [number]: any } }?
+	if type(layout) ~= "table" then
+		return nil
+	end
+
+	local pieces = nil
+	if #layout > 0 then
+		pieces = layout
+	elseif type(layout.pieces) == "table" then
+		pieces = layout.pieces
+	elseif type(layout.shards) == "table" then
+		pieces = layout.shards
+	elseif type(layout.crystals) == "table" then
+		pieces = layout.crystals
+	end
+
+	if pieces == nil then
+		return nil
+	end
+
+	local variantId = if type(layout.variantId) == "string" then layout.variantId else fallbackVariantId
+	return {
+		variantId = variantId,
+		pieces = pieces,
+	}
+end
+
+local function resolveProceduralLayout(profile, seedKey: string): { variantId: string, pieces: { [number]: any } }
+	local fallbackVariantId = profile.variantId or "gemstone"
+	local profileCandidates = {
+		profile.crystalDefinitions,
+		profile.proceduralLayout,
+		profile.placedLayout,
+		profile.visualLayout,
+		profile.shapeLayout,
+	}
+
+	for _, candidate in ipairs(profileCandidates) do
+		local normalized = normalizeLayoutCandidate(candidate, fallbackVariantId)
+		if normalized ~= nil then
+			return normalized
+		end
+	end
+
+	local resolver = ResourceVisuals.resolvePlacedLayout or ResourceVisuals.resolveProceduralLayout
+	if type(resolver) == "function" then
+		local ok, layout = pcall(resolver, profile, seedKey)
+		local normalized = if ok then normalizeLayoutCandidate(layout, fallbackVariantId) else nil
+		if normalized ~= nil then
+			return normalized
+		end
+	end
+
+	return {
+		variantId = fallbackVariantId,
+		pieces = ResourceVisuals.getOreCrystalDefinitions(fallbackVariantId),
+	}
+end
+
+local function getPartVerticalBounds(part: BasePart): (number, number)
+	local halfHeight = (math.abs(part.CFrame.XVector.Y) * part.Size.X * 0.5)
+		+ (math.abs(part.CFrame.YVector.Y) * part.Size.Y * 0.5)
+		+ (math.abs(part.CFrame.ZVector.Y) * part.Size.Z * 0.5)
+	return part.Position.Y - halfHeight, part.Position.Y + halfHeight
+end
+
 local function clearGhostGeometry(model: Model, root: BasePart)
 	for _, child in ipairs(model:GetChildren()) do
 		if child ~= root then
 			child:Destroy()
 		end
 	end
+end
+
+local function groundGhostGeometry(model: Model, root: BasePart): number
+	local minY = math.huge
+	local maxY = -math.huge
+	local parts = {}
+
+	for _, descendant in ipairs(model:GetDescendants()) do
+		if descendant:IsA("BasePart") and descendant ~= root then
+			local partMinY, partMaxY = getPartVerticalBounds(descendant)
+			minY = math.min(minY, partMinY)
+			maxY = math.max(maxY, partMaxY)
+			table.insert(parts, descendant)
+		end
+	end
+
+	if #parts == 0 then
+		return 0
+	end
+
+	if minY ~= 0 then
+		local lift = -minY
+		for _, part in ipairs(parts) do
+			part.CFrame += Vector3.new(0, lift, 0)
+		end
+		maxY += lift
+	end
+
+	return maxY
 end
 
 local function addCrystalShard(parent: Instance, rootCFrame: CFrame, definition, scale: number, baseHeight: number, baseColor: Color3, glowColor: Color3, index: number)
@@ -11691,7 +13683,7 @@ local function addCrystalShard(parent: Instance, rootCFrame: CFrame, definition,
 	cap.CFrame = shardCFrame * CFrame.new(0, (height * 0.5) + (capHeight * 0.28), 0)
 end
 
-local function buildCrystalGhost(model: Model, profile)
+local function buildCrystalGhost(model: Model, profile, layout)
 	local rootCFrame = CFrame.new() * CFrame.Angles(0, math.rad((profile.hash % 360) - 180), 0)
 	local baseSize = Vector3.new(2.1, 0.32, 1.64) * profile.scale
 	local base = createGhostPart(
@@ -11705,14 +13697,14 @@ local function buildCrystalGhost(model: Model, profile)
 	)
 	base.CFrame = rootCFrame * CFrame.new(0, -0.42 * profile.scale, 0)
 
-	for index, shard in ipairs(ResourceVisuals.getOreCrystalDefinitions(profile.variantId)) do
+	for index, shard in ipairs(layout.pieces) do
 		addCrystalShard(model, rootCFrame, shard, profile.scale, -0.24 * profile.scale, profile.baseColor, profile.glowColor, index)
 	end
 end
 
-local function buildIngotGhost(model: Model, profile)
+local function buildIngotGhost(model: Model, profile, layout)
 	local rootCFrame = CFrame.new() * CFrame.Angles(0, math.rad((profile.hash % 360) - 180), 0)
-	for index, shard in ipairs(ResourceVisuals.getOreCrystalDefinitions("ingot")) do
+	for index, shard in ipairs(layout.pieces) do
 		local part = createGhostPart(
 			model,
 			"Part",
@@ -11726,7 +13718,7 @@ local function buildIngotGhost(model: Model, profile)
 	end
 end
 
-local function buildEldritchGhost(model: Model, profile)
+local function buildEldritchGhost(model: Model, profile, layout)
 	local rootCFrame = CFrame.new() * CFrame.Angles(0, math.rad((profile.hash % 360) - 180), 0)
 	local core = createGhostPart(
 		model,
@@ -11751,7 +13743,7 @@ local function buildEldritchGhost(model: Model, profile)
 	halo.Shape = Enum.PartType.Cylinder
 	halo.CFrame = rootCFrame * CFrame.new(0, 0.86 * profile.scale, 0) * CFrame.Angles(0, 0, math.rad(90))
 
-	for index, shard in ipairs(ResourceVisuals.getOreCrystalDefinitions("eldritch")) do
+	for index, shard in ipairs(layout.pieces) do
 		addCrystalShard(model, rootCFrame, shard, profile.scale * 0.92, 0.02 * profile.scale, profile.baseColor, profile.glowColor, index)
 	end
 end
@@ -11770,6 +13762,7 @@ function ResourcePlacementGhost.new()
 	root.Transparency = 1
 	root.Size = Vector3.new(0.25, 0.25, 0.25)
 	root.Parent = model
+	model.PrimaryPart = root
 
 	local prompt = Instance.new("BillboardGui")
 	prompt.Name = "Label"
@@ -11796,7 +13789,6 @@ function ResourcePlacementGhost.new()
 		resourceTypeId = nil,
 		sizeId = nil,
 		sizeValue = nil,
-		baseHeight = ResourceVisuals.getPlacedBaseHeight(nil, nil),
 		footprintWidth = 1,
 		footprintHeight = 1,
 		visible = false,
@@ -11813,8 +13805,9 @@ function ResourcePlacementGhost:setResourceTypeId(resourceTypeId: string?, sizeI
 	self.sizeValue = sizeValue
 	local definition = if resourceTypeId ~= nil then Resources[resourceTypeId] else nil
 	local rootSize = ResourceVisuals.getPlacedRootSize(sizeId, sizeValue)
-	self.baseHeight = ResourceVisuals.getPlacedBaseHeight(sizeId, sizeValue)
-	local profile = ResourceVisuals.resolveRevealProfile(resourceTypeId, nil, sizeId, sizeValue)
+	local stableVisualId = string.format("%s:%s:%s", resourceTypeId or "resource", sizeId or "medium", tostring(sizeValue))
+	local profile = resolvePlacedVisualProfile(resourceTypeId, sizeId, sizeValue, stableVisualId)
+	local layout = resolveProceduralLayout(profile, stableVisualId)
 	if definition ~= nil then
 		self.footprintWidth = definition.gridSize and definition.gridSize.width or 1
 		self.footprintHeight = definition.gridSize and definition.gridSize.height or 1
@@ -11826,21 +13819,25 @@ function ResourcePlacementGhost:setResourceTypeId(resourceTypeId: string?, sizeI
 	end
 
 	clearGhostGeometry(self.model, self.root)
-	if profile.variantId == "ingot" then
-		buildIngotGhost(self.model, profile)
-	elseif profile.variantId == "eldritch" then
-		buildEldritchGhost(self.model, profile)
+	if layout.variantId == "ingot" then
+		buildIngotGhost(self.model, profile, layout)
+	elseif layout.variantId == "eldritch" then
+		buildEldritchGhost(self.model, profile, layout)
 	else
-		buildCrystalGhost(self.model, profile)
+		buildCrystalGhost(self.model, profile, layout)
 	end
+	local visualTopY = groundGhostGeometry(self.model, self.root)
 
 	self.root.Size = rootSize
-	self.prompt.StudsOffset = Vector3.new(0, math.max(2.6, rootSize.Y + 1.2), 0)
+	-- Ground the actual ghost parts first, then place the label from the real visual top
+	-- so future procedural layouts can change silhouette without breaking floor alignment.
+	self.prompt.StudsOffset = Vector3.new(0, math.max(2.6, visualTopY + 1.2), 0)
 end
 
 function ResourcePlacementGhost:getSnappedCell(plotModel: Model, hitPosition: Vector3): (number?, number?, Vector3?)
 	local plotBase = getPlotBase(plotModel)
-	if plotBase == nil then
+	local plotSurfaceTopY = getPlotSurfaceTopY(plotModel)
+	if plotBase == nil or plotSurfaceTopY == nil then
 		return nil, nil, nil
 	end
 
@@ -11863,7 +13860,7 @@ function ResourcePlacementGhost:getSnappedCell(plotModel: Model, hitPosition: Ve
 	local gridOriginZ = plotBase.Position.Z - ((World.plotGridHeight * World.cellSize) / 2) + (World.cellSize / 2)
 	local worldPosition = Vector3.new(
 		gridOriginX + ((cellX - 1) * World.cellSize) + (((self.footprintWidth - 1) * World.cellSize) / 2),
-		plotBase.Position.Y + getPreviewHeightOffset(self.baseHeight),
+		plotSurfaceTopY,
 		gridOriginZ + ((cellY - 1) * World.cellSize) + (((self.footprintHeight - 1) * World.cellSize) / 2)
 	)
 
@@ -11923,6 +13920,7 @@ local SHOP_PROMPT_ATTRIBUTE = "GemFactoryShopPrompt"
 local SHOP_ROW_Z_INDEX = 62
 local SHOP_TEXT_Z_INDEX = 63
 local SHOP_BUTTON_Z_INDEX = 64
+local SHOP_BADGE_Z_INDEX = 65
 
 local function formatNumber(value: number): string
 	local text = tostring(math.floor(value + 0.5))
@@ -11967,94 +13965,303 @@ local function collectRarityLabels()
 	return labels
 end
 
-local function createOfferRow(parent: Instance, palette, offer, isOwned: boolean, isEquipped: boolean, canBuy: boolean, actionText: string, onBuy, onEquip)
+local function getOfferTone(offer)
+	local accent = if typeof(offer.displayColor) == "Color3" then offer.displayColor else Color3.fromRGB(255, 190, 97)
+	local warmAccent = accent:Lerp(Color3.fromRGB(255, 214, 128), 0.42)
+	return {
+		card = accent:Lerp(Color3.fromRGB(255, 248, 226), 0.8),
+		cardBorder = accent:Lerp(Color3.fromRGB(255, 255, 255), 0.2),
+		header = warmAccent,
+		headerText = Color3.fromRGB(97, 61, 18),
+		bodyText = Color3.fromRGB(105, 71, 29),
+		secondaryText = Color3.fromRGB(132, 95, 49),
+		button = accent:Lerp(Color3.fromRGB(255, 223, 134), 0.16),
+		buttonText = Color3.fromRGB(78, 47, 16),
+		statBubble = accent:Lerp(Color3.fromRGB(255, 255, 255), 0.56),
+		iconBubble = accent:Lerp(Color3.fromRGB(255, 255, 255), 0.7),
+	}
+end
+
+local function getActionColors(offerTone, isEquipped: boolean, canPress: boolean)
+	if isEquipped then
+		return Color3.fromRGB(181, 227, 170), Color3.fromRGB(54, 97, 48), Color3.fromRGB(231, 255, 223)
+	end
+
+	if canPress then
+		return offerTone.button, offerTone.buttonText, offerTone.cardBorder
+	end
+
+	return Color3.fromRGB(207, 188, 167), Color3.fromRGB(114, 88, 66), Color3.fromRGB(244, 233, 223)
+end
+
+local function buildOfferSummary(offer)
+	return {
+		string.format("%d-%d coins", offer.coinRewardMin, offer.coinRewardMax),
+		string.format("%d%% geode luck", offer.geodeChance),
+		string.format("%.2fs swing", offer.cooldownSeconds),
+	}
+end
+
+local PICKAXE_TIER_MARKS = {
+	stone_pickaxe = "STN",
+	copper_pickaxe = "CPR",
+	iron_pickaxe = "IRN",
+	steel_pickaxe = "STL",
+	gold_pickaxe = "GLD",
+	platinum_pickaxe = "PLT",
+	emerald_pickaxe = "EMR",
+	obsidian_pickaxe = "OBS",
+	lunar_pickaxe = "LUN",
+	crown_pickaxe = "CRN",
+}
+
+local function getTierMark(offer)
+	return PICKAXE_TIER_MARKS[offer.id] or string.upper(string.sub(offer.displayName, 1, 3))
+end
+
+local function createOfferRow(parent: Instance, offer, isOwned: boolean, isEquipped: boolean, canBuy: boolean, actionText: string, onBuy, onEquip)
+	local offerTone = getOfferTone(offer)
+	local canPress = not isEquipped and (isOwned or canBuy)
+	local actionBackground, actionTextColor, actionStrokeColor = getActionColors(offerTone, isEquipped, canPress)
+
 	local row = Instance.new("Frame")
 	row.Name = offer.displayName .. "Row"
-	row.BackgroundColor3 = palette.background.panelAlt
+	row.BackgroundColor3 = offerTone.card
 	row.BorderSizePixel = 0
-	row.Size = UDim2.new(1, 0, 0, 102)
+	row.Size = UDim2.new(1, -4, 0, 158)
 	row.ZIndex = SHOP_ROW_Z_INDEX
 	row.Parent = parent
 
 	local rowCorner = Instance.new("UICorner")
-	rowCorner.CornerRadius = UDim.new(0, 8)
+	rowCorner.CornerRadius = UDim.new(0, 24)
 	rowCorner.Parent = row
 
 	local rowStroke = Instance.new("UIStroke")
-	rowStroke.Color = palette.border
-	rowStroke.Thickness = 1
-	rowStroke.Transparency = 0.15
+	rowStroke.Color = offerTone.cardBorder
+	rowStroke.Thickness = 3
+	rowStroke.Transparency = 0.02
 	rowStroke.Parent = row
 
+	local rowGradient = Instance.new("UIGradient")
+	rowGradient.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, offerTone.card:Lerp(Color3.fromRGB(255, 255, 255), 0.16)),
+		ColorSequenceKeypoint.new(1, offerTone.card:Lerp(Color3.fromRGB(255, 229, 185), 0.06)),
+	})
+	rowGradient.Rotation = 90
+	rowGradient.Parent = row
+
 	local padding = Instance.new("UIPadding")
-	padding.PaddingTop = UDim.new(0, 10)
-	padding.PaddingBottom = UDim.new(0, 10)
-	padding.PaddingLeft = UDim.new(0, 12)
-	padding.PaddingRight = UDim.new(0, 12)
+	padding.PaddingTop = UDim.new(0, 14)
+	padding.PaddingBottom = UDim.new(0, 12)
+	padding.PaddingLeft = UDim.new(0, 14)
+	padding.PaddingRight = UDim.new(0, 14)
 	padding.Parent = row
+
+	local body = Instance.new("Frame")
+	body.Name = "Body"
+	body.BackgroundTransparency = 1
+	body.Size = UDim2.fromScale(1, 1)
+	body.ZIndex = SHOP_ROW_Z_INDEX
+	body.Parent = row
+
+	local bodyLayout = Instance.new("UIListLayout")
+	bodyLayout.FillDirection = Enum.FillDirection.Horizontal
+	bodyLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+	bodyLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	bodyLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+	bodyLayout.Padding = UDim.new(0, 12)
+	bodyLayout.Parent = body
+
+	local iconBubble = Instance.new("Frame")
+	iconBubble.Name = "IconBubble"
+	iconBubble.BackgroundColor3 = offerTone.iconBubble
+	iconBubble.BorderSizePixel = 0
+	iconBubble.LayoutOrder = 1
+	iconBubble.Size = UDim2.new(0, 78, 0, 78)
+	iconBubble.ZIndex = SHOP_ROW_Z_INDEX
+	iconBubble.Parent = body
+
+	local iconCorner = Instance.new("UICorner")
+	iconCorner.CornerRadius = UDim.new(1, 0)
+	iconCorner.Parent = iconBubble
+
+	local iconStroke = Instance.new("UIStroke")
+	iconStroke.Color = offerTone.cardBorder
+	iconStroke.Thickness = 3
+	iconStroke.Parent = iconBubble
+
+	local iconLabel = Instance.new("TextLabel")
+	iconLabel.BackgroundTransparency = 1
+	iconLabel.Size = UDim2.fromScale(1, 1)
+	iconLabel.Font = Enum.Font.FredokaOne
+	-- Short tier marks make the shop easier to scan at a glance without relying on repeated placeholder text.
+	iconLabel.Text = getTierMark(offer)
+	iconLabel.TextColor3 = offerTone.headerText
+	iconLabel.TextSize = 24
+	iconLabel.ZIndex = SHOP_TEXT_Z_INDEX
+	iconLabel.Parent = iconBubble
+
+	local content = Instance.new("Frame")
+	content.Name = "Content"
+	content.BackgroundTransparency = 1
+	content.LayoutOrder = 2
+	content.Size = UDim2.new(1, -226, 1, 0)
+	content.ZIndex = SHOP_ROW_Z_INDEX
+	content.Parent = body
+
+	local contentLayout = Instance.new("UIListLayout")
+	contentLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	contentLayout.Padding = UDim.new(0, 6)
+	contentLayout.Parent = content
+
+	local rarityChip = Instance.new("TextLabel")
+	rarityChip.BackgroundColor3 = offerTone.header
+	rarityChip.BorderSizePixel = 0
+	rarityChip.LayoutOrder = 1
+	rarityChip.Size = UDim2.new(0, 120, 0, 28)
+	rarityChip.Font = Enum.Font.FredokaOne
+	rarityChip.Text = string.upper(offer.rarity)
+	rarityChip.TextColor3 = offerTone.headerText
+	rarityChip.TextSize = 14
+	rarityChip.ZIndex = SHOP_BADGE_Z_INDEX
+	rarityChip.Parent = content
+
+	local rarityCorner = Instance.new("UICorner")
+	rarityCorner.CornerRadius = UDim.new(0, 13)
+	rarityCorner.Parent = rarityChip
+
+	local rarityStroke = Instance.new("UIStroke")
+	rarityStroke.Color = offerTone.cardBorder
+	rarityStroke.Thickness = 2
+	rarityStroke.Parent = rarityChip
 
 	local title = Instance.new("TextLabel")
 	title.BackgroundTransparency = 1
-	title.Size = UDim2.new(1, -132, 0, 22)
-	title.Font = Enum.Font.GothamBold
+	title.LayoutOrder = 2
+	title.Size = UDim2.new(1, 0, 0, 28)
+	title.Font = Enum.Font.FredokaOne
 	title.Text = offer.displayName
-	title.TextColor3 = palette.text
-	title.TextSize = 18
+	title.TextColor3 = offerTone.headerText
+	title.TextSize = 26
 	title.TextXAlignment = Enum.TextXAlignment.Left
 	title.ZIndex = SHOP_TEXT_Z_INDEX
-	title.Parent = row
+	title.Parent = content
 
-	local subtitle = Instance.new("TextLabel")
-	subtitle.BackgroundTransparency = 1
-	subtitle.Position = UDim2.new(0, 0, 0, 24)
-	subtitle.Size = UDim2.new(1, -132, 0, 46)
-	subtitle.Font = Enum.Font.Gotham
-	subtitle.Text = string.format(
-		"%s pickaxe\nCoins %d-%d | Geode chance %d%%",
-		offer.rarity,
-		offer.coinRewardMin,
-		offer.coinRewardMax,
-		offer.geodeChance
-	)
-	subtitle.TextColor3 = palette.muted
-	subtitle.TextSize = 14
-	subtitle.TextWrapped = true
-	subtitle.TextXAlignment = Enum.TextXAlignment.Left
-	subtitle.TextYAlignment = Enum.TextYAlignment.Top
-	subtitle.ZIndex = SHOP_TEXT_Z_INDEX
-	subtitle.Parent = row
+	local statsRow = Instance.new("Frame")
+	statsRow.Name = "StatsRow"
+	statsRow.BackgroundTransparency = 1
+	statsRow.LayoutOrder = 3
+	statsRow.Size = UDim2.new(1, 0, 0, 32)
+	statsRow.ZIndex = SHOP_ROW_Z_INDEX
+	statsRow.Parent = content
+
+	local statsLayout = Instance.new("UIListLayout")
+	statsLayout.FillDirection = Enum.FillDirection.Horizontal
+	statsLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	statsLayout.Padding = UDim.new(0, 6)
+	statsLayout.Parent = statsRow
+
+	-- Keep the stat chips fixed-height and wrapped in a horizontal row so narrow/mobile panels stay readable without overlapping the action button.
+	for index, summaryText in ipairs(buildOfferSummary(offer)) do
+		local statBubble = Instance.new("TextLabel")
+		statBubble.Name = string.format("Stat%d", index)
+		statBubble.BackgroundColor3 = offerTone.statBubble
+		statBubble.BorderSizePixel = 0
+		statBubble.LayoutOrder = index
+		statBubble.Size = UDim2.new(0, if index == 1 then 102 else 92, 0, 30)
+		statBubble.Font = Enum.Font.GothamBold
+		statBubble.Text = summaryText
+		statBubble.TextColor3 = offerTone.secondaryText
+		statBubble.TextSize = 12
+		statBubble.TextScaled = true
+		statBubble.ZIndex = SHOP_TEXT_Z_INDEX
+		statBubble.Parent = statsRow
+
+		local statCorner = Instance.new("UICorner")
+		statCorner.CornerRadius = UDim.new(0, 12)
+		statCorner.Parent = statBubble
+
+		local statStroke = Instance.new("UIStroke")
+		statStroke.Color = offerTone.cardBorder
+		statStroke.Thickness = 2
+		statStroke.Parent = statBubble
+
+		local statConstraint = Instance.new("UITextSizeConstraint")
+		statConstraint.MaxTextSize = 12
+		statConstraint.MinTextSize = 9
+		statConstraint.Parent = statBubble
+	end
 
 	local price = Instance.new("TextLabel")
 	price.BackgroundTransparency = 1
-	price.Position = UDim2.new(0, 0, 0, 76)
-	price.Size = UDim2.new(1, -132, 0, 16)
-	price.Font = Enum.Font.Gotham
-	price.Text = if isOwned then "Owned" else string.format("%s %s", formatNumber(offer.price), string.lower(offer.currency))
-	price.TextColor3 = palette.accentSoft
-	price.TextSize = 12
+	price.LayoutOrder = 4
+	price.Size = UDim2.new(1, 0, 0, 30)
+	price.Font = Enum.Font.GothamBold
+	price.Text = if isOwned
+		then "Already riding with your tool belt."
+		else string.format("%s %s to unlock", formatNumber(offer.price), string.lower(offer.currency))
+	price.TextColor3 = offerTone.bodyText
+	price.TextSize = 14
+	price.TextWrapped = true
 	price.TextXAlignment = Enum.TextXAlignment.Left
+	price.TextYAlignment = Enum.TextYAlignment.Top
 	price.ZIndex = SHOP_TEXT_Z_INDEX
-	price.Parent = row
+	price.Parent = content
+
+	local actionColumn = Instance.new("Frame")
+	actionColumn.Name = "ActionColumn"
+	actionColumn.BackgroundTransparency = 1
+	actionColumn.LayoutOrder = 3
+	actionColumn.Size = UDim2.new(0, 110, 1, 0)
+	actionColumn.ZIndex = SHOP_ROW_Z_INDEX
+	actionColumn.Parent = body
+
+	local actionBadge = Instance.new("TextLabel")
+	actionBadge.BackgroundTransparency = 1
+	actionBadge.Position = UDim2.new(0, 0, 0, 14)
+	actionBadge.Size = UDim2.new(1, 0, 0, 18)
+	actionBadge.Font = Enum.Font.GothamBold
+	actionBadge.Text = if isEquipped then "Current" elseif isOwned then "Owned" elseif canBuy then "Ready" else "Locked"
+	actionBadge.TextColor3 = offerTone.secondaryText
+	actionBadge.TextSize = 12
+	actionBadge.TextXAlignment = Enum.TextXAlignment.Center
+	actionBadge.ZIndex = SHOP_TEXT_Z_INDEX
+	actionBadge.Parent = actionColumn
 
 	local action = Instance.new("TextButton")
 	action.Name = "ActionButton"
-	action.AnchorPoint = Vector2.new(1, 0.5)
-	action.AutoButtonColor = not isEquipped and (isOwned or canBuy)
-	action.Active = not isEquipped and (isOwned or canBuy)
-	action.BackgroundColor3 = if isEquipped then Color3.fromRGB(120, 120, 120) elseif isOwned or canBuy then palette.accent else Color3.fromRGB(110, 110, 110)
+	action.AnchorPoint = Vector2.new(0.5, 0.5)
+	action.AutoButtonColor = canPress
+	action.Active = canPress
+	action.BackgroundColor3 = actionBackground
 	action.BorderSizePixel = 0
-	action.Position = UDim2.new(1, 0, 0.5, 0)
-	action.Size = UDim2.new(0, 112, 0, 40)
-	action.Font = Enum.Font.GothamBold
+	action.Position = UDim2.new(0.5, 0, 0.5, 10)
+	action.Size = UDim2.new(1, 0, 0, 62)
+	action.Font = Enum.Font.FredokaOne
 	action.Text = actionText
-	action.TextColor3 = palette.shadow
-	action.TextSize = 14
+	action.TextColor3 = actionTextColor
+	action.TextSize = 21
+	action.TextWrapped = true
 	action.ZIndex = SHOP_BUTTON_Z_INDEX
-	action.Parent = row
+	action.Parent = actionColumn
 
 	local actionCorner = Instance.new("UICorner")
-	actionCorner.CornerRadius = UDim.new(0, 8)
+	actionCorner.CornerRadius = UDim.new(0, 18)
 	actionCorner.Parent = action
+
+	local actionStroke = Instance.new("UIStroke")
+	actionStroke.Color = actionStrokeColor
+	actionStroke.Thickness = 3
+	actionStroke.Transparency = 0.02
+	actionStroke.Parent = action
+
+	local actionGradient = Instance.new("UIGradient")
+	actionGradient.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, actionBackground:Lerp(Color3.fromRGB(255, 255, 255), 0.1)),
+		ColorSequenceKeypoint.new(1, actionBackground:Lerp(Color3.fromRGB(255, 221, 169), 0.08)),
+	})
+	actionGradient.Rotation = 90
+	actionGradient.Parent = action
 
 	action.Activated:Connect(function()
 		if isEquipped then
@@ -12088,11 +14295,16 @@ function ShopController:_refresh(state)
 	local inventory = profile.inventory or {}
 	local ownedPickaxes = inventory.pickaxes or {}
 	local equippedPickaxeId = profile.progression and profile.progression.equippedPickaxeId or "stone_pickaxe"
+	local equippedPickaxe = Pickaxes.catalog[equippedPickaxeId]
 	local coinBalance = currencies.coins or 0
 
-	screen:setShopText("Pickaxes are sold at the forge. Better pickaxes improve coin payouts and rare geode odds when mining.")
-	screen:setShopMenuSubtitle("Press E at the forge to browse pickaxes.")
-	screen:setShopMenuInfo(string.format("Coins: %s | Equipped: %s", formatNumber(coinBalance), equippedPickaxeId))
+	screen:setShopText("Buy pickaxes at the forge. Better tiers swing faster, pull in more coins, and boost geode luck.")
+	screen:setShopMenuSubtitle("Pick a bubbly upgrade and send your mining luck climbing.")
+	screen:setShopMenuInfo(string.format(
+		"Coin Pouch: %s\nCurrent Pickaxe Pal: %s",
+		formatNumber(coinBalance),
+		if equippedPickaxe ~= nil then equippedPickaxe.displayName else equippedPickaxeId
+	))
 	screen:setShopMenuRarities(collectRarityLabels())
 
 	local offerContainer = screen:getShopOfferContainer()
@@ -12115,7 +14327,6 @@ function ShopController:_refresh(state)
 		end
 		createOfferRow(
 			offerContainer,
-			app.context.palette,
 			offer,
 			isOwned,
 			isEquipped,
@@ -12238,6 +14449,7 @@ return SprintController
 
 -- Client controller for Vault Controller that coordinates UI, local input, and app-state updates for this slice.
 
+local ProximityPromptService = game:GetService("ProximityPromptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
@@ -12249,6 +14461,8 @@ local VaultMath = require(Shared.Domain.VaultMath)
 
 local VaultController = {}
 VaultController.__index = VaultController
+
+local VAULT_PROMPT_ATTRIBUTE = "GemFactoryVaultPrompt"
 
 local RESOURCE_SWATCH_COLORS = {
 	quartz = Color3.fromRGB(230, 238, 245),
@@ -12425,6 +14639,11 @@ function VaultController.new(context)
 	}, VaultController)
 end
 
+function VaultController:_openVault()
+	self.context.screen:setVaultVisible(true)
+	self.context.app:setStatus("Vault opened.")
+end
+
 function VaultController:start()
 	local screen = self.context.screen
 	local app = self.context.app
@@ -12546,6 +14765,12 @@ function VaultController:start()
 	end
 
 	self.context.stateChanged:Connect(refresh)
+	ProximityPromptService.PromptTriggered:Connect(function(prompt)
+		if prompt ~= nil and prompt:IsA("ProximityPrompt") and prompt:GetAttribute(VAULT_PROMPT_ATTRIBUTE) == true then
+			self:_openVault()
+		end
+	end)
+	screen:setVaultVisible(false)
 	refresh(app:getState())
 end
 
@@ -12702,6 +14927,7 @@ local Resources = require(Shared.Config.Resources)
 local Traits = require(Shared.Config.Traits)
 local GeodePresentation = require(Shared.Domain.GeodePresentation)
 local ResourceGuide = require(Shared.Domain.ResourceGuide)
+local ResourceVisuals = require(Shared.Domain.ResourceVisuals)
 local RewardPresentation = require(Shared.Domain.RewardPresentation)
 local Panel = require(script.Parent.Parent.Components.Panel)
 
@@ -12860,6 +15086,14 @@ local function getRarityTone(index: number?, fallbackAccent: Color3?)
 	}
 end
 
+local function getRarityToneByName(rarityName: string?, fallbackAccent: Color3?)
+	if rarityName == nil then
+		return getRarityTone(1, fallbackAccent)
+	end
+
+	return getRarityTone(RARITY_INDEX_BY_NAME[rarityName], fallbackAccent)
+end
+
 local function getGeodeRarityIndex(geodeTypeId: string?)
 	if geodeTypeId == nil then
 		return 1
@@ -12917,6 +15151,24 @@ local function getTraitTone(traitId: string?)
 	}
 end
 
+local function getTraitIdFromReelWord(word: string?)
+	if word == nil then
+		return nil
+	end
+
+	local normalizedWord = string.lower(word)
+	for traitId, traitDefinition in pairs(Traits) do
+		if type(traitId) == "string" and type(traitDefinition) == "table" then
+			local displayName = string.lower(tostring(traitDefinition.displayName or traitId))
+			if normalizedWord == displayName or normalizedWord == string.lower(traitId) then
+				return traitId
+			end
+		end
+	end
+
+	return nil
+end
+
 local function getTraitReelWords()
 	local words = {}
 	for _, traitDefinition in ipairs(Traits.order or {}) do
@@ -12932,6 +15184,30 @@ local function getTraitReelWords()
 	end
 
 	return words
+end
+
+local function sanitizePromptText(value: any): string?
+	if type(value) ~= "string" then
+		return nil
+	end
+
+	local trimmed = string.match(value, "^%s*(.-)%s*$")
+	if trimmed == nil or trimmed == "" then
+		return nil
+	end
+
+	return trimmed
+end
+
+local function getSpinTone(spec, reelWord: string, fallbackTone)
+	if spec.kind == "attribute" then
+		local traitTone = getTraitTone(getTraitIdFromReelWord(reelWord))
+		if traitTone ~= nil then
+			return traitTone
+		end
+	end
+
+	return getRarityToneByName(reelWord, spec.accentColor) or fallbackTone
 end
 
 local function playLocalUiSound(soundId: string, volume: number, playbackSpeed: number)
@@ -13094,6 +15370,200 @@ local function rebuildGuideRows(guideRows: ScrollingFrame, rowDataList: { any },
 	for _, rowData in ipairs(rowDataList) do
 		createGuideRow(guideRows, rowData)
 	end
+end
+
+local function createGuideTabButton(parent: Instance, text: string, layoutOrder: number)
+	local button = Instance.new("TextButton")
+	button.AutoButtonColor = true
+	button.BackgroundColor3 = Color3.fromRGB(255, 234, 172)
+	button.BorderSizePixel = 0
+	button.LayoutOrder = layoutOrder
+	button.Size = UDim2.new(0, 156, 1, 0)
+	button.Font = Enum.Font.FredokaOne
+	button.Text = text
+	button.TextColor3 = Color3.fromRGB(101, 72, 26)
+	button.TextSize = 20
+	button.ZIndex = GUIDE_BASE_Z_INDEX + 3
+	button.Parent = parent
+
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 16)
+	corner.Parent = button
+
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = Color3.fromRGB(255, 248, 216)
+	stroke.Thickness = 3
+	stroke.Parent = button
+
+	return button
+end
+
+local function setGuideTabButtonState(button: TextButton, isActive: boolean)
+	button.BackgroundColor3 = if isActive then Color3.fromRGB(131, 230, 214) else Color3.fromRGB(255, 234, 172)
+	button.TextColor3 = if isActive then Color3.fromRGB(38, 76, 72) else Color3.fromRGB(101, 72, 26)
+	local stroke = button:FindFirstChildWhichIsA("UIStroke")
+	if stroke ~= nil then
+		stroke.Color = if isActive then Color3.fromRGB(218, 255, 246) else Color3.fromRGB(255, 248, 216)
+		stroke.Thickness = if isActive then 4 else 3
+	end
+end
+
+local function createCollectionBubbleVisual(parent: Instance, slotData)
+	local visual = Instance.new("Frame")
+	visual.Name = "Visual"
+	visual.BackgroundColor3 = if slotData.isFound then Color3.fromRGB(255, 248, 232) else Color3.fromRGB(32, 32, 38)
+	visual.BorderSizePixel = 0
+	visual.Position = UDim2.new(0.5, 0, 0, 8)
+	visual.AnchorPoint = Vector2.new(0.5, 0)
+	visual.Size = UDim2.new(0, 72, 0, 62)
+	visual.ZIndex = GUIDE_BASE_Z_INDEX + 4
+	visual.Parent = parent
+
+	local visualCorner = Instance.new("UICorner")
+	visualCorner.CornerRadius = UDim.new(0, 18)
+	visualCorner.Parent = visual
+
+	local visualStroke = Instance.new("UIStroke")
+	visualStroke.Color = if slotData.isFound then Color3.fromRGB(255, 255, 255) else Color3.fromRGB(76, 76, 82)
+	visualStroke.Thickness = 2
+	visualStroke.Parent = visual
+
+	local baseDefinitions = ResourceVisuals.getOreCrystalDefinitions(slotData.variantId)
+	local pieceColor = if slotData.isFound then (slotData.color or Color3.fromRGB(220, 230, 240)) else Color3.fromRGB(0, 0, 0)
+
+	for index, definition in ipairs(baseDefinitions) do
+		if index > 5 then
+			break
+		end
+
+		local shard = Instance.new("Frame")
+		shard.Name = "Shard" .. tostring(index)
+		shard.AnchorPoint = Vector2.new(0.5, 1)
+		shard.BackgroundColor3 = pieceColor:Lerp(Color3.fromRGB(255, 255, 255), if slotData.isFound then math.clamp((definition.tint or 0) * 0.5, 0, 0.24) else 0)
+		shard.BackgroundTransparency = if slotData.isFound then 0 else 0.08
+		shard.BorderSizePixel = 0
+		shard.Position = UDim2.new(
+			0.5 + math.clamp((definition.x or 0) * 0.18, -0.22, 0.22),
+			0,
+			0.9,
+			0
+		)
+		shard.Rotation = (definition.yaw or 0) + ((definition.roll or 0) * 0.2)
+		shard.Size = UDim2.new(
+			0,
+			math.max(10, math.floor((definition.width or 0.4) * 18)),
+			0,
+			math.max(14, math.floor((definition.height or 1) * 16))
+		)
+		shard.ZIndex = GUIDE_BASE_Z_INDEX + 5
+		shard.Parent = visual
+
+		local shardCorner = Instance.new("UICorner")
+		shardCorner.CornerRadius = UDim.new(0, if slotData.variantId == "ingot" then 5 else 8)
+		shardCorner.Parent = shard
+
+		local shardStroke = Instance.new("UIStroke")
+		shardStroke.Color = if slotData.isFound then pieceColor:Lerp(Color3.fromRGB(255, 255, 255), 0.35) else Color3.fromRGB(20, 20, 20)
+		shardStroke.Thickness = 1.5
+		shardStroke.Parent = shard
+	end
+end
+
+local function updateCollectionHoverCard(guideState, slotData)
+	if slotData == nil then
+		guideState.hoverTitle.Text = "Hover a bubble"
+		guideState.hoverRarity.Text = "Move your mouse over a slot to peek into your collection."
+		guideState.hoverAttributes.Text = "Attributes: waiting for a closer look."
+		return
+	end
+
+	guideState.hoverTitle.Text = slotData.hoverTitle
+	guideState.hoverRarity.Text = if slotData.isFound
+		then string.format("%s rarity", slotData.rarity)
+		else "Unknown treasure"
+	guideState.hoverAttributes.Text = "Attributes: " .. tostring(slotData.hoverAttributesText)
+end
+
+local function createCollectionSlot(parent: Instance, slotData, guideState)
+	local slotButton = Instance.new("TextButton")
+	slotButton.Name = slotData.resourceId .. "Slot"
+	slotButton.AutoButtonColor = true
+	slotButton.BackgroundColor3 = if slotData.isFound
+		then Color3.fromRGB(255, 239, 188)
+		else Color3.fromRGB(71, 71, 78)
+	slotButton.BorderSizePixel = 0
+	slotButton.LayoutOrder = slotData.layoutOrder
+	slotButton.Size = UDim2.new(0, 124, 0, 120)
+	slotButton.Text = ""
+	slotButton.ZIndex = GUIDE_BASE_Z_INDEX + 3
+	slotButton.Parent = parent
+
+	local slotCorner = Instance.new("UICorner")
+	slotCorner.CornerRadius = UDim.new(0, 22)
+	slotCorner.Parent = slotButton
+
+	local slotStroke = Instance.new("UIStroke")
+	slotStroke.Color = if slotData.isFound
+		then (slotData.color or Color3.fromRGB(255, 255, 255)):Lerp(Color3.fromRGB(255, 255, 255), 0.35)
+		else Color3.fromRGB(120, 120, 126)
+	slotStroke.Thickness = 3
+	slotStroke.Parent = slotButton
+
+	createCollectionBubbleVisual(slotButton, slotData)
+
+	local rarityChip = Instance.new("TextLabel")
+	rarityChip.BackgroundColor3 = if slotData.isFound
+		then (slotData.color or Color3.fromRGB(255, 226, 122)):Lerp(Color3.fromRGB(255, 255, 255), 0.24)
+		else Color3.fromRGB(29, 29, 34)
+	rarityChip.BorderSizePixel = 0
+	rarityChip.Position = UDim2.new(0.5, 0, 0, 64)
+	rarityChip.AnchorPoint = Vector2.new(0.5, 0)
+	rarityChip.Size = UDim2.new(0, 88, 0, 20)
+	rarityChip.Font = Enum.Font.FredokaOne
+	rarityChip.Text = string.upper(slotData.rarity)
+	rarityChip.TextColor3 = if slotData.isFound then Color3.fromRGB(88, 58, 24) else Color3.fromRGB(184, 184, 194)
+	rarityChip.TextSize = 10
+	rarityChip.ZIndex = GUIDE_BASE_Z_INDEX + 4
+	rarityChip.Parent = slotButton
+
+	local rarityCorner = Instance.new("UICorner")
+	rarityCorner.CornerRadius = UDim.new(0, 10)
+	rarityCorner.Parent = rarityChip
+
+	local title = Instance.new("TextLabel")
+	title.BackgroundTransparency = 1
+	title.Position = UDim2.new(0, 8, 0, 86)
+	title.Size = UDim2.new(1, -16, 0, 28)
+	title.Font = Enum.Font.GothamBold
+	title.Text = if slotData.isFound then slotData.realDisplayName else "???"
+	title.TextColor3 = if slotData.isFound then Color3.fromRGB(76, 52, 24) else Color3.fromRGB(223, 223, 230)
+	title.TextSize = 12
+	title.TextWrapped = true
+	title.ZIndex = GUIDE_BASE_Z_INDEX + 4
+	title.Parent = slotButton
+
+	local function showSlotDetails()
+		updateCollectionHoverCard(guideState, slotData)
+	end
+
+	slotButton.MouseEnter:Connect(showSlotDetails)
+	slotButton.Activated:Connect(showSlotDetails)
+
+	return slotButton
+end
+
+local function rebuildCollectionGrid(collectionGrid: ScrollingFrame, slotDataList: { any }, guideState)
+	for _, child in ipairs(collectionGrid:GetChildren()) do
+		if not child:IsA("UIGridLayout") and not child:IsA("UIPadding") then
+			child:Destroy()
+		end
+	end
+
+	for _, slotData in ipairs(slotDataList) do
+		createCollectionSlot(collectionGrid, slotData, guideState)
+	end
+
+	updateCollectionHoverCard(guideState, nil)
 end
 
 local function applyGuiZIndex(root, zIndex)
@@ -13388,7 +15858,7 @@ function RootScreen.new(context)
 	guidePanel.BackgroundColor3 = Color3.fromRGB(255, 248, 225)
 	guidePanel.BorderSizePixel = 0
 	guidePanel.Position = UDim2.fromScale(0.5, 0.5)
-	guidePanel.Size = UDim2.new(0.9, 0, 0.74, 0)
+	guidePanel.Size = UDim2.new(0.94, 0, 0.84, 0)
 	guidePanel.ZIndex = GUIDE_BASE_Z_INDEX + 1
 	guidePanel.Parent = guideOverlay
 
@@ -13402,8 +15872,8 @@ function RootScreen.new(context)
 	guidePanelStroke.Parent = guidePanel
 
 	local guideConstraint = Instance.new("UISizeConstraint")
-	guideConstraint.MinSize = Vector2.new(320, 340)
-	guideConstraint.MaxSize = Vector2.new(560, 620)
+	guideConstraint.MinSize = Vector2.new(420, 420)
+	guideConstraint.MaxSize = Vector2.new(920, 760)
 	guideConstraint.Parent = guidePanel
 
 	local guidePadding = Instance.new("UIPadding")
@@ -13416,7 +15886,7 @@ function RootScreen.new(context)
 	local guideHeader = Instance.new("Frame")
 	guideHeader.Name = "GuideHeader"
 	guideHeader.BackgroundTransparency = 1
-	guideHeader.Size = UDim2.new(1, 0, 0, 70)
+	guideHeader.Size = UDim2.new(1, 0, 0, 118)
 	guideHeader.ZIndex = GUIDE_BASE_Z_INDEX + 2
 	guideHeader.Parent = guidePanel
 
@@ -13445,6 +15915,24 @@ function RootScreen.new(context)
 	guideSubtitle.ZIndex = GUIDE_BASE_Z_INDEX + 2
 	guideSubtitle.Parent = guideHeader
 
+	local guideTabs = Instance.new("Frame")
+	guideTabs.Name = "GuideTabs"
+	guideTabs.BackgroundTransparency = 1
+	guideTabs.Position = UDim2.new(0, 0, 0, 74)
+	guideTabs.Size = UDim2.new(1, -56, 0, 36)
+	guideTabs.ZIndex = GUIDE_BASE_Z_INDEX + 2
+	guideTabs.Parent = guideHeader
+
+	local guideTabsLayout = Instance.new("UIListLayout")
+	guideTabsLayout.FillDirection = Enum.FillDirection.Horizontal
+	guideTabsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+	guideTabsLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	guideTabsLayout.Padding = UDim.new(0, 10)
+	guideTabsLayout.Parent = guideTabs
+
+	local chartTabButton = createGuideTabButton(guideTabs, "Rarity Chart", 1)
+	local collectionTabButton = createGuideTabButton(guideTabs, "Collection", 2)
+
 	local guideClose = Instance.new("TextButton")
 	guideClose.Name = "CloseGuideButton"
 	guideClose.AnchorPoint = Vector2.new(1, 0)
@@ -13467,8 +15955,8 @@ function RootScreen.new(context)
 	guideRows.Name = "GuideRows"
 	guideRows.BackgroundTransparency = 1
 	guideRows.BorderSizePixel = 0
-	guideRows.Position = UDim2.new(0, 0, 0, 78)
-	guideRows.Size = UDim2.new(1, 0, 1, -78)
+	guideRows.Position = UDim2.new(0, 0, 0, 126)
+	guideRows.Size = UDim2.new(1, 0, 1, -126)
 	guideRows.ScrollBarThickness = 7
 	guideRows.AutomaticCanvasSize = Enum.AutomaticSize.Y
 	guideRows.CanvasSize = UDim2.new(0, 0, 0, 0)
@@ -13484,8 +15972,114 @@ function RootScreen.new(context)
 	guideRowsLayout.Padding = UDim.new(0, 10)
 	guideRowsLayout.Parent = guideRows
 
+	local guideCollectionFrame = Instance.new("Frame")
+	guideCollectionFrame.Name = "GuideCollectionFrame"
+	guideCollectionFrame.BackgroundTransparency = 1
+	guideCollectionFrame.Position = UDim2.new(0, 0, 0, 126)
+	guideCollectionFrame.Size = UDim2.new(1, 0, 1, -126)
+	guideCollectionFrame.Visible = false
+	guideCollectionFrame.ZIndex = GUIDE_BASE_Z_INDEX + 2
+	guideCollectionFrame.Parent = guidePanel
+
+	local guideCollectionGrid = Instance.new("ScrollingFrame")
+	guideCollectionGrid.Name = "GuideCollectionGrid"
+	guideCollectionGrid.BackgroundTransparency = 1
+	guideCollectionGrid.BorderSizePixel = 0
+	guideCollectionGrid.Position = UDim2.new(0, 0, 0, 0)
+	guideCollectionGrid.Size = UDim2.new(1, -214, 1, 0)
+	guideCollectionGrid.ScrollBarThickness = 7
+	guideCollectionGrid.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	guideCollectionGrid.CanvasSize = UDim2.new(0, 0, 0, 0)
+	guideCollectionGrid.ZIndex = GUIDE_BASE_Z_INDEX + 2
+	guideCollectionGrid.Parent = guideCollectionFrame
+
+	local guideCollectionPadding = Instance.new("UIPadding")
+	guideCollectionPadding.PaddingBottom = UDim.new(0, 4)
+	guideCollectionPadding.PaddingRight = UDim.new(0, 10)
+	guideCollectionPadding.Parent = guideCollectionGrid
+
+	local guideCollectionLayout = Instance.new("UIGridLayout")
+	guideCollectionLayout.CellPadding = UDim2.new(0, 10, 0, 10)
+	guideCollectionLayout.CellSize = UDim2.new(0, 124, 0, 120)
+	guideCollectionLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	guideCollectionLayout.Parent = guideCollectionGrid
+
+	local guideHoverCard = Instance.new("Frame")
+	guideHoverCard.Name = "GuideHoverCard"
+	guideHoverCard.AnchorPoint = Vector2.new(1, 0)
+	guideHoverCard.BackgroundColor3 = Color3.fromRGB(255, 239, 188)
+	guideHoverCard.BorderSizePixel = 0
+	guideHoverCard.Position = UDim2.new(1, 0, 0, 0)
+	guideHoverCard.Size = UDim2.new(0, 196, 0, 194)
+	guideHoverCard.ZIndex = GUIDE_BASE_Z_INDEX + 3
+	guideHoverCard.Parent = guideCollectionFrame
+
+	local guideHoverCorner = Instance.new("UICorner")
+	guideHoverCorner.CornerRadius = UDim.new(0, 18)
+	guideHoverCorner.Parent = guideHoverCard
+
+	local guideHoverStroke = Instance.new("UIStroke")
+	guideHoverStroke.Color = Color3.fromRGB(255, 252, 235)
+	guideHoverStroke.Thickness = 4
+	guideHoverStroke.Parent = guideHoverCard
+
+	local guideHoverPadding = Instance.new("UIPadding")
+	guideHoverPadding.PaddingTop = UDim.new(0, 14)
+	guideHoverPadding.PaddingBottom = UDim.new(0, 14)
+	guideHoverPadding.PaddingLeft = UDim.new(0, 14)
+	guideHoverPadding.PaddingRight = UDim.new(0, 14)
+	guideHoverPadding.Parent = guideHoverCard
+
+	local guideHoverTitle = Instance.new("TextLabel")
+	guideHoverTitle.BackgroundTransparency = 1
+	guideHoverTitle.Size = UDim2.new(1, 0, 0, 34)
+	guideHoverTitle.Font = Enum.Font.FredokaOne
+	guideHoverTitle.Text = "Hover a bubble"
+	guideHoverTitle.TextColor3 = Color3.fromRGB(76, 52, 24)
+	guideHoverTitle.TextSize = 24
+	guideHoverTitle.TextWrapped = true
+	guideHoverTitle.TextXAlignment = Enum.TextXAlignment.Left
+	guideHoverTitle.TextYAlignment = Enum.TextYAlignment.Top
+	guideHoverTitle.ZIndex = GUIDE_BASE_Z_INDEX + 4
+	guideHoverTitle.Parent = guideHoverCard
+
+	local guideHoverRarity = Instance.new("TextLabel")
+	guideHoverRarity.BackgroundTransparency = 1
+	guideHoverRarity.Position = UDim2.new(0, 0, 0, 42)
+	guideHoverRarity.Size = UDim2.new(1, 0, 0, 42)
+	guideHoverRarity.Font = Enum.Font.GothamBold
+	guideHoverRarity.Text = "Move your mouse over a slot to peek into your collection."
+	guideHoverRarity.TextColor3 = Color3.fromRGB(110, 90, 55)
+	guideHoverRarity.TextSize = 14
+	guideHoverRarity.TextWrapped = true
+	guideHoverRarity.TextXAlignment = Enum.TextXAlignment.Left
+	guideHoverRarity.TextYAlignment = Enum.TextYAlignment.Top
+	guideHoverRarity.ZIndex = GUIDE_BASE_Z_INDEX + 4
+	guideHoverRarity.Parent = guideHoverCard
+
+	local guideHoverAttributes = Instance.new("TextLabel")
+	guideHoverAttributes.BackgroundTransparency = 1
+	guideHoverAttributes.Position = UDim2.new(0, 0, 0, 100)
+	guideHoverAttributes.Size = UDim2.new(1, 0, 1, -100)
+	guideHoverAttributes.Font = Enum.Font.GothamBold
+	guideHoverAttributes.Text = "Attributes: waiting for a closer look."
+	guideHoverAttributes.TextColor3 = Color3.fromRGB(94, 71, 28)
+	guideHoverAttributes.TextSize = 15
+	guideHoverAttributes.TextWrapped = true
+	guideHoverAttributes.TextXAlignment = Enum.TextXAlignment.Left
+	guideHoverAttributes.TextYAlignment = Enum.TextYAlignment.Top
+	guideHoverAttributes.ZIndex = GUIDE_BASE_Z_INDEX + 4
+	guideHoverAttributes.Parent = guideHoverCard
+
 	local initialGuideSummary = ResourceGuide.getGuideSummary(ResourceGuide.getDefaultPickaxeId())
 	rebuildGuideRows(guideRows, ResourceGuide.getGuideRows(initialGuideSummary.pickaxeId), initialGuideSummary.hintText)
+	rebuildCollectionGrid(guideCollectionGrid, ResourceGuide.getCollectionSlots(nil), {
+		hoverTitle = guideHoverTitle,
+		hoverRarity = guideHoverRarity,
+		hoverAttributes = guideHoverAttributes,
+	})
+	setGuideTabButtonState(chartTabButton, true)
+	setGuideTabButtonState(collectionTabButton, false)
 
 	local vaultOverlay = Instance.new("Frame")
 	vaultOverlay.Name = "VaultOverlay"
@@ -13590,8 +16184,8 @@ function RootScreen.new(context)
 
 	local shopOverlay = Instance.new("Frame")
 	shopOverlay.Name = "ShopOverlay"
-	shopOverlay.BackgroundColor3 = Color3.fromRGB(8, 8, 12)
-	shopOverlay.BackgroundTransparency = 0.25
+	shopOverlay.BackgroundColor3 = Color3.fromRGB(25, 36, 52)
+	shopOverlay.BackgroundTransparency = 0.24
 	shopOverlay.BorderSizePixel = 0
 	shopOverlay.Size = UDim2.fromScale(1, 1)
 	shopOverlay.Visible = false
@@ -13606,65 +16200,104 @@ function RootScreen.new(context)
 	local shopPanel = Instance.new("Frame")
 	shopPanel.Name = "ShopPanel"
 	shopPanel.AnchorPoint = Vector2.new(0.5, 0.5)
-	shopPanel.BackgroundColor3 = palette.background.panel
+	shopPanel.BackgroundColor3 = Color3.fromRGB(255, 247, 223)
 	shopPanel.BorderSizePixel = 0
 	shopPanel.Position = UDim2.fromScale(0.5, 0.5)
-	shopPanel.Size = UDim2.new(0.92, 0, 0.84, 0)
+	shopPanel.Size = UDim2.new(0.94, 0, 0.88, 0)
 	shopPanel.ZIndex = SHOP_BASE_Z_INDEX + 1
 	shopPanel.Parent = shopOverlay
 
 	local shopPanelCorner = Instance.new("UICorner")
-	shopPanelCorner.CornerRadius = UDim.new(0, 8)
+	shopPanelCorner.CornerRadius = UDim.new(0, 28)
 	shopPanelCorner.Parent = shopPanel
 
 	local shopPanelStroke = Instance.new("UIStroke")
-	shopPanelStroke.Color = palette.border
-	shopPanelStroke.Thickness = 1
-	shopPanelStroke.Transparency = 0.1
+	shopPanelStroke.Color = Color3.fromRGB(177, 235, 225)
+	shopPanelStroke.Thickness = 5
+	shopPanelStroke.Transparency = 0.02
 	shopPanelStroke.Parent = shopPanel
 
+	local shopPanelGradient = Instance.new("UIGradient")
+	shopPanelGradient.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 252, 238)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 239, 196)),
+	})
+	shopPanelGradient.Rotation = 90
+	shopPanelGradient.Parent = shopPanel
+
 	local shopPanelConstraint = Instance.new("UISizeConstraint")
-	shopPanelConstraint.MinSize = Vector2.new(320, 420)
-	shopPanelConstraint.MaxSize = Vector2.new(560, 680)
+	shopPanelConstraint.MinSize = Vector2.new(360, 460)
+	shopPanelConstraint.MaxSize = Vector2.new(760, 760)
 	shopPanelConstraint.Parent = shopPanel
 
 	local shopPadding = Instance.new("UIPadding")
-	shopPadding.PaddingTop = UDim.new(0, 16)
-	shopPadding.PaddingBottom = UDim.new(0, 16)
-	shopPadding.PaddingLeft = UDim.new(0, 16)
-	shopPadding.PaddingRight = UDim.new(0, 16)
+	shopPadding.PaddingTop = UDim.new(0, 20)
+	shopPadding.PaddingBottom = UDim.new(0, 20)
+	shopPadding.PaddingLeft = UDim.new(0, 20)
+	shopPadding.PaddingRight = UDim.new(0, 20)
 	shopPadding.Parent = shopPanel
 
 	local shopLayout = Instance.new("UIListLayout")
 	shopLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	shopLayout.Padding = UDim.new(0, 12)
+	shopLayout.Padding = UDim.new(0, 14)
 	shopLayout.Parent = shopPanel
 
 	local shopHeader = Instance.new("Frame")
 	shopHeader.Name = "ShopHeader"
-	shopHeader.BackgroundTransparency = 1
+	shopHeader.BackgroundColor3 = Color3.fromRGB(131, 230, 214)
+	shopHeader.BorderSizePixel = 0
 	shopHeader.LayoutOrder = 1
-	shopHeader.Size = UDim2.new(1, 0, 0, 56)
+	shopHeader.Size = UDim2.new(1, 0, 0, 96)
 	shopHeader.Parent = shopPanel
+
+	local shopHeaderCorner = Instance.new("UICorner")
+	shopHeaderCorner.CornerRadius = UDim.new(0, 24)
+	shopHeaderCorner.Parent = shopHeader
+
+	local shopHeaderStroke = Instance.new("UIStroke")
+	shopHeaderStroke.Color = Color3.fromRGB(218, 255, 246)
+	shopHeaderStroke.Thickness = 4
+	shopHeaderStroke.Parent = shopHeader
+
+	local shopHeaderGradient = Instance.new("UIGradient")
+	shopHeaderGradient.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(149, 240, 223)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(111, 217, 212)),
+	})
+	shopHeaderGradient.Rotation = 18
+	shopHeaderGradient.Parent = shopHeader
+
+	local shopSparkle = Instance.new("TextLabel")
+	shopSparkle.Name = "ShopSparkle"
+	shopSparkle.BackgroundTransparency = 1
+	shopSparkle.Position = UDim2.new(0, 16, 0, 10)
+	shopSparkle.Size = UDim2.new(0, 48, 0, 32)
+	shopSparkle.Font = Enum.Font.FredokaOne
+	shopSparkle.Text = "*"
+	shopSparkle.TextColor3 = Color3.fromRGB(255, 244, 162)
+	shopSparkle.TextSize = 30
+	shopSparkle.Rotation = -12
+	shopSparkle.Parent = shopHeader
 
 	local shopTitle = Instance.new("TextLabel")
 	shopTitle.BackgroundTransparency = 1
-	shopTitle.Size = UDim2.new(1, -56, 0, 24)
-	shopTitle.Font = Enum.Font.GothamBold
+	shopTitle.Position = UDim2.new(0, 56, 0, 12)
+	shopTitle.Size = UDim2.new(1, -88, 0, 30)
+	shopTitle.Font = Enum.Font.FredokaOne
 	shopTitle.Text = "Pickaxe Shop"
-	shopTitle.TextColor3 = palette.text
-	shopTitle.TextSize = 22
+	shopTitle.TextColor3 = Color3.fromRGB(38, 76, 72)
+	shopTitle.TextSize = 31
 	shopTitle.TextXAlignment = Enum.TextXAlignment.Left
 	shopTitle.Parent = shopHeader
 
 	local shopSubtitle = Instance.new("TextLabel")
 	shopSubtitle.BackgroundTransparency = 1
-	shopSubtitle.Position = UDim2.new(0, 0, 0, 28)
-	shopSubtitle.Size = UDim2.new(1, -56, 0, 20)
-	shopSubtitle.Font = Enum.Font.Gotham
+	shopSubtitle.Position = UDim2.new(0, 56, 0, 46)
+	shopSubtitle.Size = UDim2.new(1, -116, 0, 36)
+	shopSubtitle.Font = Enum.Font.GothamBold
 	shopSubtitle.Text = "Press E at the forge to open the shop."
-	shopSubtitle.TextColor3 = palette.muted
-	shopSubtitle.TextSize = 14
+	shopSubtitle.TextColor3 = Color3.fromRGB(57, 104, 96)
+	shopSubtitle.TextSize = 15
 	shopSubtitle.TextXAlignment = Enum.TextXAlignment.Left
 	shopSubtitle.TextWrapped = true
 	shopSubtitle.Parent = shopHeader
@@ -13673,44 +16306,52 @@ function RootScreen.new(context)
 	shopClose.Name = "CloseShopButton"
 	shopClose.AnchorPoint = Vector2.new(1, 0)
 	shopClose.AutoButtonColor = true
-	shopClose.BackgroundColor3 = palette.accent
+	shopClose.BackgroundColor3 = Color3.fromRGB(255, 189, 136)
 	shopClose.BorderSizePixel = 0
-	shopClose.Position = UDim2.new(1, 0, 0, 0)
-	shopClose.Size = UDim2.new(0, 40, 0, 32)
-	shopClose.Font = Enum.Font.GothamBold
+	shopClose.Position = UDim2.new(1, -10, 0, 10)
+	shopClose.Size = UDim2.new(0, 46, 0, 40)
+	shopClose.Font = Enum.Font.FredokaOne
 	shopClose.Text = "X"
-	shopClose.TextColor3 = palette.shadow
-	shopClose.TextSize = 18
+	shopClose.TextColor3 = Color3.fromRGB(117, 62, 26)
+	shopClose.TextSize = 22
 	shopClose.ZIndex = 62
 	shopClose.Parent = shopHeader
 
 	local shopCloseCorner = Instance.new("UICorner")
-	shopCloseCorner.CornerRadius = UDim.new(0, 8)
+	shopCloseCorner.CornerRadius = UDim.new(0, 16)
 	shopCloseCorner.Parent = shopClose
 
 	local shopCloseStroke = Instance.new("UIStroke")
-	shopCloseStroke.Color = palette.border
-	shopCloseStroke.Thickness = 1
-	shopCloseStroke.Transparency = 0.15
+	shopCloseStroke.Color = Color3.fromRGB(255, 236, 213)
+	shopCloseStroke.Thickness = 3
+	shopCloseStroke.Transparency = 0.02
 	shopCloseStroke.Parent = shopClose
 
 	local shopInfo = Instance.new("Frame")
 	shopInfo.Name = "ShopInfo"
-	shopInfo.BackgroundColor3 = palette.background.panelAlt
+	shopInfo.BackgroundColor3 = Color3.fromRGB(255, 232, 170)
 	shopInfo.BorderSizePixel = 0
 	shopInfo.LayoutOrder = 2
-	shopInfo.Size = UDim2.new(1, 0, 0, 64)
+	shopInfo.Size = UDim2.new(1, 0, 0, 88)
 	shopInfo.Parent = shopPanel
 
 	local shopInfoCorner = Instance.new("UICorner")
-	shopInfoCorner.CornerRadius = UDim.new(0, 8)
+	shopInfoCorner.CornerRadius = UDim.new(0, 22)
 	shopInfoCorner.Parent = shopInfo
 
 	local shopInfoStroke = Instance.new("UIStroke")
-	shopInfoStroke.Color = palette.border
-	shopInfoStroke.Thickness = 1
-	shopInfoStroke.Transparency = 0.18
+	shopInfoStroke.Color = Color3.fromRGB(255, 248, 216)
+	shopInfoStroke.Thickness = 3
+	shopInfoStroke.Transparency = 0.02
 	shopInfoStroke.Parent = shopInfo
+
+	local shopInfoGradient = Instance.new("UIGradient")
+	shopInfoGradient.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 241, 198)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 223, 144)),
+	})
+	shopInfoGradient.Rotation = 18
+	shopInfoGradient.Parent = shopInfo
 
 	local shopInfoPadding = Instance.new("UIPadding")
 	shopInfoPadding.PaddingTop = UDim.new(0, 10)
@@ -13722,10 +16363,10 @@ function RootScreen.new(context)
 	local shopInfoLabel = Instance.new("TextLabel")
 	shopInfoLabel.BackgroundTransparency = 1
 	shopInfoLabel.Size = UDim2.new(1, 0, 1, 0)
-	shopInfoLabel.Font = Enum.Font.Gotham
+	shopInfoLabel.Font = Enum.Font.FredokaOne
 	shopInfoLabel.Text = "Loading pickaxe stock..."
-	shopInfoLabel.TextColor3 = palette.text
-	shopInfoLabel.TextSize = 14
+	shopInfoLabel.TextColor3 = Color3.fromRGB(103, 66, 23)
+	shopInfoLabel.TextSize = 18
 	shopInfoLabel.TextWrapped = true
 	shopInfoLabel.TextXAlignment = Enum.TextXAlignment.Left
 	shopInfoLabel.TextYAlignment = Enum.TextYAlignment.Top
@@ -13736,44 +16377,105 @@ function RootScreen.new(context)
 	shopOfferScroll.BackgroundTransparency = 1
 	shopOfferScroll.BorderSizePixel = 0
 	shopOfferScroll.LayoutOrder = 3
-	shopOfferScroll.ScrollBarThickness = 6
+	shopOfferScroll.ScrollBarThickness = 10
 	shopOfferScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
 	shopOfferScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
-	shopOfferScroll.Size = UDim2.new(1, 0, 0, 214)
+	shopOfferScroll.ElasticBehavior = Enum.ElasticBehavior.Never
+	shopOfferScroll.ScrollingDirection = Enum.ScrollingDirection.Y
+	shopOfferScroll.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar
+	shopOfferScroll.Size = UDim2.new(1, 0, 1, -232)
 	shopOfferScroll.ZIndex = SHOP_BASE_Z_INDEX + 2
 	shopOfferScroll.Parent = shopPanel
 
 	local shopOfferPadding = Instance.new("UIPadding")
-	shopOfferPadding.PaddingBottom = UDim.new(0, 4)
+	shopOfferPadding.PaddingTop = UDim.new(0, 4)
+	shopOfferPadding.PaddingBottom = UDim.new(0, 12)
+	shopOfferPadding.PaddingLeft = UDim.new(0, 3)
+	shopOfferPadding.PaddingRight = UDim.new(0, 12)
 	shopOfferPadding.Parent = shopOfferScroll
+
+	local shopCatalogContent = Instance.new("Frame")
+	shopCatalogContent.Name = "CatalogContent"
+	shopCatalogContent.AutomaticSize = Enum.AutomaticSize.Y
+	shopCatalogContent.BackgroundTransparency = 1
+	shopCatalogContent.BorderSizePixel = 0
+	shopCatalogContent.Size = UDim2.new(1, -2, 0, 0)
+	shopCatalogContent.ZIndex = SHOP_BASE_Z_INDEX + 2
+	shopCatalogContent.Parent = shopOfferScroll
+
+	local shopCatalogLayout = Instance.new("UIListLayout")
+	shopCatalogLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	shopCatalogLayout.Padding = UDim.new(0, 12)
+	shopCatalogLayout.Parent = shopCatalogContent
+
+	local shopOfferRows = Instance.new("Frame")
+	shopOfferRows.Name = "OfferRows"
+	shopOfferRows.AutomaticSize = Enum.AutomaticSize.Y
+	shopOfferRows.BackgroundTransparency = 1
+	shopOfferRows.BorderSizePixel = 0
+	shopOfferRows.LayoutOrder = 1
+	shopOfferRows.Size = UDim2.new(1, 0, 0, 0)
+	shopOfferRows.ZIndex = SHOP_BASE_Z_INDEX + 2
+	shopOfferRows.Parent = shopCatalogContent
 
 	local shopOfferLayout = Instance.new("UIListLayout")
 	shopOfferLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	shopOfferLayout.Padding = UDim.new(0, 10)
-	shopOfferLayout.Parent = shopOfferScroll
+	shopOfferLayout.Padding = UDim.new(0, 12)
+	shopOfferLayout.Parent = shopOfferRows
 
 	local rarityFrame = Instance.new("Frame")
 	rarityFrame.Name = "RarityLadder"
-	rarityFrame.BackgroundTransparency = 1
-	rarityFrame.LayoutOrder = 4
-	rarityFrame.Size = UDim2.new(1, 0, 0, 128)
-	rarityFrame.Parent = shopPanel
+	rarityFrame.BackgroundColor3 = Color3.fromRGB(255, 243, 207)
+	rarityFrame.BorderSizePixel = 0
+	rarityFrame.LayoutOrder = 2
+	rarityFrame.Size = UDim2.new(1, 0, 0, 164)
+	rarityFrame.Parent = shopCatalogContent
+
+	local rarityFrameCorner = Instance.new("UICorner")
+	rarityFrameCorner.CornerRadius = UDim.new(0, 22)
+	rarityFrameCorner.Parent = rarityFrame
+
+	local rarityFrameStroke = Instance.new("UIStroke")
+	rarityFrameStroke.Color = Color3.fromRGB(255, 248, 216)
+	rarityFrameStroke.Thickness = 3
+	rarityFrameStroke.Parent = rarityFrame
+
+	local rarityFrameGradient = Instance.new("UIGradient")
+	rarityFrameGradient.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 248, 224)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 233, 185)),
+	})
+	rarityFrameGradient.Rotation = 90
+	rarityFrameGradient.Parent = rarityFrame
 
 	local rarityTitle = Instance.new("TextLabel")
 	rarityTitle.BackgroundTransparency = 1
-	rarityTitle.Size = UDim2.new(1, 0, 0, 20)
-	rarityTitle.Font = Enum.Font.GothamBold
+	rarityTitle.Position = UDim2.new(0, 14, 0, 10)
+	rarityTitle.Size = UDim2.new(1, -28, 0, 26)
+	rarityTitle.Font = Enum.Font.FredokaOne
 	rarityTitle.Text = "Pickaxe Tiers"
-	rarityTitle.TextColor3 = palette.accentSoft
-	rarityTitle.TextSize = 16
+	rarityTitle.TextColor3 = Color3.fromRGB(110, 72, 26)
+	rarityTitle.TextSize = 20
 	rarityTitle.TextXAlignment = Enum.TextXAlignment.Left
 	rarityTitle.Parent = rarityFrame
+
+	local rarityHint = Instance.new("TextLabel")
+	rarityHint.Name = "RarityHint"
+	rarityHint.BackgroundTransparency = 1
+	rarityHint.Position = UDim2.new(0, 14, 0, 34)
+	rarityHint.Size = UDim2.new(1, -28, 0, 18)
+	rarityHint.Font = Enum.Font.GothamBold
+	rarityHint.Text = "Higher tiers hit faster and pull rarer geodes."
+	rarityHint.TextColor3 = Color3.fromRGB(151, 111, 59)
+	rarityHint.TextSize = 12
+	rarityHint.TextXAlignment = Enum.TextXAlignment.Left
+	rarityHint.Parent = rarityFrame
 
 	local rarityGrid = Instance.new("Frame")
 	rarityGrid.Name = "RarityGrid"
 	rarityGrid.BackgroundTransparency = 1
-	rarityGrid.Position = UDim2.new(0, 0, 0, 26)
-	rarityGrid.Size = UDim2.new(1, 0, 1, -26)
+	rarityGrid.Position = UDim2.new(0, 12, 0, 58)
+	rarityGrid.Size = UDim2.new(1, -24, 1, -70)
 	rarityGrid.Parent = rarityFrame
 
 	local rarityLayout = Instance.new("UIGridLayout")
@@ -13799,25 +16501,25 @@ function RootScreen.new(context)
 	for index, rarityName in ipairs(rarityNames) do
 		local rarityChip = Instance.new("TextLabel")
 		rarityChip.Name = string.format("Rarity%d", index)
-		rarityChip.BackgroundColor3 = palette.background.panelAlt
+		rarityChip.BackgroundColor3 = Color3.fromRGB(255, 224, 154)
 		rarityChip.BorderSizePixel = 0
-		rarityChip.Font = Enum.Font.GothamBold
+		rarityChip.Font = Enum.Font.FredokaOne
 		rarityChip.LayoutOrder = index
 		rarityChip.Text = rarityName
-		rarityChip.TextColor3 = palette.text
-		rarityChip.TextSize = 13
+		rarityChip.TextColor3 = Color3.fromRGB(110, 70, 22)
+		rarityChip.TextSize = 12
 		rarityChip.TextWrapped = false
 		rarityChip.ZIndex = SHOP_BASE_Z_INDEX + 2
 		rarityChip.Parent = rarityGrid
 
 		local chipCorner = Instance.new("UICorner")
-		chipCorner.CornerRadius = UDim.new(0, 8)
+		chipCorner.CornerRadius = UDim.new(0, 14)
 		chipCorner.Parent = rarityChip
 
 		local chipStroke = Instance.new("UIStroke")
-		chipStroke.Color = palette.border
-		chipStroke.Thickness = 1
-		chipStroke.Transparency = 0.2
+		chipStroke.Color = Color3.fromRGB(255, 246, 214)
+		chipStroke.Thickness = 2
+		chipStroke.Transparency = 0.02
 		chipStroke.Parent = rarityChip
 
 		table.insert(rarityLabels, rarityChip)
@@ -13864,7 +16566,7 @@ function RootScreen.new(context)
 			title = shopTitle,
 			subtitle = shopSubtitle,
 			info = shopInfoLabel,
-			offers = shopOfferScroll,
+			offers = shopOfferRows,
 			rarity = rarityGrid,
 			rarityLabels = rarityLabels,
 			closeButton = shopClose,
@@ -13881,7 +16583,17 @@ function RootScreen.new(context)
 			button = guideButton,
 			closeButton = guideClose,
 			rows = guideRows,
+			collectionFrame = guideCollectionFrame,
+			collectionGrid = guideCollectionGrid,
+			hoverTitle = guideHoverTitle,
+			hoverRarity = guideHoverRarity,
+			hoverAttributes = guideHoverAttributes,
 			subtitle = guideSubtitle,
+			chartTabButton = chartTabButton,
+			collectionTabButton = collectionTabButton,
+			activeTab = "chart",
+			chartSubtitleText = initialGuideSummary.subtitleText,
+			collectionSubtitleText = "Collect resources to light up your guide bubbles.",
 		},
 		miningPopupContainer = miningPopupContainer,
 		labels = {
@@ -13933,6 +16645,14 @@ function RootScreen.new(context)
 		playGuideButtonSound(nextVisible)
 	end)
 
+	chartTabButton.Activated:Connect(function()
+		self:setResourceGuideTab("chart")
+	end)
+
+	collectionTabButton.Activated:Connect(function()
+		self:setResourceGuideTab("collection")
+	end)
+
 	guideClose.Activated:Connect(function()
 		if guideOverlay.Visible then
 			guideOverlay.Visible = false
@@ -13942,6 +16662,7 @@ function RootScreen.new(context)
 
 	self:setShopMenuVisible(false)
 	self:setResourceGuideVisible(false)
+	self:setResourceGuideTab("chart")
 	self:setOpenReadyGeodeButton(false, "Open Ready Geode")
 	self:setOfflineButtonState(false, "Claim Offline Cache")
 	self:setPlaceStarterStationButton(true, "Place Starter Station")
@@ -13986,6 +16707,7 @@ local function normalizeCelebrationSpec(inputValue)
 		showSlotMachine = inputValue.showSlotMachine == true,
 		compact = inputValue.compact == true,
 		waitForClick = inputValue.waitForClick == true,
+		continuePrompt = sanitizePromptText(inputValue.continuePrompt),
 	}
 
 	if spec.rarityIndex == nil then
@@ -14035,20 +16757,35 @@ local function normalizeCelebrationSpec(inputValue)
 
 	if spec.kind == "coin" then
 		spec.compact = true
+		if spec.textColor == nil then
+			spec.textColor = Color3.fromRGB(255, 249, 214)
+		end
+	end
+
+	if spec.waitForClick == true and spec.continuePrompt == nil then
+		if spec.kind == "resource" then
+			spec.continuePrompt = "Click to roll attribute!"
+		elseif spec.kind == "geode" then
+			spec.continuePrompt = "Click to reveal resource!"
+		else
+			spec.continuePrompt = "Click anywhere to continue!"
+		end
 	end
 
 	return spec
 end
 
-local function makePopup(parent: Instance, backgroundColor: Color3, strokeColor: Color3, width: number, height: number)
+local function makePopup(parent: Instance, backgroundColor: Color3, strokeColor: Color3, width: number, minHeight: number)
 	local popup = Instance.new("Frame")
 	popup.Name = "CelebrationPopup"
 	popup.AnchorPoint = Vector2.new(0.5, 0)
 	popup.BackgroundColor3 = backgroundColor
 	popup.BorderSizePixel = 0
-	popup.ClipsDescendants = true
+	-- Let the popup grow only when the handoff footer is actually shown so reveal reels do not reserve a giant empty panel.
+	popup.AutomaticSize = Enum.AutomaticSize.Y
+	popup.ClipsDescendants = false
 	popup.Position = UDim2.new(0.5, 0, 0, 0)
-	popup.Size = UDim2.new(0, width, 0, height)
+	popup.Size = UDim2.new(0, width, 0, minHeight)
 	popup.ZIndex = POPUP_Z_INDEX
 	popup.Parent = parent
 
@@ -14139,6 +16876,71 @@ local function createReel(parent: Instance, tone, initialText: string)
 	return reel, reelLabel
 end
 
+local function applyCelebrationTone(
+	popup: Frame,
+	tone,
+	titleLabel: TextLabel?,
+	reelFrame: Frame?,
+	reelLabel: TextLabel?,
+	primaryLabel: TextLabel?,
+	detailLabel: TextLabel?,
+	badgeLabel: TextLabel?,
+	continueFrame: Frame?,
+	continueLabel: TextLabel?
+)
+	popup.BackgroundColor3 = tone.background
+
+	local popupStroke = popup:FindFirstChildWhichIsA("UIStroke")
+	if popupStroke ~= nil then
+		popupStroke.Color = tone.accent
+	end
+
+	if titleLabel ~= nil then
+		titleLabel.TextColor3 = tone.text
+	end
+
+	if reelFrame ~= nil then
+		reelFrame.BackgroundColor3 = tone.highlight
+		local reelStroke = reelFrame:FindFirstChildWhichIsA("UIStroke")
+		if reelStroke ~= nil then
+			reelStroke.Color = tone.accent
+		end
+	end
+
+	if reelLabel ~= nil then
+		reelLabel.TextColor3 = tone.text
+	end
+
+	if primaryLabel ~= nil then
+		primaryLabel.TextColor3 = tone.text
+	end
+
+	if detailLabel ~= nil then
+		detailLabel.TextColor3 = tone.text
+	end
+
+	if badgeLabel ~= nil then
+		badgeLabel.BackgroundColor3 = tone.highlight
+		badgeLabel.TextColor3 = tone.text
+		local badgeStroke = badgeLabel:FindFirstChildWhichIsA("UIStroke")
+		if badgeStroke ~= nil then
+			badgeStroke.Color = tone.accent
+		end
+	end
+
+	if continueFrame ~= nil then
+		continueFrame.BackgroundColor3 = tone.highlight
+		local continueStroke = continueFrame:FindFirstChildWhichIsA("UIStroke")
+		if continueStroke ~= nil then
+			continueStroke.Color = tone.accent
+		end
+	end
+
+	if continueLabel ~= nil then
+		continueLabel.TextColor3 = tone.text
+	end
+end
+
 function RootScreen:_pumpCelebrationQueue()
 	if self.celebrationPlaying or #self.celebrationQueue == 0 then
 		return
@@ -14157,33 +16959,34 @@ function RootScreen:_pumpCelebrationQueue()
 		end
 
 		local isCoin = spec.kind == "coin"
-		local width = if isCoin then 160 elseif spec.compact == true then 300 elseif spec.showSlotMachine == true then 460 else 360
-		local height = if isCoin then 36 elseif spec.compact == true then 68 elseif spec.showSlotMachine == true then 212 else 104
+		local width = if isCoin then 260 elseif spec.compact == true then 300 elseif spec.showSlotMachine == true then 460 else 360
+		local height = if isCoin then 52 elseif spec.compact == true then 68 elseif spec.showSlotMachine == true then 212 else 104
 		if spec.kind == "geode_discovery" then
 			local ri = math.clamp(spec.rarityIndex or 1, 1, 10)
 			width = math.clamp(320 + (ri - 1) * 22, 320, 520)
 			height = math.clamp(110 + (ri - 1) * 18, 110, 280)
 		elseif spec.kind == "attribute" then
-			height = if spec.showSlotMachine == true then 252 else 210
+			height = if spec.showSlotMachine == true then 276 else 222
 		elseif spec.kind == "resource" then
-			height = if spec.showSlotMachine == true then 252 else 120
+			height = if spec.showSlotMachine == true then 276 else 132
 		elseif spec.kind == "geode" then
-			height = if spec.showSlotMachine == true then 240 else 120
+			height = if spec.showSlotMachine == true then 260 else 132
 		end
-		if spec.waitForClick == true then
-			height += 40
-		end
-
 		local popup = makePopup(self.miningPopupContainer, tone.background, tone.accent, width, height)
 		if isCoin then
 			local popupStroke = popup:FindFirstChildWhichIsA("UIStroke")
 			if popupStroke ~= nil then
 				popupStroke:Destroy()
 			end
-			popup.BackgroundTransparency = 0.15
-			local randX = 0.5 + (math.random() - 0.5) * 0.3
-			local randY = math.random() * 0.08
-			popup.Position = UDim2.new(randX, 0, 0, randY)
+			local popupGradient = popup:FindFirstChildWhichIsA("UIGradient")
+			if popupGradient ~= nil then
+				popupGradient:Destroy()
+			end
+			popup.BackgroundTransparency = 1
+			-- Let coin bursts roam across a wider center band so repeated mining does not stack every reward in one narrow lane.
+			local randX = 0.5 + (math.random() - 0.5) * 0.64
+			local randY = 0.34 + ((math.random() - 0.5) * 0.24)
+			popup.Position = UDim2.new(randX, 0, randY, 0)
 		end
 		if spec.kind == "geode_discovery" then
 			local ri = math.clamp(spec.rarityIndex or 1, 1, 10)
@@ -14208,20 +17011,30 @@ function RootScreen:_pumpCelebrationQueue()
 		layout.Parent = popup
 
 		local titleText = if isCoin then spec.headline else string.upper(spec.headline)
-		local titleFontSize = if isCoin then 16 elseif spec.compact == true then 18 else 22
+		local titleFontSize = if isCoin then 30 elseif spec.compact == true then 18 else 22
 		if spec.kind == "geode_discovery" then
 			local ri = math.clamp(spec.rarityIndex or 1, 1, 10)
 			titleFontSize = math.clamp(24 + (ri - 1) * 3, 24, 48)
 		end
-		local titleHeight = if spec.compact == true then 22 else math.clamp(titleFontSize + 4, 24, 54)
+		local titleHeight = if isCoin then 42 elseif spec.compact == true then 22 else math.clamp(titleFontSize + 8, 24, 58)
 		local title = createTextLabel(popup, titleText, titleFontSize, spec.textColor or tone.text, titleHeight)
 		title.LayoutOrder = 1
+		if isCoin then
+			title.Rotation = math.random(-8, 8)
+			title.TextStrokeTransparency = 0.36
+			title.TextStrokeColor3 = Color3.fromRGB(172, 112, 28)
+		end
 
 		local reelRow
+		local reelFrame
+		local reelLabel
 		local reelFinished = true
 		local primaryLabel
 		local detailLabel
 		local badgeLabel
+		local continueButton
+		local continueLabel
+		local continueFrame
 		local hideResolvedRevealText = GeodePresentation.shouldHideResolvedRevealText(spec.kind, spec.showSlotMachine, false)
 		local resolvedDetailText = if spec.detail ~= nil then tostring(spec.detail) else tostring(spec.rarityLabel or "")
 		local resolvedBadgeText = if spec.rarityLabel ~= nil then tostring(spec.rarityLabel):upper() else nil
@@ -14245,6 +17058,63 @@ function RootScreen:_pumpCelebrationQueue()
 				badgeLabel.Text = resolvedBadgeText or ""
 				badgeLabel.Visible = true
 			end
+		end
+
+		local function createContinuePrompt()
+			if continueFrame ~= nil or spec.waitForClick ~= true then
+				return
+			end
+
+			continueFrame = Instance.new("Frame")
+			continueFrame.Name = "CelebrationPromptFrame"
+			continueFrame.BackgroundColor3 = tone.highlight
+			continueFrame.BorderSizePixel = 0
+			continueFrame.LayoutOrder = 99
+			continueFrame.Size = UDim2.new(0.92, 0, 0, 42)
+			continueFrame.ZIndex = POPUP_Z_INDEX + 3
+			continueFrame.Parent = popup
+
+			local continueCorner = Instance.new("UICorner")
+			continueCorner.CornerRadius = UDim.new(0, 14)
+			continueCorner.Parent = continueFrame
+
+			local continueStroke = Instance.new("UIStroke")
+			continueStroke.Color = tone.accent
+			continueStroke.Thickness = 2
+			continueStroke.Parent = continueFrame
+
+			continueLabel = Instance.new("TextLabel")
+			continueLabel.Name = "CelebrationContinuePrompt"
+			continueLabel.Active = false
+			continueLabel.BackgroundTransparency = 1
+			continueLabel.Size = UDim2.new(1, -14, 1, 0)
+			continueLabel.Position = UDim2.new(0, 7, 0, 0)
+			continueLabel.Font = Enum.Font.FredokaOne
+			continueLabel.Text = spec.continuePrompt or "Click anywhere to continue!"
+			continueLabel.TextColor3 = tone.text
+			continueLabel.TextSize = 18
+			continueLabel.TextScaled = true
+			continueLabel.TextTransparency = 0.28
+			continueLabel.ZIndex = POPUP_Z_INDEX + 4
+			continueLabel.Parent = continueFrame
+
+			local continueConstraint = Instance.new("UITextSizeConstraint")
+			continueConstraint.MaxTextSize = 18
+			continueConstraint.MinTextSize = 11
+			continueConstraint.Parent = continueLabel
+
+			continueButton = Instance.new("TextButton")
+			continueButton.Name = "CelebrationContinueButton"
+			continueButton.Active = false
+			continueButton.AutoButtonColor = false
+			continueButton.BackgroundTransparency = 1
+			continueButton.BorderSizePixel = 0
+			continueButton.Visible = false
+			continueButton.Size = UDim2.new(1, 0, 1, 0)
+			continueButton.Font = Enum.Font.FredokaOne
+			continueButton.Text = ""
+			continueButton.ZIndex = POPUP_Z_INDEX + 3
+			continueButton.Parent = popup
 		end
 
 		if spec.kind == "geode_discovery" then
@@ -14289,18 +17159,53 @@ function RootScreen:_pumpCelebrationQueue()
 				reelRow.Size = UDim2.new(0.85, 0, 0, 48)
 				reelRow.Parent = popup
 
-				local singleReel, singleReelLabel = createReel(reelRow, tone, "...")
-				singleReel.Size = UDim2.new(1, 0, 1, 0)
+				reelFrame, reelLabel = createReel(reelRow, tone, "...")
+				reelFrame.Size = UDim2.new(1, 0, 1, 0)
+
+				local spinWords = spec.reelWords or GEODE_RARITY_ORDER
+				if #spinWords == 0 then
+					spinWords = { spec.primary }
+				end
+				local initialSpinWord = tostring(spinWords[1] or spec.primary)
+				if reelLabel ~= nil then
+					reelLabel.Text = initialSpinWord
+				end
+				applyCelebrationTone(
+					popup,
+					getSpinTone(spec, initialSpinWord, tone),
+					title,
+					reelFrame,
+					reelLabel,
+					primaryLabel,
+					detailLabel,
+					badgeLabel,
+					continueFrame,
+					continueLabel
+				)
 
 				reelFinished = false
 				task.spawn(function()
-					local spinWords = spec.reelWords or GEODE_RARITY_ORDER
 					local totalSteps = math.max(12, 8 + (spec.rarityIndex or 1) * 3)
 					for spinStep = 1, totalSteps do
 						local progress = spinStep / totalSteps
 						local stepDelay = 0.06 + progress * 0.14
 						local wordIndex = ((spinStep) % #spinWords) + 1
-						singleReelLabel.Text = tostring(spinWords[wordIndex])
+						local spinWord = tostring(spinWords[wordIndex])
+						if reelLabel ~= nil then
+							reelLabel.Text = spinWord
+						end
+						applyCelebrationTone(
+							popup,
+							getSpinTone(spec, spinWord, tone),
+							title,
+							reelFrame,
+							reelLabel,
+							primaryLabel,
+							detailLabel,
+							badgeLabel,
+							continueFrame,
+							continueLabel
+						)
 						if spinStep == 1 or spinStep % 3 == 0 then
 							playLocalUiSound(
 								AUDIO_LIBRARY.tick,
@@ -14310,7 +17215,21 @@ function RootScreen:_pumpCelebrationQueue()
 						end
 						task.wait(stepDelay)
 					end
-					singleReelLabel.Text = tostring(spec.reelFinal or spec.primary)
+					if reelLabel ~= nil then
+						reelLabel.Text = tostring(spec.reelFinal or spec.primary)
+					end
+					applyCelebrationTone(
+						popup,
+						tone,
+						title,
+						reelFrame,
+						reelLabel,
+						primaryLabel,
+						detailLabel,
+						badgeLabel,
+						continueFrame,
+						continueLabel
+					)
 					playCelebrationSound(spec)
 					reelFinished = true
 					revealResolvedPopupText()
@@ -14375,43 +17294,18 @@ function RootScreen:_pumpCelebrationQueue()
 			end
 		end
 
-		local continueButton
-		local continueLabel
-		if spec.waitForClick == true then
-			local promptSpacer = Instance.new("Frame")
-			promptSpacer.Name = "CelebrationPromptSpacer"
-			promptSpacer.BackgroundTransparency = 1
-			promptSpacer.LayoutOrder = 98
-			promptSpacer.Size = UDim2.new(1, 0, 0, 24)
-			promptSpacer.Parent = popup
-
-			continueLabel = Instance.new("TextLabel")
-			continueLabel.Name = "CelebrationContinuePrompt"
-			continueLabel.Active = false
-			continueLabel.BackgroundTransparency = 1
-			continueLabel.Size = UDim2.new(1, 0, 0, 22)
-			continueLabel.Font = Enum.Font.FredokaOne
-			continueLabel.Text = "Click anywhere to continue..."
-			continueLabel.TextColor3 = tone.text
-			continueLabel.TextSize = 14
-			continueLabel.TextTransparency = 1
-			continueLabel.ZIndex = POPUP_Z_INDEX + 4
-			continueLabel.LayoutOrder = 99
-			continueLabel.Parent = popup
-
-			continueButton = Instance.new("TextButton")
-			continueButton.Name = "CelebrationContinueButton"
-			continueButton.Active = false
-			continueButton.AutoButtonColor = false
-			continueButton.BackgroundTransparency = 1
-			continueButton.BorderSizePixel = 0
-			continueButton.Visible = false
-			continueButton.Size = UDim2.new(1, 0, 1, 0)
-			continueButton.Font = Enum.Font.FredokaOne
-			continueButton.Text = ""
-			continueButton.ZIndex = POPUP_Z_INDEX + 3
-			continueButton.Parent = popup
-		end
+		applyCelebrationTone(
+			popup,
+			tone,
+			title,
+			reelFrame,
+			reelLabel,
+			primaryLabel,
+			detailLabel,
+			badgeLabel,
+			continueFrame,
+			continueLabel
+		)
 
 		if spec.showSlotMachine ~= true and spec.kind ~= "coin" then
 			playCelebrationSound(spec)
@@ -14453,11 +17347,29 @@ function RootScreen:_pumpCelebrationQueue()
 		end
 		task.wait(holdDuration)
 
+		if spec.waitForClick == true then
+			-- Only create the footer once the current reel has fully settled so the resource-to-attribute handoff does not show as empty space.
+			createContinuePrompt()
+			applyCelebrationTone(
+				popup,
+				tone,
+				title,
+				reelFrame,
+				reelLabel,
+				primaryLabel,
+				detailLabel,
+				badgeLabel,
+				continueFrame,
+				continueLabel
+			)
+		end
+
 		if spec.waitForClick == true and continueButton ~= nil and continueLabel ~= nil then
 			continueButton.Visible = true
 			continueButton.Active = true
-			continueLabel.TextTransparency = 0.3
+			continueLabel.TextTransparency = 0.12
 			local clicked = false
+			local autoAdvanceDelay = if spec.kind == "resource" then 0.85 else nil
 			local function setClicked()
 				clicked = true
 			end
@@ -14481,11 +17393,19 @@ function RootScreen:_pumpCelebrationQueue()
 						if clicked then
 							break
 						end
-						continueLabel.TextTransparency = 0.3 + math.sin(t * math.pi) * 0.4
+						continueLabel.TextTransparency = 0.08 + math.sin(t * math.pi) * 0.2
 						task.wait(0.04)
 					end
 				end
 			end)
+
+			if autoAdvanceDelay ~= nil then
+				task.delay(autoAdvanceDelay, function()
+					if not clicked then
+						setClicked()
+					end
+				end)
+			end
 
 			while not clicked do
 				task.wait(0.05)
@@ -14494,6 +17414,9 @@ function RootScreen:_pumpCelebrationQueue()
 			inputConnection:Disconnect()
 			continueButton:Destroy()
 			continueLabel:Destroy()
+			if continueFrame ~= nil then
+				continueFrame:Destroy()
+			end
 		end
 
 		local fadeTween = TweenService:Create(
@@ -14626,14 +17549,47 @@ function RootScreen:setVaultVisible(visible)
 	self.vault.overlay.Visible = visible
 end
 
+function RootScreen:setResourceGuideTab(tabId: string)
+	local activeTab = if tabId == "collection" then "collection" else "chart"
+	self.guide.activeTab = activeTab
+	self.guide.rows.Visible = activeTab == "chart"
+	self.guide.collectionFrame.Visible = activeTab == "collection"
+	self.guide.subtitle.Text = if activeTab == "collection"
+		then self.guide.collectionSubtitleText
+		else self.guide.chartSubtitleText
+	setGuideTabButtonState(self.guide.chartTabButton, activeTab == "chart")
+	setGuideTabButtonState(self.guide.collectionTabButton, activeTab == "collection")
+end
+
 function RootScreen:setResourceGuideVisible(visible)
 	self.guide.overlay.Visible = visible
 end
 
-function RootScreen:setResourceGuideData(pickaxeId: string?)
+function RootScreen:setResourceGuideData(pickaxeId: string?, collectionState: any?)
 	local summary = ResourceGuide.getGuideSummary(pickaxeId)
-	self.guide.subtitle.Text = summary.subtitleText
+	local collectionSlots = ResourceGuide.getCollectionSlots(collectionState)
+	local foundCount = 0
+	for _, slotData in ipairs(collectionSlots) do
+		if slotData.isFound then
+			foundCount += 1
+		end
+	end
+
+	self.guide.chartSubtitleText = summary.subtitleText
+	self.guide.collectionSubtitleText = string.format(
+		"Collected %d of %d resources. Hover a bubble to see what attributes you've discovered.",
+		foundCount,
+		#collectionSlots
+	)
+	self.guide.subtitle.Text = if self.guide.activeTab == "collection"
+		then self.guide.collectionSubtitleText
+		else self.guide.chartSubtitleText
 	rebuildGuideRows(self.guide.rows, ResourceGuide.getGuideRows(summary.pickaxeId), summary.hintText)
+	rebuildCollectionGrid(self.guide.collectionGrid, collectionSlots, {
+		hoverTitle = self.guide.hoverTitle,
+		hoverRarity = self.guide.hoverRarity,
+		hoverAttributes = self.guide.hoverAttributes,
+	})
 end
 
 function RootScreen:getVaultItemContainer()
@@ -14662,7 +17618,15 @@ end
 
 function RootScreen:setShopMenuRarities(labels)
 	for index, rarityLabel in ipairs(self.shop.rarityLabels) do
-		rarityLabel.Text = labels[index] or ""
+		local resolvedLabel = labels[index] or ""
+		local tone = getRarityToneByName(resolvedLabel, Color3.fromRGB(255, 210, 120))
+		rarityLabel.Text = resolvedLabel
+		rarityLabel.BackgroundColor3 = tone.background
+		rarityLabel.TextColor3 = tone.text
+		local stroke = rarityLabel:FindFirstChildWhichIsA("UIStroke")
+		if stroke ~= nil then
+			stroke.Color = tone.accent
+		end
 	end
 end
 

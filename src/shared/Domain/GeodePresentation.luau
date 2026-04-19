@@ -46,4 +46,26 @@ function GeodePresentation.shouldAdvanceRevealOnInput(inputType: Enum.UserInputT
 	return inputType == Enum.UserInputType.MouseButton1 or inputType == Enum.UserInputType.Touch
 end
 
+function GeodePresentation.getRevealAnimationGraceSeconds(): number
+	return 0.6
+end
+
+function GeodePresentation.shouldKeepRevealAnimationAlive(
+	elapsedSeconds: number?,
+	celebrationPlaying: boolean?,
+	queuedCelebrationCount: number?
+): boolean
+	local elapsed = if type(elapsedSeconds) == "number" then math.max(0, elapsedSeconds) else 0
+	if elapsed < GeodePresentation.getRevealAnimationGraceSeconds() then
+		return true
+	end
+
+	if celebrationPlaying == true then
+		return true
+	end
+
+	local queueCount = if type(queuedCelebrationCount) == "number" then queuedCelebrationCount else 0
+	return queueCount > 0
+end
+
 return GeodePresentation

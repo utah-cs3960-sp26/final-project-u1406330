@@ -6,6 +6,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
 local GeodeState = require(Shared.Domain.GeodeState)
+local ResourceGuide = require(Shared.Domain.ResourceGuide)
 local Resources = require(Shared.Config.Resources)
 local Traits = require(Shared.Config.Traits)
 
@@ -140,6 +141,7 @@ function GeodeQueueService:claimEntries(profile, nowUnix, rng, geodeId, playerNa
 			if resource ~= nil then
 				profile.resourcesById[resource.id] = resource
 				table.insert(profile.resourceOrder, resource.id)
+				ResourceGuide.recordDiscovery(profile, resource.resourceTypeId, resource.traitId)
 				table.insert(createdResources, resource)
 				table.insert(createdResourceIds, resource.id)
 				if placementService ~= nil then
@@ -184,4 +186,3 @@ function GeodeQueueService:start()
 end
 
 return GeodeQueueService
-

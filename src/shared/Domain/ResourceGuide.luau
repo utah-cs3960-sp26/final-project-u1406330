@@ -10,6 +10,7 @@ local Geodes = require(Shared.Config.Geodes)
 local Pickaxes = require(Shared.Config.Pickaxes)
 local Resources = require(Shared.Config.Resources)
 local ResourceVisuals = require(Shared.Domain.ResourceVisuals)
+local Traits = require(Shared.Config.Traits)
 
 local ResourceGuide = {}
 
@@ -30,6 +31,50 @@ local RARITY_ACCENTS = {
 }
 
 local DEFAULT_PICKAXE_ID = "stone_pickaxe"
+
+local TRAIT_SORT_INDEX = {}
+
+for index, traitDefinition in ipairs(Traits.order or {}) do
+	if traitDefinition ~= nil and type(traitDefinition.id) == "string" then
+		TRAIT_SORT_INDEX[traitDefinition.id] = index
+	end
+end
+
+local function compareCatalogEntries(leftEntry, rightEntry)
+	if leftEntry.rank ~= rightEntry.rank then
+		return leftEntry.rank < rightEntry.rank
+	end
+
+	if leftEntry.displayName ~= rightEntry.displayName then
+		return leftEntry.displayName < rightEntry.displayName
+	end
+
+	return leftEntry.resourceId < rightEntry.resourceId
+end
+
+local function buildCatalogEntries()
+	local entries = {}
+
+	for resourceId, resourceDefinition in pairs(Resources) do
+		if type(resourceDefinition) ~= "table" then
+			continue
+		end
+
+		table.insert(entries, {
+			resourceId = resourceId,
+			displayName = tostring(resourceDefinition.displayName or resourceId),
+			rarity = tostring(resourceDefinition.rarity or "Common"),
+			rank = ResourceVisuals.getRarityRank(resourceDefinition.rarity),
+			color = resourceDefinition.color,
+			variantId = ResourceVisuals.getResourceVariantShape(resourceId, resourceDefinition),
+		})
+	end
+
+	table.sort(entries, compareCatalogEntries)
+	return entries
+end
+
+local CATALOG_ENTRIES = buildCatalogEntries()
 
 local function roundToPlaces(value: number, places: number): number
 	local scalar = 10 ^ places
@@ -139,6 +184,114 @@ end
 
 function ResourceGuide.getDefaultPickaxeId(): string
 	return DEFAULT_PICKAXE_ID
+end
+
+function ResourceGuide.ensureCollectionState(resourceGuideState: any): { discoveredResources: { [string]: any } }
+	if type(resourceGuideState) ~= "table" then
+		return {
+			discoveredResources = {},
+		}
+	end
+
+	if type(resourceGuideState.discoveredResources) ~= "table" then
+		resourceGuideState.discoveredResources = {}
+	end
+
+	return resourceGuideState
+end
+
+function ResourceGuide.recordDiscovery(profile: any, resourceTypeId: string?, traitId: string?): boolean
+	if type(profile) ~= "table" or type(resourceTypeId) ~= "string" or Resources[resourceTypeId] == nil then
+		return false
+	end
+
+	-- Keep collection progress attached to the authoritative profile so all grant paths write the same persisted state.
+	local collectionState = ResourceGuide.ensureCollectionState(profile.resourceGuide)
+	profile.resourceGuide = collectionState
+
+	local discoveredResources = collectionState.discoveredResources
+	local resourceEntry = discoveredResources[resourceTypeId]
+	if type(resourceEntry) ~= "table" then
+		resourceEntry = {
+			found = true,
+			discoveredTraits = {},
+		}
+		discoveredResources[resourceTypeId] = resourceEntry
+	else
+		resourceEntry.found = true
+		if type(resourceEntry.discoveredTraits) ~= "table" then
+			resourceEntry.discoveredTraits = {}
+		end
+	end
+
+	local resolvedTraitId = if type(traitId) == "string" and Traits[traitId] ~= nil then traitId else "none"
+	resourceEntry.discoveredTraits[resolvedTraitId] = true
+	return true
+end
+
+local function sortDiscoveredTraitNames(leftName: string, rightName: string): boolean
+	local leftDefinition = nil
+	local rightDefinition = nil
+
+	for _, traitDefinition in ipairs(Traits.order or {}) do
+		if traitDefinition.displayName == leftName then
+			leftDefinition = traitDefinition
+		end
+		if traitDefinition.displayName == rightName then
+			rightDefinition = traitDefinition
+		end
+	end
+
+	local leftIndex = if leftDefinition ~= nil then TRAIT_SORT_INDEX[leftDefinition.id] or 999 else 999
+	local rightIndex = if rightDefinition ~= nil then TRAIT_SORT_INDEX[rightDefinition.id] or 999 else 999
+	if leftIndex ~= rightIndex then
+		return leftIndex < rightIndex
+	end
+
+	return leftName < rightName
+end
+
+function ResourceGuide.getCollectionSlots(resourceGuideState: any): { any }
+	local collectionState = ResourceGuide.ensureCollectionState(resourceGuideState)
+	local slots = table.create(#CATALOG_ENTRIES)
+
+	for layoutOrder, catalogEntry in ipairs(CATALOG_ENTRIES) do
+		local discoveredEntry = collectionState.discoveredResources[catalogEntry.resourceId]
+		local isFound = type(discoveredEntry) == "table" and discoveredEntry.found == true
+		local discoveredTraitNames = {}
+
+		if isFound and type(discoveredEntry.discoveredTraits) == "table" then
+			for traitId in pairs(discoveredEntry.discoveredTraits) do
+				if traitId ~= "none" then
+					local traitDefinition = Traits[traitId]
+					if traitDefinition ~= nil then
+						table.insert(discoveredTraitNames, traitDefinition.displayName or traitId)
+					end
+				end
+			end
+		end
+
+		table.sort(discoveredTraitNames, sortDiscoveredTraitNames)
+
+		table.insert(slots, {
+			layoutOrder = layoutOrder,
+			resourceId = catalogEntry.resourceId,
+			displayName = if isFound then catalogEntry.displayName else "???",
+			realDisplayName = catalogEntry.displayName,
+			rarity = catalogEntry.rarity,
+			rank = catalogEntry.rank,
+			color = catalogEntry.color,
+			variantId = catalogEntry.variantId,
+			isFound = isFound,
+			discoveredTraitNames = discoveredTraitNames,
+			hoverTitle = if isFound then catalogEntry.displayName else "???",
+			hoverAttributesText = if isFound
+				then if #discoveredTraitNames > 0 then table.concat(discoveredTraitNames, ", ") else "No attributes found yet"
+				else "???",
+		})
+	end
+
+	return slots
 end
 
 function ResourceGuide.getGuideSummary(pickaxeId: string?): any

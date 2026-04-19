@@ -99,6 +99,12 @@ function SizeRules.getScaleValue(sizeId: string?, sizeValue: number?): number
 	return 1.0
 end
 
+function SizeRules.getResourceVisualScale(sizeId: string?, sizeValue: number?): number
+	local baseScale = SizeRules.getScaleValue(sizeId, sizeValue)
+	local visualMultiplier = if type(Sizes.resourceVisualScaleMultiplier) == "number" then Sizes.resourceVisualScaleMultiplier else 1.0
+	return baseScale * visualMultiplier
+end
+
 function SizeRules.getSellMultiplier(sizeId: string?, sizeValue: number?): number
 	local definition = SizeRules.resolveDefinition(sizeId, sizeValue)
 	if definition ~= nil and type(definition.sellMultiplier) == "number" then

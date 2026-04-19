@@ -5,7 +5,9 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
+local Resources = require(Shared.Config.Resources)
 local ResourceGuide = require(Shared.Domain.ResourceGuide)
+local PlayerProfile = require(Shared.Types.PlayerProfile)
 
 return function()
 	local order = ResourceGuide.getRarityOrder()
@@ -50,4 +52,68 @@ return function()
 	assert(crownRows[5].percentage > stoneRows[5].percentage, "better pickaxes should improve legendary drop odds in the guide")
 	assert(crownRows[1].percentage < stoneRows[1].percentage, "better pickaxes should reduce the common share of resource drops")
 	assert(stoneRows[1].percentageText ~= "20.0%", "guide percentages should not be derived from catalog counts anymore")
+
+	local migratedProfile = PlayerProfile.reconcile({
+		meta = {
+			schemaVersion = 2,
+			createdAt = 25,
+			lastLoadedAt = 25,
+		},
+	}, 50)
+	assert(
+		type(migratedProfile.resourceGuide) == "table" and type(migratedProfile.resourceGuide.discoveredResources) == "table",
+		"profile reconciliation should add the persisted resource guide collection state"
+	)
+
+	local collectionSlots = ResourceGuide.getCollectionSlots({
+		discoveredResources = {
+			quartz = {
+				found = true,
+				discoveredTraits = {
+					fiery = true,
+					verdant = true,
+				},
+			},
+			worldseed = {
+				found = true,
+				discoveredTraits = {
+					singularity = true,
+					none = true,
+				},
+			},
+		},
+	})
+	assert(#collectionSlots == 25, "collection view should expose one slot for every resource in the catalog")
+	assert(collectionSlots[1].resourceId == "copper_nugget", "common resources should sort first and stay stable within rarity")
+	assert(collectionSlots[2].resourceId == "jade_fragment", "stable in-rarity ordering should not depend on discovery state")
+	assert(collectionSlots[#collectionSlots].resourceId == "worldseed", "legendary resources should sort to the end of the collection")
+
+	local quartzSlot = nil
+	local worldseedSlot = nil
+	local amethystSlot = nil
+	for _, slot in ipairs(collectionSlots) do
+		if slot.resourceId == "quartz" then
+			quartzSlot = slot
+		elseif slot.resourceId == "worldseed" then
+			worldseedSlot = slot
+		elseif slot.resourceId == "amethyst" then
+			amethystSlot = slot
+		end
+	end
+
+	assert(quartzSlot ~= nil and quartzSlot.isFound == true, "discovered resources should be marked as found in the collection")
+	assert(quartzSlot.displayName == Resources.quartz.displayName, "found collection slots should expose their real resource name")
+	assert(
+		#quartzSlot.discoveredTraitNames == 2
+			and quartzSlot.discoveredTraitNames[1] == "Fiery"
+			and quartzSlot.discoveredTraitNames[2] == "Verdant",
+		"found collection slots should list discovered traits in stable rarity order"
+	)
+	assert(worldseedSlot ~= nil and worldseedSlot.discoveredTraitNames[1] == "Singularity", "the collection should hide the plain none trait from the discovered list")
+	assert(amethystSlot ~= nil and amethystSlot.isFound == false, "undiscovered resources should stay hidden in the collection")
+	assert(amethystSlot.hoverTitle == "???", "undiscovered resources should show question marks on hover")
+	assert(
+		#amethystSlot.discoveredTraitNames == 0 and amethystSlot.hoverAttributesText == "???",
+		"undiscovered resources should not leak attribute progress"
+	)
 end
