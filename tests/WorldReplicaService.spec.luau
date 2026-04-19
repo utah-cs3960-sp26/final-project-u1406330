@@ -96,10 +96,28 @@ return function()
 
 	assert(#worldShellSpec.segments == 4, "world shell should enclose the play space on all four sides")
 	assert(#worldShellSpec.crystals >= 9, "world shell should embed more crystals into the cave walls around the baseplate")
+	local shellByName = {}
 	for _, segment in ipairs(worldShellSpec.segments) do
+		shellByName[segment.name] = segment
 		assert(segment.size.Y == worldShellSpec.wallHeight, "cave wall segments should share the configured wall height")
 		assert(segment.size.X > 0 and segment.size.Z > 0, "cave wall segments should have physical thickness")
 	end
+	assert(
+		shellByName.WestWall ~= nil and shellByName.NorthWall ~= nil and shellByName.SouthWall ~= nil,
+		"world shell should expose the named side segments the facade layout depends on"
+	)
+	assert(
+		shellByName.EastWall ~= nil and shellByName.NorthWall ~= nil and shellByName.SouthWall ~= nil,
+		"world shell should expose both long side walls for the shared cave shell"
+	)
+	assert(
+		shellByName.WestWall.size.Z >= shellByName.NorthWall.size.X - 30,
+		"side cave walls should run deep enough to overlap the north/south shell instead of leaving a slit near the facades"
+	)
+	assert(
+		shellByName.EastWall.size.Z >= shellByName.SouthWall.size.X - 30,
+		"both side cave walls should stay long enough to close the mine/shop-side backdrop gap"
+	)
 
 	assert(vaultPromptSpec.promptActionText == "Open Vault", "vault prompt should explicitly open the vault")
 	assert(vaultPromptSpec.promptObjectText == "Treasure Vault", "vault prompt should identify the vault station")
@@ -126,6 +144,22 @@ return function()
 		math.abs(mineLayoutSpec.shellSeams[1].localOffset.X) == math.abs(mineLayoutSpec.shellSeams[2].localOffset.X),
 		"mine side seam fillers should mirror each other around the cave entrance"
 	)
+	local westWallInnerFace = shellByName.WestWall.position.X + (shellByName.WestWall.size.X / 2)
+	local mineBaseX = westWallInnerFace + 22
+	for seamIndex = 1, 2 do
+		local seam = mineLayoutSpec.shellSeams[seamIndex]
+		local seamMinX = mineBaseX + seam.localOffset.Z - (seam.size.Z / 2)
+		assert(
+			seamMinX <= westWallInnerFace - 2,
+			"mine side seams should overlap the west shell wall enough to remove visible daylight slits"
+		)
+	end
+	local mineCrown = mineLayoutSpec.shellSeams[3]
+	local mineCrownMinX = mineBaseX + mineCrown.localOffset.Z - (mineCrown.size.Z / 2)
+	assert(
+		mineCrownMinX <= westWallInnerFace - 2,
+		"mine crown seam should also tie back into the west shell wall so the upper facade stays sealed"
+	)
 
 	assert(shopFrontSpec.calloutText == "Buy pickaxes here!", "shop callout should use the updated instruction copy")
 	assert(shopFrontSpec.hideDistance >= 12, "shop callout should hide when the player is standing nearby")
@@ -139,5 +173,29 @@ return function()
 	assert(
 		math.abs(shopLayoutSpec.shellSeams[1].localOffset.Z) == math.abs(shopLayoutSpec.shellSeams[2].localOffset.Z),
 		"shop seam fillers should mirror across the stall so both ends stay closed"
+	)
+	local eastWallInnerFace = shellByName.EastWall.position.X - (shellByName.EastWall.size.X / 2)
+	local shopBaseX = eastWallInnerFace - 16
+	for seamIndex = 1, 2 do
+		local seam = shopLayoutSpec.shellSeams[seamIndex]
+		local seamMaxX = shopBaseX + seam.localOffset.X + (seam.size.X / 2)
+		assert(
+			seamMaxX >= eastWallInnerFace + 2,
+			"shop side seams should overlap the east shell wall enough to hide the visible facade gap"
+		)
+	end
+	local shopCap = shopLayoutSpec.shellSeams[3]
+	local shopCapMaxX = shopBaseX + shopCap.localOffset.X + (shopCap.size.X / 2)
+	assert(
+		shopCapMaxX >= eastWallInnerFace + 2,
+		"shop shell cap should also reach into the east shell wall so the upper seam stays closed"
+	)
+	assert(
+		shopLayoutSpec.shellSeams[1].size.Z / 2 >= math.abs(shopLayoutSpec.shellSeams[1].localOffset.Z) - 6,
+		"shop north seam should extend far enough inward to cover the stall shoulder near the wall"
+	)
+	assert(
+		shopLayoutSpec.shellSeams[2].size.Z / 2 >= math.abs(shopLayoutSpec.shellSeams[2].localOffset.Z) - 6,
+		"shop south seam should extend far enough inward to cover the opposite stall shoulder near the wall"
 	)
 end

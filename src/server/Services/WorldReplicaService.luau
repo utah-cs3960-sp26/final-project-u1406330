@@ -35,7 +35,7 @@ local SHOP_PROMPT_ATTRIBUTE = "GemFactoryShopPrompt"
 local VAULT_PROMPT_ATTRIBUTE = "GemFactoryVaultPrompt"
 local MINE_TARGET_ATTRIBUTE = "GemFactoryMineTarget"
 local MINE_ZONE_ATTRIBUTE = "GemFactoryMineZone"
-local STATIC_WORLD_LAYOUT_VERSION = 7
+local STATIC_WORLD_LAYOUT_VERSION = 8
 local PLOT_SURFACE_COLLIDER_NAME = "PlotSurfaceCollider"
 local REPLICA_TRANSPARENCY_ATTRIBUTE = "ReplicaTransparency"
 local PLOT_SURFACE_OFFSET_Y = 1.2
@@ -412,13 +412,15 @@ local function getWorldShellSpecs()
 			},
 			{
 				name = "WestWall",
-				size = Vector3.new(wallThickness, wallHeight, depth - 22),
+				-- Let the side shell overlap the north/south walls so the mine/shop facades cannot
+				-- reveal a vertical slit where those large shell segments meet.
+				size = Vector3.new(wallThickness, wallHeight, depth - 4),
 				position = Vector3.new(World.plotOrigin.x - halfWidth, baseY, World.plotOrigin.z),
 				color = Color3.fromRGB(49, 44, 42),
 			},
 			{
 				name = "EastWall",
-				size = Vector3.new(wallThickness, wallHeight, depth - 22),
+				size = Vector3.new(wallThickness, wallHeight, depth - 4),
 				position = Vector3.new(World.plotOrigin.x + halfWidth, baseY, World.plotOrigin.z),
 				color = Color3.fromRGB(57, 50, 48),
 			},
@@ -533,24 +535,24 @@ local function getMineLayoutSpec()
 		shellSeams = {
 			{
 				name = "MineShellSeamLeft",
-				size = Vector3.new(7.5, 28, 9),
-				localOffset = Vector3.new(-20.5, 13.5, -14.2),
+				size = Vector3.new(8.5, 30, 16),
+				localOffset = Vector3.new(-21.5, 14, -17.4),
 				color = Color3.fromRGB(60, 52, 46),
 				material = Enum.Material.Rock,
 				rotation = Vector3.new(0, 0, 10),
 			},
 			{
 				name = "MineShellSeamRight",
-				size = Vector3.new(7.5, 28, 9),
-				localOffset = Vector3.new(20.5, 13.5, -14.2),
+				size = Vector3.new(8.5, 30, 16),
+				localOffset = Vector3.new(21.5, 14, -17.4),
 				color = Color3.fromRGB(60, 52, 46),
 				material = Enum.Material.Rock,
 				rotation = Vector3.new(0, 0, -10),
 			},
 			{
 				name = "MineShellSeamCrown",
-				size = Vector3.new(26, 10, 8),
-				localOffset = Vector3.new(0, 26.5, -13.6),
+				size = Vector3.new(30, 12, 14),
+				localOffset = Vector3.new(0, 27.2, -17),
 				color = Color3.fromRGB(72, 62, 56),
 				material = Enum.Material.Slate,
 				rotation = Vector3.new(-6, 0, 0),
@@ -585,24 +587,24 @@ local function getShopLayoutSpec()
 		shellSeams = {
 			{
 				name = "ShopShellSeamNorth",
-				size = Vector3.new(9, 12, 10),
-				localOffset = Vector3.new(12.1, 6.8, -11.5),
+				size = Vector3.new(13, 14, 14),
+				localOffset = Vector3.new(14.2, 7.2, -12.4),
 				color = Color3.fromRGB(57, 50, 47),
 				material = Enum.Material.Rock,
 				rotation = Vector3.new(0, 12, 0),
 			},
 			{
 				name = "ShopShellSeamSouth",
-				size = Vector3.new(9, 12, 10),
-				localOffset = Vector3.new(12.1, 6.8, 11.5),
+				size = Vector3.new(13, 14, 14),
+				localOffset = Vector3.new(14.2, 7.2, 12.4),
 				color = Color3.fromRGB(57, 50, 47),
 				material = Enum.Material.Rock,
 				rotation = Vector3.new(0, -12, 0),
 			},
 			{
 				name = "ShopShellCap",
-				size = Vector3.new(8.5, 6, 26),
-				localOffset = Vector3.new(12.4, 11.2, 0),
+				size = Vector3.new(12.5, 8, 30),
+				localOffset = Vector3.new(14.6, 11.8, 0),
 				color = Color3.fromRGB(72, 63, 58),
 				material = Enum.Material.Slate,
 				rotation = Vector3.new(0, 0, 5),

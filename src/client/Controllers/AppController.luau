@@ -8,6 +8,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 
 local Resources = require(Shared.Config.Resources)
 local Traits = require(Shared.Config.Traits)
+local GeodePresentation = require(Shared.Domain.GeodePresentation)
 local RewardPresentation = require(Shared.Domain.RewardPresentation)
 local TableUtil = require(Shared.Util.TableUtil)
 local Time = require(Shared.Util.Time)
@@ -222,7 +223,7 @@ local function normalizePayload(state, payload, nowUnix)
 	return nextState
 end
 
-local function getResourceCelebrationSpec(resource)
+local function getResourceCelebrationSpec(resource, hasFollowupAttribute: boolean?)
 	if type(resource) ~= "table" then
 		return nil
 	end
@@ -250,9 +251,10 @@ local function getResourceCelebrationSpec(resource)
 		rarityLabel = rarityName,
 		rarityIndex = rarityIndex + 1,
 		accentColor = if resourceDefinition ~= nil then resourceDefinition.color else nil,
+		reelWords = GeodePresentation.getResourceRevealWords(),
 		reelFinal = displayName,
-		showSlotMachine = rarityIndex > 0,
-		continuePrompt = "Click to roll attribute!",
+		showSlotMachine = GeodePresentation.shouldUseRevealSlotMachine("resource", rarityIndex + 1),
+		duration = GeodePresentation.getRevealResolvedHoldSeconds("resource", hasFollowupAttribute),
 	}
 end
 
@@ -285,8 +287,9 @@ local function getAttributeCelebrationSpec(resource)
 		rarityIndex = traitRank + 1,
 		accentColor = traitDefinition.accentColor,
 		highlightColor = traitDefinition.glowColor,
+		reelWords = GeodePresentation.getAttributeRevealWords(),
 		reelFinal = displayName,
-		showSlotMachine = true,
+		showSlotMachine = GeodePresentation.shouldUseRevealSlotMachine("attribute", traitRank + 1),
 	}
 end
 
@@ -370,13 +373,10 @@ function AppController:showOpenResultCelebrations(openResult)
 	end
 
 	for _, resource in ipairs(createdResources) do
-		local resourceCelebration = getResourceCelebrationSpec(resource)
 		local attributeCelebration = getAttributeCelebrationSpec(resource)
+		local resourceCelebration = getResourceCelebrationSpec(resource, attributeCelebration ~= nil)
 
 		if resourceCelebration ~= nil then
-			if attributeCelebration ~= nil then
-				resourceCelebration.waitForClick = true
-			end
 			screen:showMiningPopup(resourceCelebration)
 		end
 

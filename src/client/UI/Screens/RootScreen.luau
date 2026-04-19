@@ -18,6 +18,7 @@ local GeodePresentation = require(Shared.Domain.GeodePresentation)
 local ResourceGuide = require(Shared.Domain.ResourceGuide)
 local ResourceVisuals = require(Shared.Domain.ResourceVisuals)
 local RewardPresentation = require(Shared.Domain.RewardPresentation)
+local TutorialGuide = require(Shared.Domain.TutorialGuide)
 local Panel = require(script.Parent.Parent.Components.Panel)
 
 local RootScreen = {}
@@ -28,6 +29,8 @@ local VAULT_BASE_Z_INDEX = 55
 local POPUP_Z_INDEX = 80
 local POPUP_QUEUE_LIMIT = 6
 local GUIDE_BASE_Z_INDEX = 58
+local COIN_COUNTER_YELLOW = Color3.fromRGB(255, 238, 123)
+local COIN_POPUP_GOLD_TEXT = Color3.fromRGB(255, 219, 74)
 local GEODE_RARITY_ORDER = {
 	"Common",
 	"Uncommon",
@@ -632,11 +635,20 @@ local function createCollectionSlot(parent: Instance, slotData, guideState)
 	title.Parent = slotButton
 
 	local function showSlotDetails()
+		-- Persist the hovered resource so collection refreshes can restore the card instead of
+		-- dropping back to the placeholder copy while the cursor is still resting on a slot.
+		guideState.hoveredResourceId = slotData.resourceId
 		updateCollectionHoverCard(guideState, slotData)
 	end
 
 	slotButton.MouseEnter:Connect(showSlotDetails)
 	slotButton.Activated:Connect(showSlotDetails)
+	slotButton.MouseLeave:Connect(function()
+		if guideState.hoveredResourceId == slotData.resourceId then
+			guideState.hoveredResourceId = nil
+			updateCollectionHoverCard(guideState, nil)
+		end
+	end)
 
 	return slotButton
 end
@@ -648,11 +660,223 @@ local function rebuildCollectionGrid(collectionGrid: ScrollingFrame, slotDataLis
 		end
 	end
 
+	local hoveredSlotData = nil
 	for _, slotData in ipairs(slotDataList) do
 		createCollectionSlot(collectionGrid, slotData, guideState)
+		if slotData.resourceId == guideState.hoveredResourceId then
+			hoveredSlotData = slotData
+		end
 	end
 
-	updateCollectionHoverCard(guideState, nil)
+	updateCollectionHoverCard(guideState, hoveredSlotData)
+end
+
+local function createTutorialBodyLabel(parent: Instance, text: string, textSize: number, color: Color3, height: number)
+	local label = Instance.new("TextLabel")
+	label.BackgroundTransparency = 1
+	label.Size = UDim2.new(1, 0, 0, height)
+	label.Font = Enum.Font.GothamBold
+	label.Text = text
+	label.TextColor3 = color
+	label.TextSize = textSize
+	label.TextWrapped = true
+	label.TextXAlignment = Enum.TextXAlignment.Left
+	label.TextYAlignment = Enum.TextYAlignment.Top
+	label.AutomaticSize = Enum.AutomaticSize.Y
+	label.ZIndex = GUIDE_BASE_Z_INDEX + 3
+	label.Parent = parent
+
+	return label
+end
+
+local function createTutorialDetailLine(parent: Instance, text: string)
+	createTutorialBodyLabel(parent, "• " .. text, 14, Color3.fromRGB(104, 82, 50), 18)
+end
+
+local function createTutorialSectionCard(parent: Instance, titleText: string, bodyLines: { string }, accentColor: Color3, layoutOrder: number)
+	local card = Instance.new("Frame")
+	card.BackgroundColor3 = accentColor:Lerp(Color3.fromRGB(255, 248, 225), 0.78)
+	card.BorderSizePixel = 0
+	card.LayoutOrder = layoutOrder
+	card.Size = UDim2.new(1, 0, 0, 0)
+	card.AutomaticSize = Enum.AutomaticSize.Y
+	card.ZIndex = GUIDE_BASE_Z_INDEX + 2
+	card.Parent = parent
+
+	local cardCorner = Instance.new("UICorner")
+	cardCorner.CornerRadius = UDim.new(0, 20)
+	cardCorner.Parent = card
+
+	local cardStroke = Instance.new("UIStroke")
+	cardStroke.Color = accentColor:Lerp(Color3.fromRGB(255, 255, 255), 0.3)
+	cardStroke.Thickness = 3
+	cardStroke.Parent = card
+
+	local cardPadding = Instance.new("UIPadding")
+	cardPadding.PaddingTop = UDim.new(0, 14)
+	cardPadding.PaddingBottom = UDim.new(0, 14)
+	cardPadding.PaddingLeft = UDim.new(0, 16)
+	cardPadding.PaddingRight = UDim.new(0, 16)
+	cardPadding.Parent = card
+
+	local layout = Instance.new("UIListLayout")
+	layout.SortOrder = Enum.SortOrder.LayoutOrder
+	layout.Padding = UDim.new(0, 8)
+	layout.Parent = card
+
+	local title = Instance.new("TextLabel")
+	title.BackgroundTransparency = 1
+	title.LayoutOrder = 1
+	title.Size = UDim2.new(1, 0, 0, 26)
+	title.Font = Enum.Font.FredokaOne
+	title.Text = titleText
+	title.TextColor3 = Color3.fromRGB(88, 58, 24)
+	title.TextSize = 24
+	title.TextWrapped = true
+	title.TextXAlignment = Enum.TextXAlignment.Left
+	title.AutomaticSize = Enum.AutomaticSize.Y
+	title.ZIndex = GUIDE_BASE_Z_INDEX + 3
+	title.Parent = card
+
+	for index, line in ipairs(bodyLines) do
+		local bodyLabel = createTutorialBodyLabel(card, line, 14, Color3.fromRGB(96, 75, 44), 18)
+		bodyLabel.LayoutOrder = index + 1
+	end
+end
+
+local function createTutorialStepCard(parent: Instance, stepData, layoutOrder: number)
+	local card = Instance.new("Frame")
+	card.BackgroundColor3 = Color3.fromRGB(255, 240, 200)
+	card.BorderSizePixel = 0
+	card.LayoutOrder = layoutOrder
+	card.Size = UDim2.new(1, 0, 0, 0)
+	card.AutomaticSize = Enum.AutomaticSize.Y
+	card.ZIndex = GUIDE_BASE_Z_INDEX + 2
+	card.Parent = parent
+
+	local cardCorner = Instance.new("UICorner")
+	cardCorner.CornerRadius = UDim.new(0, 22)
+	cardCorner.Parent = card
+
+	local cardStroke = Instance.new("UIStroke")
+	cardStroke.Color = Color3.fromRGB(255, 251, 228)
+	cardStroke.Thickness = 4
+	cardStroke.Parent = card
+
+	local accentBar = Instance.new("Frame")
+	accentBar.BackgroundColor3 = Color3.fromRGB(131, 230, 214)
+	accentBar.BorderSizePixel = 0
+	accentBar.Position = UDim2.new(0, 12, 0, 14)
+	accentBar.Size = UDim2.new(0, 12, 1, -28)
+	accentBar.ZIndex = GUIDE_BASE_Z_INDEX + 3
+	accentBar.Parent = card
+
+	local accentCorner = Instance.new("UICorner")
+	accentCorner.CornerRadius = UDim.new(0, 22)
+	accentCorner.Parent = accentBar
+
+	-- Keep the accent bar out of the card's vertical layout so autosizing only follows text content.
+	local contentFrame = Instance.new("Frame")
+	contentFrame.Name = "Content"
+	contentFrame.BackgroundTransparency = 1
+	contentFrame.Size = UDim2.new(1, 0, 0, 0)
+	contentFrame.AutomaticSize = Enum.AutomaticSize.Y
+	contentFrame.ZIndex = GUIDE_BASE_Z_INDEX + 3
+	contentFrame.Parent = card
+
+	local cardPadding = Instance.new("UIPadding")
+	cardPadding.PaddingTop = UDim.new(0, 14)
+	cardPadding.PaddingBottom = UDim.new(0, 14)
+	cardPadding.PaddingLeft = UDim.new(0, 24)
+	cardPadding.PaddingRight = UDim.new(0, 16)
+	cardPadding.Parent = contentFrame
+
+	local layout = Instance.new("UIListLayout")
+	layout.SortOrder = Enum.SortOrder.LayoutOrder
+	layout.Padding = UDim.new(0, 8)
+	layout.Parent = contentFrame
+
+	local title = Instance.new("TextLabel")
+	title.BackgroundTransparency = 1
+	title.LayoutOrder = 1
+	title.Size = UDim2.new(1, 0, 0, 28)
+	title.Font = Enum.Font.FredokaOne
+	title.Text = tostring(stepData.title or "Step")
+	title.TextColor3 = Color3.fromRGB(82, 54, 22)
+	title.TextSize = 24
+	title.TextWrapped = true
+	title.TextXAlignment = Enum.TextXAlignment.Left
+	title.AutomaticSize = Enum.AutomaticSize.Y
+	title.ZIndex = GUIDE_BASE_Z_INDEX + 3
+	title.Parent = contentFrame
+
+	local summary = createTutorialBodyLabel(contentFrame, tostring(stepData.summary or ""), 16, Color3.fromRGB(92, 70, 39), 22)
+	summary.LayoutOrder = 2
+
+	local focusChip = Instance.new("TextLabel")
+	focusChip.BackgroundColor3 = Color3.fromRGB(255, 223, 151)
+	focusChip.BorderSizePixel = 0
+	focusChip.LayoutOrder = 3
+	focusChip.Size = UDim2.new(0, 0, 0, 24)
+	focusChip.AutomaticSize = Enum.AutomaticSize.X
+	focusChip.Font = Enum.Font.FredokaOne
+	focusChip.Text = "Focus: " .. tostring(stepData.focus or "Your HUD")
+	focusChip.TextColor3 = Color3.fromRGB(98, 66, 21)
+	focusChip.TextSize = 14
+	focusChip.ZIndex = GUIDE_BASE_Z_INDEX + 3
+	focusChip.Parent = contentFrame
+
+	local focusCorner = Instance.new("UICorner")
+	focusCorner.CornerRadius = UDim.new(0, 12)
+	focusCorner.Parent = focusChip
+
+	local focusPadding = Instance.new("UIPadding")
+	focusPadding.PaddingLeft = UDim.new(0, 10)
+	focusPadding.PaddingRight = UDim.new(0, 10)
+	focusPadding.Parent = focusChip
+
+	for detailIndex, detailText in ipairs(stepData.details or {}) do
+		local detailLabel = createTutorialBodyLabel(contentFrame, "* " .. tostring(detailText), 14, Color3.fromRGB(104, 82, 50), 18)
+		detailLabel.LayoutOrder = 3 + detailIndex
+	end
+end
+
+local function rebuildTutorialContent(contentFrame: ScrollingFrame, guideData)
+	for _, child in ipairs(contentFrame:GetChildren()) do
+		if not child:IsA("UIListLayout") and not child:IsA("UIPadding") then
+			child:Destroy()
+		end
+	end
+
+	createTutorialSectionCard(
+		contentFrame,
+		"Quick Start",
+		{
+			tostring(guideData.header.subtitle or ""),
+			"Follow the steps below in order and you will always have a good next move.",
+		},
+		Color3.fromRGB(255, 214, 140),
+		1
+	)
+
+	local layoutOrder = 2
+	for _, stepData in ipairs(guideData.steps or {}) do
+		createTutorialStepCard(contentFrame, stepData, layoutOrder)
+		layoutOrder += 1
+	end
+
+	local rulesBody = {}
+	for _, ruleData in ipairs(guideData.rules or {}) do
+		table.insert(rulesBody, string.format("%s: %s", tostring(ruleData.label or "Rule"), tostring(ruleData.description or "")))
+	end
+	createTutorialSectionCard(contentFrame, "Good To Know", rulesBody, Color3.fromRGB(150, 232, 218), layoutOrder)
+	layoutOrder += 1
+
+	local tipsBody = {}
+	for _, tipData in ipairs(guideData.tips or {}) do
+		table.insert(tipsBody, string.format("%s: %s", tostring(tipData.title or "Tip"), tostring(tipData.body or "")))
+	end
+	createTutorialSectionCard(contentFrame, "Helpful Tips", tipsBody, Color3.fromRGB(255, 229, 167), layoutOrder)
 end
 
 local function applyGuiZIndex(root, zIndex)
@@ -901,14 +1125,84 @@ function RootScreen.new(context)
 	coinLabel.TextXAlignment = Enum.TextXAlignment.Left
 	coinLabel.Parent = coinCounter
 
+	local tutorialGuideData = TutorialGuide.getGuide()
+	local tutorialButtonCopy = tutorialGuideData.button
+
+	local guideDockStack = Instance.new("Frame")
+	guideDockStack.Name = "GuideDockStack"
+	guideDockStack.AnchorPoint = Vector2.new(1, 1)
+	guideDockStack.BackgroundTransparency = 1
+	guideDockStack.BorderSizePixel = 0
+	guideDockStack.Position = UDim2.new(1, -20, 1, -20)
+	guideDockStack.Size = UDim2.new(0, 236, 0, 140)
+	guideDockStack.Parent = screenGui
+
+	local guideDockLayout = Instance.new("UIListLayout")
+	guideDockLayout.FillDirection = Enum.FillDirection.Vertical
+	guideDockLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	guideDockLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+	guideDockLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	guideDockLayout.Padding = UDim.new(0, 12)
+	guideDockLayout.Parent = guideDockStack
+
+	local tutorialDock = Instance.new("Frame")
+	tutorialDock.Name = "TutorialDock"
+	tutorialDock.BackgroundTransparency = 1
+	tutorialDock.BorderSizePixel = 0
+	tutorialDock.LayoutOrder = 1
+	tutorialDock.Size = UDim2.new(1, 0, 0, 64)
+	tutorialDock.Parent = guideDockStack
+
+	local tutorialButton = Instance.new("TextButton")
+	tutorialButton.Name = "TutorialButton"
+	tutorialButton.AutoButtonColor = true
+	tutorialButton.BackgroundColor3 = Color3.fromRGB(255, 212, 136)
+	tutorialButton.BorderSizePixel = 0
+	tutorialButton.Size = UDim2.new(1, 0, 1, 0)
+	tutorialButton.Font = Enum.Font.FredokaOne
+	tutorialButton.Text = ""
+	tutorialButton.Parent = tutorialDock
+
+	local tutorialButtonCorner = Instance.new("UICorner")
+	tutorialButtonCorner.CornerRadius = UDim.new(0, 18)
+	tutorialButtonCorner.Parent = tutorialButton
+
+	local tutorialButtonStroke = Instance.new("UIStroke")
+	tutorialButtonStroke.Color = Color3.fromRGB(255, 242, 210)
+	tutorialButtonStroke.Thickness = 5
+	tutorialButtonStroke.Parent = tutorialButton
+
+	local tutorialButtonTitle = Instance.new("TextLabel")
+	tutorialButtonTitle.BackgroundTransparency = 1
+	tutorialButtonTitle.Position = UDim2.new(0, 16, 0, 6)
+	tutorialButtonTitle.Size = UDim2.new(1, -32, 0, 28)
+	tutorialButtonTitle.Font = Enum.Font.FredokaOne
+	tutorialButtonTitle.Text = tostring(tutorialButtonCopy.label or "Tutorial")
+	tutorialButtonTitle.TextColor3 = Color3.fromRGB(105, 64, 18)
+	tutorialButtonTitle.TextSize = 28
+	tutorialButtonTitle.TextXAlignment = Enum.TextXAlignment.Left
+	tutorialButtonTitle.ZIndex = GUIDE_BASE_Z_INDEX + 3
+	tutorialButtonTitle.Parent = tutorialButton
+
+	local tutorialButtonSubtitle = Instance.new("TextLabel")
+	tutorialButtonSubtitle.BackgroundTransparency = 1
+	tutorialButtonSubtitle.Position = UDim2.new(0, 16, 0, 34)
+	tutorialButtonSubtitle.Size = UDim2.new(1, -32, 0, 18)
+	tutorialButtonSubtitle.Font = Enum.Font.GothamBold
+	tutorialButtonSubtitle.Text = tostring(tutorialButtonCopy.subtitle or "How to play")
+	tutorialButtonSubtitle.TextColor3 = Color3.fromRGB(132, 90, 36)
+	tutorialButtonSubtitle.TextSize = 13
+	tutorialButtonSubtitle.TextXAlignment = Enum.TextXAlignment.Left
+	tutorialButtonSubtitle.ZIndex = GUIDE_BASE_Z_INDEX + 3
+	tutorialButtonSubtitle.Parent = tutorialButton
+
 	local guideDock = Instance.new("Frame")
 	guideDock.Name = "GuideDock"
-	guideDock.AnchorPoint = Vector2.new(1, 1)
 	guideDock.BackgroundTransparency = 1
 	guideDock.BorderSizePixel = 0
-	guideDock.Position = UDim2.new(1, -20, 1, -20)
+	guideDock.LayoutOrder = 2
 	guideDock.Size = UDim2.new(0, 236, 0, 64)
-	guideDock.Parent = screenGui
+	guideDock.Parent = guideDockStack
 
 	local guideButton = Instance.new("TextButton")
 	guideButton.Name = "GuideButton"
@@ -930,6 +1224,120 @@ function RootScreen.new(context)
 	guideButtonStroke.Color = Color3.fromRGB(218, 255, 246)
 	guideButtonStroke.Thickness = 5
 	guideButtonStroke.Parent = guideButton
+
+	local tutorialOverlay = Instance.new("Frame")
+	tutorialOverlay.Name = "TutorialOverlay"
+	tutorialOverlay.BackgroundColor3 = Color3.fromRGB(8, 8, 12)
+	tutorialOverlay.BackgroundTransparency = 0.35
+	tutorialOverlay.BorderSizePixel = 0
+	tutorialOverlay.Size = UDim2.fromScale(1, 1)
+	tutorialOverlay.Visible = false
+	tutorialOverlay.ZIndex = GUIDE_BASE_Z_INDEX
+	tutorialOverlay.Parent = screenGui
+
+	local tutorialPanel = Instance.new("Frame")
+	tutorialPanel.Name = "TutorialPanel"
+	tutorialPanel.AnchorPoint = Vector2.new(0.5, 0.5)
+	tutorialPanel.BackgroundColor3 = Color3.fromRGB(255, 248, 225)
+	tutorialPanel.BorderSizePixel = 0
+	tutorialPanel.Position = UDim2.fromScale(0.5, 0.5)
+	tutorialPanel.Size = UDim2.new(0.92, 0, 0.84, 0)
+	tutorialPanel.ZIndex = GUIDE_BASE_Z_INDEX + 1
+	tutorialPanel.Parent = tutorialOverlay
+
+	local tutorialPanelCorner = Instance.new("UICorner")
+	tutorialPanelCorner.CornerRadius = UDim.new(0, 22)
+	tutorialPanelCorner.Parent = tutorialPanel
+
+	local tutorialPanelStroke = Instance.new("UIStroke")
+	tutorialPanelStroke.Color = Color3.fromRGB(255, 212, 136)
+	tutorialPanelStroke.Thickness = 5
+	tutorialPanelStroke.Parent = tutorialPanel
+
+	local tutorialConstraint = Instance.new("UISizeConstraint")
+	tutorialConstraint.MinSize = Vector2.new(420, 420)
+	tutorialConstraint.MaxSize = Vector2.new(920, 760)
+	tutorialConstraint.Parent = tutorialPanel
+
+	local tutorialPadding = Instance.new("UIPadding")
+	tutorialPadding.PaddingTop = UDim.new(0, 18)
+	tutorialPadding.PaddingBottom = UDim.new(0, 18)
+	tutorialPadding.PaddingLeft = UDim.new(0, 18)
+	tutorialPadding.PaddingRight = UDim.new(0, 18)
+	tutorialPadding.Parent = tutorialPanel
+
+	local tutorialHeader = Instance.new("Frame")
+	tutorialHeader.Name = "TutorialHeader"
+	tutorialHeader.BackgroundTransparency = 1
+	tutorialHeader.Size = UDim2.new(1, 0, 0, 108)
+	tutorialHeader.ZIndex = GUIDE_BASE_Z_INDEX + 2
+	tutorialHeader.Parent = tutorialPanel
+
+	local tutorialTitle = Instance.new("TextLabel")
+	tutorialTitle.BackgroundTransparency = 1
+	tutorialTitle.Size = UDim2.new(1, -52, 0, 34)
+	tutorialTitle.Font = Enum.Font.FredokaOne
+	tutorialTitle.Text = tostring(tutorialGuideData.header.title or "Gem Factory Tutorial")
+	tutorialTitle.TextColor3 = Color3.fromRGB(64, 48, 22)
+	tutorialTitle.TextSize = 34
+	tutorialTitle.TextXAlignment = Enum.TextXAlignment.Left
+	tutorialTitle.ZIndex = GUIDE_BASE_Z_INDEX + 2
+	tutorialTitle.Parent = tutorialHeader
+
+	local tutorialSubtitle = Instance.new("TextLabel")
+	tutorialSubtitle.BackgroundTransparency = 1
+	tutorialSubtitle.Position = UDim2.new(0, 0, 0, 38)
+	tutorialSubtitle.Size = UDim2.new(1, -56, 0, 58)
+	tutorialSubtitle.Font = Enum.Font.GothamBold
+	tutorialSubtitle.Text = tostring(tutorialGuideData.header.subtitle or "Learn the mine-to-Vault loop step by step.")
+	tutorialSubtitle.TextColor3 = Color3.fromRGB(107, 94, 72)
+	tutorialSubtitle.TextSize = 15
+	tutorialSubtitle.TextWrapped = true
+	tutorialSubtitle.TextXAlignment = Enum.TextXAlignment.Left
+	tutorialSubtitle.TextYAlignment = Enum.TextYAlignment.Top
+	tutorialSubtitle.ZIndex = GUIDE_BASE_Z_INDEX + 2
+	tutorialSubtitle.Parent = tutorialHeader
+
+	local tutorialClose = Instance.new("TextButton")
+	tutorialClose.Name = "CloseTutorialButton"
+	tutorialClose.AnchorPoint = Vector2.new(1, 0)
+	tutorialClose.BackgroundColor3 = Color3.fromRGB(255, 136, 121)
+	tutorialClose.BorderSizePixel = 0
+	tutorialClose.Position = UDim2.new(1, 0, 0, 2)
+	tutorialClose.Size = UDim2.new(0, 44, 0, 40)
+	tutorialClose.Font = Enum.Font.FredokaOne
+	tutorialClose.Text = "X"
+	tutorialClose.TextColor3 = Color3.fromRGB(92, 32, 24)
+	tutorialClose.TextSize = 24
+	tutorialClose.ZIndex = GUIDE_BASE_Z_INDEX + 3
+	tutorialClose.Parent = tutorialHeader
+
+	local tutorialCloseCorner = Instance.new("UICorner")
+	tutorialCloseCorner.CornerRadius = UDim.new(0, 12)
+	tutorialCloseCorner.Parent = tutorialClose
+
+	local tutorialContent = Instance.new("ScrollingFrame")
+	tutorialContent.Name = "TutorialContent"
+	tutorialContent.BackgroundTransparency = 1
+	tutorialContent.BorderSizePixel = 0
+	tutorialContent.Position = UDim2.new(0, 0, 0, 118)
+	tutorialContent.Size = UDim2.new(1, 0, 1, -118)
+	tutorialContent.ScrollBarThickness = 7
+	tutorialContent.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	tutorialContent.CanvasSize = UDim2.new(0, 0, 0, 0)
+	tutorialContent.ZIndex = GUIDE_BASE_Z_INDEX + 2
+	tutorialContent.Parent = tutorialPanel
+
+	local tutorialContentPadding = Instance.new("UIPadding")
+	tutorialContentPadding.PaddingBottom = UDim.new(0, 4)
+	tutorialContentPadding.Parent = tutorialContent
+
+	local tutorialContentLayout = Instance.new("UIListLayout")
+	tutorialContentLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	tutorialContentLayout.Padding = UDim.new(0, 12)
+	tutorialContentLayout.Parent = tutorialContent
+
+	rebuildTutorialContent(tutorialContent, tutorialGuideData)
 
 	local guideOverlay = Instance.new("Frame")
 	guideOverlay.Name = "GuideOverlay"
@@ -1618,6 +2026,10 @@ function RootScreen.new(context)
 	shopPanel.ZIndex = SHOP_BASE_Z_INDEX + 1
 	shopOverlay.ZIndex = SHOP_BASE_Z_INDEX
 	shopClose.ZIndex = SHOP_BASE_Z_INDEX + 4
+	applyGuiZIndex(tutorialPanel, GUIDE_BASE_Z_INDEX + 2)
+	tutorialPanel.ZIndex = GUIDE_BASE_Z_INDEX + 1
+	tutorialOverlay.ZIndex = GUIDE_BASE_Z_INDEX
+	tutorialClose.ZIndex = GUIDE_BASE_Z_INDEX + 4
 	applyGuiZIndex(guidePanel, GUIDE_BASE_Z_INDEX + 2)
 	guidePanel.ZIndex = GUIDE_BASE_Z_INDEX + 1
 	guideOverlay.ZIndex = GUIDE_BASE_Z_INDEX
@@ -1667,6 +2079,14 @@ function RootScreen.new(context)
 			closeButton = vaultClose,
 			coinLabel = coinLabel,
 		},
+		tutorial = {
+			overlay = tutorialOverlay,
+			button = tutorialButton,
+			closeButton = tutorialClose,
+			content = tutorialContent,
+			title = tutorialTitle,
+			subtitle = tutorialSubtitle,
+		},
 		guide = {
 			overlay = guideOverlay,
 			button = guideButton,
@@ -1681,6 +2101,7 @@ function RootScreen.new(context)
 			chartTabButton = chartTabButton,
 			collectionTabButton = collectionTabButton,
 			activeTab = "chart",
+			hoveredResourceId = nil,
 			chartSubtitleText = initialGuideSummary.subtitleText,
 			collectionSubtitleText = "Collect resources to light up your guide bubbles.",
 		},
@@ -1728,9 +2149,28 @@ function RootScreen.new(context)
 		vaultOverlay.Visible = false
 	end)
 
+	tutorialButton.Activated:Connect(function()
+		local nextVisible = not tutorialOverlay.Visible
+		tutorialOverlay.Visible = nextVisible
+		if nextVisible then
+			guideOverlay.Visible = false
+		end
+		playGuideButtonSound(nextVisible)
+	end)
+
+	tutorialClose.Activated:Connect(function()
+		if tutorialOverlay.Visible then
+			tutorialOverlay.Visible = false
+			playGuideButtonSound(false)
+		end
+	end)
+
 	guideButton.Activated:Connect(function()
 		local nextVisible = not guideOverlay.Visible
 		guideOverlay.Visible = nextVisible
+		if nextVisible then
+			tutorialOverlay.Visible = false
+		end
 		playGuideButtonSound(nextVisible)
 	end)
 
@@ -1750,6 +2190,7 @@ function RootScreen.new(context)
 	end)
 
 	self:setShopMenuVisible(false)
+	self:setTutorialVisible(false)
 	self:setResourceGuideVisible(false)
 	self:setResourceGuideTab("chart")
 	self:setOpenReadyGeodeButton(false, "Open Ready Geode")
@@ -1847,7 +2288,7 @@ local function normalizeCelebrationSpec(inputValue)
 	if spec.kind == "coin" then
 		spec.compact = true
 		if spec.textColor == nil then
-			spec.textColor = Color3.fromRGB(255, 249, 214)
+			spec.textColor = COIN_COUNTER_YELLOW
 		end
 	end
 
@@ -2049,20 +2490,24 @@ function RootScreen:_pumpCelebrationQueue()
 
 		local isCoin = spec.kind == "coin"
 		local width = if isCoin then 260 elseif spec.compact == true then 300 elseif spec.showSlotMachine == true then 460 else 360
-		local height = if isCoin then 52 elseif spec.compact == true then 68 elseif spec.showSlotMachine == true then 212 else 104
+		local height = GeodePresentation.getCelebrationPopupMinHeight(
+			spec.kind,
+			spec.showSlotMachine,
+			spec.compact,
+			spec.rarityIndex
+		)
 		if spec.kind == "geode_discovery" then
 			local ri = math.clamp(spec.rarityIndex or 1, 1, 10)
 			width = math.clamp(320 + (ri - 1) * 22, 320, 520)
-			height = math.clamp(110 + (ri - 1) * 18, 110, 280)
-		elseif spec.kind == "attribute" then
-			height = if spec.showSlotMachine == true then 276 else 222
-		elseif spec.kind == "resource" then
-			height = if spec.showSlotMachine == true then 276 else 132
-		elseif spec.kind == "geode" then
-			height = if spec.showSlotMachine == true then 260 else 132
 		end
 		local popup = makePopup(self.miningPopupContainer, tone.background, tone.accent, width, height)
 		if isCoin then
+			tone = {
+				background = tone.background,
+				accent = tone.accent,
+				highlight = tone.highlight,
+				text = COIN_POPUP_GOLD_TEXT,
+			}
 			local popupStroke = popup:FindFirstChildWhichIsA("UIStroke")
 			if popupStroke ~= nil then
 				popupStroke:Destroy()
@@ -2072,9 +2517,24 @@ function RootScreen:_pumpCelebrationQueue()
 				popupGradient:Destroy()
 			end
 			popup.BackgroundTransparency = 1
-			-- Let coin bursts roam across a wider center band so repeated mining does not stack every reward in one narrow lane.
-			local randX = 0.5 + (math.random() - 0.5) * 0.64
-			local randY = 0.34 + ((math.random() - 0.5) * 0.24)
+			local containerSize = self.miningPopupContainer.AbsoluteSize
+			local halfWidthScale = if containerSize.X > 0 then (width * 0.5) / containerSize.X else 0.14
+			local popupHeightScale = if containerSize.Y > 0 then height / containerSize.Y else 0.08
+			-- Keep coin bursts in a much wider center-weighted band while respecting the popup size so the text stays readable on-screen.
+			local minX = math.max(0.08, halfWidthScale + 0.02)
+			local maxX = math.min(0.92, 1 - halfWidthScale - 0.02)
+			local minY = 0.14
+			local maxY = math.min(0.68, 1 - popupHeightScale - 0.04)
+			if maxX < minX then
+				minX = 0.5
+				maxX = 0.5
+			end
+			if maxY < minY then
+				minY = 0.34
+				maxY = 0.34
+			end
+			local randX = minX + (math.random() * (maxX - minX))
+			local randY = minY + (math.random() * (maxY - minY))
 			popup.Position = UDim2.new(randX, 0, randY, 0)
 		end
 		if spec.kind == "geode_discovery" then
@@ -2654,6 +3114,10 @@ function RootScreen:setResourceGuideVisible(visible)
 	self.guide.overlay.Visible = visible
 end
 
+function RootScreen:setTutorialVisible(visible)
+	self.tutorial.overlay.Visible = visible
+end
+
 function RootScreen:setResourceGuideData(pickaxeId: string?, collectionState: any?)
 	local summary = ResourceGuide.getGuideSummary(pickaxeId)
 	local collectionSlots = ResourceGuide.getCollectionSlots(collectionState)
@@ -2674,11 +3138,7 @@ function RootScreen:setResourceGuideData(pickaxeId: string?, collectionState: an
 		then self.guide.collectionSubtitleText
 		else self.guide.chartSubtitleText
 	rebuildGuideRows(self.guide.rows, ResourceGuide.getGuideRows(summary.pickaxeId), summary.hintText)
-	rebuildCollectionGrid(self.guide.collectionGrid, collectionSlots, {
-		hoverTitle = self.guide.hoverTitle,
-		hoverRarity = self.guide.hoverRarity,
-		hoverAttributes = self.guide.hoverAttributes,
-	})
+	rebuildCollectionGrid(self.guide.collectionGrid, collectionSlots, self.guide)
 end
 
 function RootScreen:getVaultItemContainer()
