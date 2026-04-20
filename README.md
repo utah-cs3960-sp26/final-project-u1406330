@@ -12,6 +12,9 @@ Compared to what I proposed a couple weeks earlier, I ended up reworking a lot o
 
 So overall, I would say the final product matches the original proposal in its core concept, but not in every exact mechanic. The game ended up being a more developed and polished version of the same idea, with changes made throughout development to make the gameplay better and more interesting.
 
+https://www.youtube.com/watch?v=2LFV2AdMyIo
+
+Above is the video link.
 ## Start Here
 
 For the fastest context, read these in order:
