@@ -15,6 +15,11 @@ So overall, I would say the final product matches the original proposal in its c
 https://www.youtube.com/watch?v=2LFV2AdMyIo
 
 Above is the video link.
+
+You can play the game here, 
+
+https://www.roblox.com/games/71249680786295/Gem-Factory
+
 ## Start Here
 
 For the fastest context, read these in order:
